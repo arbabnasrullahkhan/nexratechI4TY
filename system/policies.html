@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — LEGAL & POLICIES HUB (system/policies.html)
+  ============================================================================
+  ARCHITECTURE: 100% Firebase Pure. No hardcoded legal text.
+  All policy content fetched from Firestore: settings/legal.{privacyHtml, termsHtml, refundHtml, licenseHtml}
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>Legal & Policies | Nexra Tech PK</title>
+    <meta name="description" id="meta-desc" content="Official Privacy Policy, Terms of Service, Refund Policy, and License Agreements for Nexra Tech PK.">
+    <meta name="author" content="Nexra Tech PK">
+    <link rel="canonical" id="meta-canonical" href="https://nexratech.pk/system/policies.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" id="og-title" content="Legal & Policies | Nexra Tech PK">
+    <meta property="og:description" id="og-desc" content="Read our full Privacy Policy, Terms of Service, Refund Policy, and License Agreements.">
+    <meta property="og:url" id="og-url" content="https://nexratech.pk/system/policies.html">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="tw-title" content="Legal & Policies | Nexra Tech PK">
+
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/policies.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+    <!-- Dynamic JSON-LD Mount -->
+    <script type="application/ld+json" id="pl-json-ld">{}</script>
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <main class="pl-container" role="main">
+
+        <!-- PAGE HERO -->
+        <header class="pl-hero">
+            <h1 class="tech-font">Legal &amp; Policies</h1>
+            <p>Transparency, trust, and legal clarity for every Nexra Tech PK interaction.</p>
+            <div class="pl-last-updated">Last Updated: <span id="pl-last-updated">—</span></div>
+        </header>
+
+        <!-- STICKY TAB NAVIGATION -->
+        <nav class="pl-tab-nav" id="pl-tab-nav" role="tablist">
+            <button class="pl-tab active" role="tab" onclick="NexraPolicies.switchTab('privacy', this)">
+                <i class="fa-solid fa-shield-halved"></i> Privacy
+            </button>
+            <button class="pl-tab" role="tab" onclick="NexraPolicies.switchTab('terms', this)">
+                <i class="fa-solid fa-file-contract"></i> Terms
+            </button>
+            <button class="pl-tab" role="tab" onclick="NexraPolicies.switchTab('refund', this)">
+                <i class="fa-solid fa-rotate-left"></i> Refunds
+            </button>
+            <button class="pl-tab" role="tab" onclick="NexraPolicies.switchTab('license', this)">
+                <i class="fa-solid fa-key"></i> Licenses
+            </button>
+        </nav>
+
+        <!-- CONTENT AREA -->
+        <div class="pl-content-wrap">
+            <!-- Watermark Canvas -->
+            <canvas id="pl-watermark-canvas" class="pl-watermark"></canvas>
+
+            <!-- Skeleton -->
+            <div id="pl-skeleton" class="pl-skeleton">
+                <div class="skeleton" style="height:32px; width:60%; border-radius:8px; margin-bottom:16px;"></div>
+                <div class="skeleton" style="height:16px; border-radius:6px; margin-bottom:10px;"></div>
+                <div class="skeleton" style="height:16px; border-radius:6px; margin-bottom:10px; width:90%;"></div>
+                <div class="skeleton" style="height:16px; border-radius:6px; margin-bottom:10px; width:80%;"></div>
+                <div class="skeleton" style="height:24px; width:50%; border-radius:8px; margin:24px 0 12px;"></div>
+                <div class="skeleton" style="height:16px; border-radius:6px; margin-bottom:10px;"></div>
+                <div class="skeleton" style="height:16px; border-radius:6px; margin-bottom:10px; width:85%;"></div>
+                <div class="skeleton" style="height:16px; border-radius:6px; margin-bottom:10px; width:75%;"></div>
+            </div>
+
+            <!-- Policy Document -->
+            <article id="pl-doc" class="pl-doc" style="display:none;"></article>
+
+            <!-- Empty State -->
+            <div id="pl-empty" class="pl-empty-state" style="display:none;">
+                <i class="fa-solid fa-file-circle-xmark"></i>
+                <h3>Document Unavailable</h3>
+                <p>This policy document could not be loaded. Please try again later.</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- FLOATING PRINT BUTTON -->
+    <button class="pl-fab-print" onclick="window.print()" title="Print / Save PDF">
+        <i class="fa-solid fa-print"></i>
+    </button>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/policies.js"></script>
+    <script>
+        (function() {
+            const t = localStorage.getItem('nexra_theme');
+            if (t === 'dark') document.body.setAttribute('data-theme', 'dark');
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount' },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'   },
+                { file: '/components/dock.html',        mount: '#dock-mount'   },
+                { file: '/components/footer.html',      mount: '#footer-mount' }
+            ]).then(function() { NexraPolicies.init(); })
+              .catch(function() { NexraPolicies.init(); });
+        })();
+    </script>
+</body>
+</html>

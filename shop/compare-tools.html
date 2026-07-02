@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — SAAS COMPARISON ENGINE (shop/compare-tools.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Compare SaaS Tools & Scripts | Nexra Tech PK</title>
+    <meta name="description" content="Side-by-side comparison of premium SaaS tools, scripts, and UI kits. Find the perfect fit for your agency.">
+    <!-- Enterprise Marketing Meta -->
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://nexratech.pk/shop/compare-tools.html">
+    <meta property="og:title" content="SaaS Comparison Engine | Nexra Tech PK">
+    <meta property="og:description" content="Compare features, pricing, and technical specifications side-by-side.">
+    <meta property="og:type" content="website">
+    <meta property="og:image" content="/assets/og-compare.jpg">
+    
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/compare.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+    
+    <!-- JSON-LD WebPage Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Compare SaaS Tools",
+      "description": "Interactive matrix to compare multiple Nexra Tech PK products.",
+      "url": "https://nexratech.pk/shop/compare-tools.html"
+    }
+    </script>
+</head>
+<body data-theme="dark" class="comp-theme">
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <main class="comp-container" role="main">
+        
+        <div class="comp-hero">
+            <h1 class="tech-font"><i class="fa-solid fa-code-compare" style="color:#a855f7;"></i> Comparison Engine</h1>
+            <p>Select up to 3 products to evaluate technical specs, pricing, and features side-by-side.</p>
+        </div>
+
+        <!-- Search Bar -->
+        <div class="comp-search-wrapper">
+            <div class="comp-search-box">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="comp-search" placeholder="Search for a product to add to the matrix..." autocomplete="off">
+            </div>
+            <!-- Dropdown Results -->
+            <div class="comp-dropdown" id="comp-dropdown" style="display:none;">
+                <!-- Populated by JS -->
+            </div>
+        </div>
+
+        <!-- Matrix Wrapper (Horizontal Scroll on Mobile) -->
+        <div class="comp-matrix-container">
+            <table class="comp-matrix">
+                <thead>
+                    <tr id="matrix-head">
+                        <th class="matrix-label-col">Specs & Features</th>
+                        <!-- Slots injected via JS -->
+                        <td class="empty-slot" id="slot-1">
+                            <div class="es-box"><i class="fa-solid fa-plus"></i><br>Add Product</div>
+                        </td>
+                        <td class="empty-slot" id="slot-2">
+                            <div class="es-box"><i class="fa-solid fa-plus"></i><br>Add Product</div>
+                        </td>
+                        <td class="empty-slot" id="slot-3">
+                            <div class="es-box"><i class="fa-solid fa-plus"></i><br>Add Product</div>
+                        </td>
+                    </tr>
+                </thead>
+                <tbody id="matrix-body">
+                    <!-- Pricing Row -->
+                    <tr id="row-price">
+                        <th class="matrix-label-col"><i class="fa-solid fa-tag"></i> Price</th>
+                        <td class="empty-cell" id="c1-price">--</td>
+                        <td class="empty-cell" id="c2-price">--</td>
+                        <td class="empty-cell" id="c3-price">--</td>
+                    </tr>
+                    <!-- Rating Row -->
+                    <tr id="row-rating">
+                        <th class="matrix-label-col"><i class="fa-solid fa-star"></i> Rating</th>
+                        <td class="empty-cell" id="c1-rating">--</td>
+                        <td class="empty-cell" id="c2-rating">--</td>
+                        <td class="empty-cell" id="c3-rating">--</td>
+                    </tr>
+                    <!-- Updates Row -->
+                    <tr id="row-updates">
+                        <th class="matrix-label-col"><i class="fa-solid fa-clock-rotate-left"></i> Lifetime Updates</th>
+                        <td class="empty-cell" id="c1-updates">--</td>
+                        <td class="empty-cell" id="c2-updates">--</td>
+                        <td class="empty-cell" id="c3-updates">--</td>
+                    </tr>
+                    <!-- Framework Row -->
+                    <tr id="row-framework">
+                        <th class="matrix-label-col"><i class="fa-solid fa-layer-group"></i> Framework</th>
+                        <td class="empty-cell" id="c1-framework">--</td>
+                        <td class="empty-cell" id="c2-framework">--</td>
+                        <td class="empty-cell" id="c3-framework">--</td>
+                    </tr>
+                    <!-- Action Row -->
+                    <tr id="row-action">
+                        <th class="matrix-label-col">Action</th>
+                        <td class="empty-cell" id="c1-action"></td>
+                        <td class="empty-cell" id="c2-action"></td>
+                        <td class="empty-cell" id="c3-action"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/compare.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'},
+                {file:'/components/footer.html',mount:'#footer-mount'}
+            ]).then(()=>NexraCompare.init()).catch(()=>NexraCompare.init());
+        })();
+    </script>
+</body>
+</html>

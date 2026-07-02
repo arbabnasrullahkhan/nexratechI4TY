@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — REAL-TIME ORDER TRACKING (shop/order-tracking.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Real-Time Order Tracking & Logistics Portal.        │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html                          │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - URL Params ?orderId= & ?hash= routing.                           │
+  │  - Animated Vertical Progress Stepper (Physical vs Digital sync).   │
+  │  - Strict Auth/Hash ownership validation & anti-clickjacking.       │
+  │  - Live Support Chat FAB & Vault Redirect engines.                  │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+
+    <!-- Anti-Clickjacking Frame Buster -->
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script type="text/javascript">
+        if (self === top) { var antiClickjack = document.getElementById("antiClickjack"); antiClickjack.parentNode.removeChild(antiClickjack); }
+        else { top.location = self.location; }
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STRICT ENTERPRISE SECURITY & ANTI-SCRAPING (No Index)
+         ════════════════════════════════════════════════════════════════ -->
+    <title>Order Tracking | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/order-tracking.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN TRACKING LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="trk-main" class="trk-container" role="main">
+        
+        <!-- SKELETON LOADER -->
+        <div id="trk-skeleton" class="trk-skeleton-wrap">
+            <div class="skeleton" style="height: 120px; border-radius: 20px; margin-bottom: 30px;"></div>
+            <div style="display: grid; gap: 30px; grid-template-columns: 1fr; @media(min-width:992px){grid-template-columns: 1fr 400px;}">
+                <div class="skeleton" style="height: 400px; border-radius: 20px;"></div>
+                <div class="skeleton" style="height: 300px; border-radius: 20px;"></div>
+            </div>
+        </div>
+
+        <!-- ERROR STATE (Not Found / Unauthorized) -->
+        <div id="trk-error" class="trk-error-state" style="display: none;">
+            <i class="fa-solid fa-circle-exclamation"></i>
+            <h2 class="tech-font" id="trk-error-title">Tracking Unavailable</h2>
+            <p id="trk-error-desc">We couldn't locate this order. Please verify your tracking link or log in to view your order history.</p>
+            <a href="/user/auth-gate.html" class="btn trk-btn-outline" id="trk-btn-login" style="margin-top:20px; display:none;">Login to Verify</a>
+        </div>
+
+        <!-- TRACKING CONTENT (Hidden until authorized) -->
+        <div id="trk-content" style="display: none; animation: trkFadeIn 0.5s forwards;">
+            
+            <!-- HERO HEADER -->
+            <header class="trk-hero">
+                <div class="trk-hero-info">
+                    <h1 class="tech-font">Order <span id="trk-order-id">#NX-000000</span></h1>
+                    <p>Placed on <span id="trk-order-date">...</span></p>
+                </div>
+                <div class="trk-hero-status" id="trk-global-badge">Processing</div>
+            </header>
+
+            <div class="trk-grid">
+                
+                <!-- LEFT: ANIMATED PROGRESS STEPPER -->
+                <section class="trk-stepper-card">
+                    <h2 class="tech-font trk-section-title"><i class="fa-solid fa-truck-fast"></i> Live Status</h2>
+                    
+                    <div class="trk-stepper" id="trk-stepper">
+                        <!-- Step 1: Placed -->
+                        <div class="trk-step" id="step-placed">
+                            <div class="trk-step-icon"><i class="fa-solid fa-check"></i></div>
+                            <div class="trk-step-content">
+                                <h3>Order Placed</h3>
+                                <p>We've received your order securely.</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Step 2: Payment -->
+                        <div class="trk-step" id="step-payment">
+                            <div class="trk-step-icon"><i class="fa-solid fa-file-invoice-dollar"></i></div>
+                            <div class="trk-step-content">
+                                <h3>Payment Verified</h3>
+                                <p>Transaction successfully processed.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Processing -->
+                        <div class="trk-step" id="step-processing">
+                            <div class="trk-step-icon"><i class="fa-solid fa-box-open"></i></div>
+                            <div class="trk-step-content">
+                                <h3>Processing</h3>
+                                <p id="txt-processing">Preparing your digital assets.</p>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Shipped / Delivered (Dynamic) -->
+                        <div class="trk-step" id="step-final">
+                            <div class="trk-step-icon"><i class="fa-solid fa-vault"></i></div>
+                            <div class="trk-step-content">
+                                <h3 id="title-final">Assets Delivered</h3>
+                                <p id="txt-final">Your files are ready in the Digital Vault.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Digital Vault / Tracking Link Button -->
+                    <div class="trk-action-box" id="trk-action-box" style="display:none;">
+                        <button class="btn btn-primary trk-btn-action" id="trk-btn-vault" onclick="NexraTracker.routeAction()">
+                            <i class="fa-solid fa-lock"></i> Open Digital Vault
+                        </button>
+                    </div>
+                </section>
+
+                <!-- RIGHT: ORDER SUMMARY -->
+                <aside class="trk-summary-card">
+                    <h2 class="tech-font trk-section-title"><i class="fa-solid fa-receipt"></i> Order Summary</h2>
+                    
+                    <div class="trk-items-list" id="trk-items-list">
+                        <!-- Items injected by JS -->
+                    </div>
+
+                    <div class="trk-math">
+                        <div class="trk-math-row">
+                            <span>Subtotal</span>
+                            <span id="trk-subtotal">Rs. 0</span>
+                        </div>
+                        <div class="trk-math-row" id="trk-promo-row" style="display:none; color:var(--success);">
+                            <span>Discount Applied</span>
+                            <span id="trk-discount">- Rs. 0</span>
+                        </div>
+                        <div class="trk-math-row trk-math-total">
+                            <span>Total Paid</span>
+                            <span class="trk-total-val" id="trk-total">Rs. 0</span>
+                        </div>
+                    </div>
+                </aside>
+
+            </div>
+
+        </div>
+    </main>
+
+    <!-- FLOATING LIVE SUPPORT BUTTON -->
+    <a href="/support/support-hub.html" class="trk-fab-support" id="trk-fab-support">
+        <i class="fa-solid fa-headset"></i>
+        <span>Live Support</span>
+    </a>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/order-tracking.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraTrackerBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  }
+            ]).then(function () {
+                NexraTracker.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraTracker) NexraTracker.init();
+            });
+        })();
+    </script>
+</body>
+</html>

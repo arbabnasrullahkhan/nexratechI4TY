@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — GAMIFIED FEEDBACK HUB (user/feedback.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Strict Anti-Clickjacking Frame Buster -->
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script>if(self===top){document.getElementById('antiClickjack').remove();}else{top.location=self.location;}</script>
+    <title>Submit Feedback | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/feedback.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body data-theme="dark" class="fb-theme">
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <main class="fb-container" role="main">
+        
+        <div class="fb-hero">
+            <h1 class="tech-font">Help Us Improve</h1>
+            <p>Report bugs, request features, or drop some praise. Earn <strong style="color:#fbbf24;">10 Nexra Coins</strong> for valid submissions!</p>
+        </div>
+
+        <form class="fb-form" id="fb-form" onsubmit="event.preventDefault(); NexraFeedback.submit();">
+            
+            <!-- Category Selection -->
+            <div class="fb-group">
+                <label class="fb-label">1. What's this about?</label>
+                <div class="fb-category-grid">
+                    <label class="fb-cat-box">
+                        <input type="radio" name="fb_category" value="bug" required>
+                        <div class="fbc-inner"><i class="fa-solid fa-bug" style="color:#ef4444;"></i> Report a Bug</div>
+                    </label>
+                    <label class="fb-cat-box">
+                        <input type="radio" name="fb_category" value="feature">
+                        <div class="fbc-inner"><i class="fa-solid fa-lightbulb" style="color:#fbbf24;"></i> Feature Request</div>
+                    </label>
+                    <label class="fb-cat-box">
+                        <input type="radio" name="fb_category" value="praise">
+                        <div class="fbc-inner"><i class="fa-solid fa-heart" style="color:#ec4899;"></i> Leave Praise</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Rating System -->
+            <div class="fb-group">
+                <label class="fb-label">2. Rate your overall experience</label>
+                <div class="fb-rating" id="fb-rating-system">
+                    <i class="fa-solid fa-star rate-star" data-val="1"></i>
+                    <i class="fa-solid fa-star rate-star" data-val="2"></i>
+                    <i class="fa-solid fa-star rate-star" data-val="3"></i>
+                    <i class="fa-solid fa-star rate-star" data-val="4"></i>
+                    <i class="fa-solid fa-star rate-star" data-val="5"></i>
+                    <input type="hidden" id="fb-rating-val" value="0" required>
+                </div>
+            </div>
+
+            <!-- Details -->
+            <div class="fb-group">
+                <label class="fb-label">3. The Details</label>
+                <textarea id="fb-details" class="fb-textarea" rows="5" placeholder="Please describe what happened or what you'd like to see..." required></textarea>
+            </div>
+
+            <!-- Zero-Cost Base64 Image Upload -->
+            <div class="fb-group">
+                <label class="fb-label">4. Attach Screenshot (Optional)</label>
+                <div class="fb-upload-area" id="fb-dropzone">
+                    <input type="file" id="fb-file" accept="image/*" onchange="NexraFeedback.handleImageUpload(event)" style="display:none;">
+                    <i class="fa-solid fa-cloud-arrow-up" style="font-size:24px; color:#a855f7; margin-bottom:10px;"></i>
+                    <span style="font-size:14px; color:#a1a1aa;">Tap to upload or drag & drop</span>
+                    <span style="font-size:11px; color:#71717a;">Auto-compressed locally (Max 5MB)</span>
+                    <!-- Hidden Canvas for Base64 Processing -->
+                    <canvas id="fb-canvas" style="display:none;"></canvas>
+                </div>
+                <div id="fb-preview-container" style="display:none; margin-top:10px; position:relative;">
+                    <img id="fb-img-preview" src="" style="width:100%; max-width:200px; border-radius:8px; border:1px solid rgba(255,255,255,0.1);">
+                    <button type="button" onclick="NexraFeedback.clearImage()" class="fb-clear-img"><i class="fa-solid fa-xmark"></i></button>
+                    <input type="hidden" id="fb-base64-payload">
+                </div>
+            </div>
+
+            <button type="submit" class="fb-btn-submit" id="btn-submit-fb">
+                Submit Feedback <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+
+    </main>
+
+    <!-- Gamification Success Modal -->
+    <div class="fb-modal-overlay" id="fb-success-modal" style="display:none;">
+        <div class="fb-modal-card">
+            <div class="fbm-confetti">🎉</div>
+            <h2 class="tech-font" style="color:#fff; margin-bottom:10px;">Thank You!</h2>
+            <p style="color:#a1a1aa; font-size:14px; margin-bottom:20px; line-height:1.5;">Your feedback has been routed to our core engineers.</p>
+            
+            <div class="fbm-reward">
+                <i class="fa-solid fa-coins" style="color:#fbbf24; font-size:32px;"></i>
+                <div style="font-size:18px; font-weight:800; color:#fff; margin-top:10px;">+10 Nexra Coins</div>
+                <div style="font-size:12px; color:#fbbf24;">Added to your wallet</div>
+            </div>
+
+            <button class="fb-btn-submit" onclick="window.location.href='/user/dashboard.html'" style="margin-top:24px;">Return to Dashboard</button>
+        </div>
+    </div>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/feedback.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'},
+                {file:'/components/footer.html',mount:'#footer-mount'}
+            ]).then(()=>NexraFeedback.init()).catch(()=>NexraFeedback.init());
+        })();
+    </script>
+</body>
+</html>

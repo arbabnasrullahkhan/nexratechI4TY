@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — CUSTOM 404 PAGE (system/error-404.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>404 — Page Not Found | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/404.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <main class="e4-container" role="main">
+
+        <!-- ANIMATED 404 GRAPHIC -->
+        <div class="e4-graphic">
+            <div class="e4-number">
+                <span class="e4-digit e4-four-l">4</span>
+                <span class="e4-zero">
+                    <i class="fa-solid fa-magnifying-glass e4-search-icon"></i>
+                </span>
+                <span class="e4-digit e4-four-r">4</span>
+            </div>
+            <p class="e4-sub tech-font">Oops — That page got lost in the cloud.</p>
+        </div>
+
+        <!-- SMART SEARCH BAR -->
+        <div class="e4-search-wrap">
+            <div class="e4-search-inner">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="text" id="e4-search" placeholder="Search the marketplace..." 
+                       onkeyup="NexraNotFound.debounceSearch(event)"
+                       aria-label="Search Nexra Tech marketplace">
+                <button onclick="NexraNotFound.triggerSearch()" class="e4-search-btn">Go</button>
+            </div>
+        </div>
+
+        <!-- QUICK NAV LINKS -->
+        <div class="e4-quick-nav">
+            <a href="/" class="e4-nav-btn"><i class="fa-solid fa-house"></i> Home</a>
+            <a href="/discovery/home.html" class="e4-nav-btn"><i class="fa-solid fa-store"></i> Shop</a>
+            <a href="/vip/vip-tiers.html" class="e4-nav-btn"><i class="fa-solid fa-gem"></i> VIP</a>
+            <a href="/support/support-hub.html" class="e4-nav-btn"><i class="fa-solid fa-headset"></i> Support</a>
+        </div>
+
+        <!-- POPULAR DESTINATIONS GRID -->
+        <div class="e4-popular-section">
+            <h2 class="tech-font e4-popular-title">Popular Destinations</h2>
+            <div class="e4-popular-grid" id="e4-popular-grid">
+                <div class="e4-pop-card skeleton" style="height:120px;"></div>
+                <div class="e4-pop-card skeleton" style="height:120px;"></div>
+                <div class="e4-pop-card skeleton" style="height:120px;"></div>
+                <div class="e4-pop-card skeleton" style="height:120px;"></div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/404.js"></script>
+    <script>
+        (function() {
+            const t = localStorage.getItem('nexra_theme');
+            if (t === 'dark') document.body.setAttribute('data-theme', 'dark');
+            NexraComponents.load([
+                { file: '/components/header.html', mount: '#header-mount' },
+                { file: '/components/dock.html',   mount: '#dock-mount'   },
+                { file: '/components/footer.html', mount: '#footer-mount' }
+            ]).then(function() { NexraNotFound.init(); })
+              .catch(function() { NexraNotFound.init(); });
+        })();
+    </script>
+</body>
+</html>

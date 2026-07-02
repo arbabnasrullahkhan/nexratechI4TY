@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — PRODUCT DETAIL PAGE (shop/product-detail.html)
+  Immersive, conversion-optimized PDP for Digital & Physical products
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED for its own content only.                           │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html  (floating island nav)   │
+  │  #sidebar-mount  ← /components/sidebar.html (off-canvas drawer)     │
+  │  #cart-mount     ← /components/cart-drawer.html (shopping cart)     │
+  │  #dock-mount     ← /components/dock.html (mobile bottom dock)       │
+  │  #footer-mount   ← /components/footer.html (enterprise footer)      │
+  │                                                                      │
+  │  STYLE FILES:                                                        │
+  │  /css/global.css          → Shared design tokens & global UI        │
+  │  /css/product-detail.css  → Scoped rules (.pd-*) for this page      │
+  │                                                                      │
+  │  SCRIPT FILES:                                                       │
+  │  /js/app.js               → Global engine (cart, nav, theme)        │
+  │  /js/product-detail.js    → NexraPDP (dynamic rendering, AI, FOMO)  │
+  │  /components/loader.js    → NexraComponents.load()                  │
+  │  /firebaseconfig.js       → Firebase SDK + NexraBrand               │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC SEO META TAGS
+         Populated by NexraPDP._applySEO() based on Firestore data
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="pd-page-title">Loading Product... | Nexra Tech PK</title>
+    <meta name="description" id="pd-meta-desc" content="Discover premium digital and physical products at Nexra Tech PK. Instant automated delivery and verified quality.">
+    <meta name="keywords" id="pd-meta-keywords" content="buy software, saas tools, premium licenses, digital marketplace">
+    <meta name="author" content="Nexra Tech PK">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         CANONICAL URL
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="canonical" id="pd-canonical" href="https://nexratech.pk/shop/product-detail.html">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         THEME COLOR
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         OPEN GRAPH & TWITTER CARDS
+         ════════════════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="product">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:url" id="pd-og-url" content="https://nexratech.pk/shop/product-detail.html">
+    <meta property="og:title" id="pd-og-title" content="Product Detail — Nexra Tech PK">
+    <meta property="og:description" id="pd-og-desc" content="Premium SaaS tools & software licenses.">
+    <meta property="og:image" id="pd-og-image" content="">
+    <meta property="product:price:amount" id="pd-og-price" content="">
+    <meta property="product:price:currency" content="PKR">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="pd-tw-title" content="Product Detail — Nexra Tech PK">
+    <meta name="twitter:description" id="pd-tw-desc" content="Premium SaaS tools & software licenses.">
+    <meta name="twitter:image" id="pd-tw-image" content="">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         JSON-LD PRODUCT SCHEMA
+         Dynamically injected by JS once product loads
+         ════════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json" id="pd-ld-schema">{}</script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC FAVICONS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="">
+    <link rel="shortcut icon" id="dynamic-shortcut-icon" type="image/png" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" sizes="180x180" href="">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/product-detail.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN PDP LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="pd-main" class="pd-container" role="main">
+        
+        <!-- BREADCRUMBS (Skeleton by default) -->
+        <nav class="pd-breadcrumbs" aria-label="Breadcrumb" id="pd-breadcrumbs">
+            <div class="pd-skeleton-text" style="width:200px; height:14px;"></div>
+        </nav>
+
+        <div class="pd-layout">
+            
+            <!-- ── LEFT: MEDIA GALLERY (Sticky on desktop) ── -->
+            <section class="pd-gallery-section">
+                <div class="pd-gallery-sticky">
+                    <!-- Main Display -->
+                    <div class="pd-gallery-main" id="pd-gallery-main" oncontextmenu="return false;" ondragstart="return false;">
+                        <div class="pd-skeleton-rect" style="width:100%; height:100%; position:absolute; inset:0;"></div>
+                    </div>
+                    
+                    <!-- Thumbnails -->
+                    <div class="pd-gallery-thumbs" id="pd-gallery-thumbs">
+                        <div class="pd-skeleton-rect" style="width:70px; height:70px; border-radius:12px;"></div>
+                        <div class="pd-skeleton-rect" style="width:70px; height:70px; border-radius:12px;"></div>
+                        <div class="pd-skeleton-rect" style="width:70px; height:70px; border-radius:12px;"></div>
+                    </div>
+                    
+                    <!-- Watermark Canvas Engine (Invisible) -->
+                    <canvas id="pd-watermark-canvas" style="display:none;"></canvas>
+                    <button class="btn btn-outline pd-download-btn" id="pd-download-btn" onclick="NexraPDP.downloadWatermarkedImage()" aria-label="Download Image" style="width:100%; margin-top:12px; display:none;">
+                        <i class="fa-solid fa-download"></i> Download Secure Image
+                    </button>
+                </div>
+            </section>
+
+            <!-- ── RIGHT: PRODUCT INFO ── -->
+            <section class="pd-info-section">
+                
+                <!-- Badges Row -->
+                <div class="pd-badges-row" id="pd-badges-row">
+                    <div class="pd-skeleton-text" style="width:100px; height:24px; border-radius:50px;"></div>
+                </div>
+
+                <!-- Title & Rating -->
+                <h1 class="pd-title tech-font" id="pd-title">
+                    <div class="pd-skeleton-text" style="width:100%; height:32px; margin-bottom:8px;"></div>
+                    <div class="pd-skeleton-text" style="width:70%; height:32px;"></div>
+                </h1>
+                
+                <div class="pd-rating-row" id="pd-rating-row">
+                    <div class="pd-skeleton-text" style="width:150px; height:16px;"></div>
+                </div>
+
+                <!-- FOMO: Viewers Count -->
+                <div class="pd-fomo-viewers" id="pd-fomo-viewers">
+                    <span class="pd-fomo-dot"></span>
+                    <strong id="pd-viewer-count">--</strong> people are looking at this right now
+                </div>
+
+                <!-- Pricing & Loyalty -->
+                <div class="pd-price-box" id="pd-price-box">
+                    <div class="pd-skeleton-text" style="width:200px; height:40px; margin-bottom:12px;"></div>
+                    <div class="pd-skeleton-text" style="width:120px; height:14px;"></div>
+                </div>
+                
+                <div class="pd-loyalty-strip" id="pd-loyalty-strip" hidden>
+                    <i class="fa-solid fa-coins" style="color:#f59e0b;"></i>
+                    Earn <strong id="pd-coins-earned">0</strong> Nexra Coins with this purchase
+                </div>
+
+                <!-- Short Description -->
+                <div class="pd-short-desc" id="pd-short-desc">
+                    <div class="pd-skeleton-text" style="width:100%; height:14px; margin-bottom:6px;"></div>
+                    <div class="pd-skeleton-text" style="width:90%; height:14px; margin-bottom:6px;"></div>
+                    <div class="pd-skeleton-text" style="width:95%; height:14px;"></div>
+                </div>
+
+                <!-- Dynamic Type Info (Shipping vs Instant Delivery) -->
+                <div class="pd-type-info" id="pd-type-info">
+                    <div class="pd-skeleton-rect" style="width:100%; height:70px; border-radius:12px;"></div>
+                </div>
+
+                <!-- Actions (Desktop primarily, mirrored on mobile island) -->
+                <div class="pd-actions-row">
+                    <button class="pd-btn-buy" id="pd-btn-buy" onclick="NexraPDP.buyNow()" disabled>
+                        <i class="fa-solid fa-bolt"></i> BUY NOW
+                    </button>
+                    <button class="pd-btn-cart" id="pd-btn-cart" onclick="NexraPDP.addToCart(event)" disabled>
+                        <i class="fa-solid fa-cart-plus"></i> ADD TO CART
+                    </button>
+                    <button class="pd-btn-wishlist" id="pd-btn-wishlist" onclick="NexraPDP.toggleWishlist(event)" aria-label="Add to Wishlist">
+                        <i class="fa-regular fa-heart"></i>
+                    </button>
+                </div>
+
+                <!-- Affiliate / Share -->
+                <div class="pd-affiliate-box">
+                    <div class="pd-affiliate-header">
+                        <i class="fa-solid fa-link"></i> Earn 10% Commission
+                    </div>
+                    <div class="pd-affiliate-body">
+                        <input type="text" id="pd-affiliate-link" class="pd-affiliate-input" readonly value="Loading...">
+                        <button class="pd-affiliate-copy" onclick="NexraPDP.copyAffiliateLink()">Copy</button>
+                    </div>
+                </div>
+
+                <!-- Trust Badges -->
+                <div class="pd-trust-grid">
+                    <div class="pd-trust-item"><i class="fa-solid fa-shield-halved"></i> Secure Checkout</div>
+                    <div class="pd-trust-item"><i class="fa-solid fa-rotate-left"></i> Replacement Policy</div>
+                    <div class="pd-trust-item"><i class="fa-solid fa-headset"></i> 24/7 Support</div>
+                </div>
+
+            </section>
+        </div><!-- /.pd-layout -->
+
+        <!-- ── BOTTOM: RICH HTML DESCRIPTION ── -->
+        <section class="pd-long-desc-wrap">
+            <h2 class="pd-section-title tech-font">Product Details</h2>
+            <div class="pd-long-desc" id="pd-long-desc">
+                <div class="pd-skeleton-text" style="width:100%; height:14px; margin-bottom:10px;"></div>
+                <div class="pd-skeleton-text" style="width:100%; height:14px; margin-bottom:10px;"></div>
+                <div class="pd-skeleton-text" style="width:80%; height:14px; margin-bottom:10px;"></div>
+                <div class="pd-skeleton-text" style="width:100%; height:14px; margin-bottom:10px;"></div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FLOATING ACTION ISLAND (Mobile Only)
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="pd-mobile-island" id="pd-mobile-island">
+        <div class="pd-island-price" id="pd-island-price">
+            <div class="pd-skeleton-text" style="width:60px; height:18px;"></div>
+        </div>
+        <div class="pd-island-actions">
+            <button class="pd-island-wa" id="pd-island-wa" onclick="NexraPDP.openWhatsApp()" aria-label="WhatsApp Support">
+                <i class="fa-brands fa-whatsapp"></i>
+            </button>
+            <button class="pd-island-buy" id="pd-island-buy" onclick="NexraPDP.buyNow()" disabled>
+                BUY NOW
+            </button>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TRIPLE-AI ASSISTANT (Floating Chat Widget)
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="pd-ai-widget" id="pd-ai-widget">
+        <button class="pd-ai-toggle" onclick="NexraPDP.toggleAIChat()" aria-label="Ask AI Assistant">
+            <i class="fa-solid fa-robot"></i>
+            <span class="pd-ai-pulse"></span>
+        </button>
+        
+        <div class="pd-ai-chat-panel" id="pd-ai-chat-panel">
+            <div class="pd-ai-header">
+                <div>
+                    <strong style="display:block; font-family:'Space Grotesk'; font-size:14px;">Nexra AI Assistant</strong>
+                    <span style="font-size:10px; color:var(--text-300);">Powered by OpenRouter</span>
+                </div>
+                <button class="pd-ai-close" onclick="NexraPDP.toggleAIChat()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="pd-ai-messages" id="pd-ai-messages">
+                <div class="pd-ai-msg system">
+                    Hi! I'm trained on this product's details. Ask me anything in English or Urdu!
+                </div>
+            </div>
+            <div class="pd-ai-input-wrap">
+                <input type="text" id="pd-ai-input" class="pd-ai-input" placeholder="Type your question..." onkeypress="if(event.key==='Enter') NexraPDP.sendAIMessage()">
+                <button class="pd-ai-send" onclick="NexraPDP.sendAIMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         LIVE SALES TICKER (FOMO)
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="pd-sales-ticker" id="pd-sales-ticker">
+        <img class="pd-ticker-img" id="pd-ticker-img" src="" alt="Product">
+        <div class="pd-ticker-info">
+            <div class="pd-ticker-title" id="pd-ticker-title">Someone just bought...</div>
+            <div class="pd-ticker-time" id="pd-ticker-time">Verified purchase • Just now</div>
+        </div>
+    </div>
+
+    <!-- ERROR STATE (Full overlay if product not found) -->
+    <div class="pd-error-overlay" id="pd-error-overlay" hidden>
+        <div class="pd-error-box">
+            <i class="fa-solid fa-triangle-exclamation" style="font-size:48px; color:var(--danger); margin-bottom:16px;"></i>
+            <h2 class="tech-font" style="margin-bottom:8px;">Product Not Found</h2>
+            <p style="color:var(--text-200); margin-bottom:24px; font-size:14px;">This product may have been removed or the link is invalid.</p>
+            <button class="btn btn-primary" onclick="NexraApp.navTo('shop')">Return to Shop</button>
+        </div>
+    </div>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/product-detail.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraPDPBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraPDP.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraPDP) NexraPDP.init();
+            });
+        })();
+    </script>
+</body>
+</html>

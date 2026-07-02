@@ -1,0 +1,46 @@
+{
+  "cleanUrls": true,
+  "trailingSlash": false,
+  "headers": [
+    {
+      "source": "/firebaseconfig.js",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+    },
+    {
+      "source": "/css/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    },
+    {
+      "source": "/js/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=86400" }]
+    },
+    {
+      "source": "/components/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=3600" }]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/home",
+      "destination": "/discovery/home.html",
+      "permanent": false
+    },
+    {
+      "source": "/home.html",
+      "destination": "/discovery/home.html",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/((?!css/|js/|discovery/|shop/|freebies/|academy/|user/|reseller/|vip/|support/|system/|admin/|components/|PIC LOGO/|.*\\..*$).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "routes": [
+    {
+      "src": "/404",
+      "dest": "/system/error-404.html"
+    }
+  ]
+}

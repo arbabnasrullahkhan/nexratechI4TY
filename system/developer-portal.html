@@ -1,0 +1,184 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — DEVELOPER API & WEBHOOKS PORTAL (system/developer-portal.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Developer API & Webhooks | Nexra Tech PK</title>
+    <meta name="description" content="Official developer documentation for Nexra Tech PK. Explore REST APIs, webhook architecture, and integration guides for B2B partners.">
+    <!-- Enterprise SEO Configuration -->
+    <meta name="robots" content="index, follow">
+    <meta property="og:title" content="Developer API | Nexra Tech PK">
+    <meta property="og:description" content="Integrate with the Nexra Tech PK ecosystem using our secure, high-performance REST APIs and real-time Webhooks.">
+    <meta property="og:type" content="article">
+    <meta property="og:image" content="/assets/og-developer.jpg">
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <!-- Code Editor Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/developer.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+    
+    <!-- JSON-LD API Reference Schema -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "APIReference",
+      "name": "Nexra Tech PK Developer API",
+      "description": "RESTful API and Webhook documentation for Nexra Tech PK ecosystem integrations.",
+      "url": "https://nexratech.pk/system/developer-portal.html",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Nexra Tech PK"
+      }
+    }
+    </script>
+</head>
+<body data-theme="dark" class="dev-theme">
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <main class="dev-container" role="main">
+        
+        <!-- Live System Status Bar -->
+        <div class="dev-status-bar" id="dev-status-bar">
+            <div class="dsb-left">
+                <span class="status-dot"></span>
+                <span id="dsb-text" style="font-weight:700;">API Systems Operational</span>
+            </div>
+            <div class="dsb-metrics">
+                <div class="dsb-metric"><i class="fa-solid fa-stopwatch"></i> Latency: <span id="dsb-latency" style="color:#10b981;">-- ms</span></div>
+            </div>
+        </div>
+
+        <div class="dev-layout">
+            
+            <!-- Sticky Sidebar Index -->
+            <aside class="dev-sidebar">
+                <div class="ds-header tech-font">API Endpoints</div>
+                <ul class="ds-nav">
+                    <li><a href="#auth" class="active">Authentication</a></li>
+                    <li><a href="#products">Product Catalog</a></li>
+                    <li><a href="#orders">Order Submission</a></li>
+                    <li><a href="#webhooks">Webhooks</a></li>
+                </ul>
+            </aside>
+
+            <!-- Main Documentation Area -->
+            <div class="dev-content">
+                
+                <div class="dc-hero">
+                    <h1 class="tech-font"><i class="fa-solid fa-code"></i> Developer Portal</h1>
+                    <p>Build powerful integrations using our secure REST API and real-time event webhooks.</p>
+                </div>
+
+                <!-- Section: Auth -->
+                <section id="auth" class="dc-section">
+                    <h2><i class="fa-solid fa-shield-halved"></i> Authentication</h2>
+                    <p>All API requests must include an Authorization header utilizing a Bearer token issued via Firebase Authentication.</p>
+                    
+                    <div class="code-block">
+                        <div class="cb-header">
+                            <span class="cb-lang">HTTP Request</span>
+                            <button class="cb-copy" onclick="NexraDev.copyCode('code-auth')"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                        <pre><code id="code-auth" class="fira-font">GET /api/v1/protected-resource HTTP/1.1
+Host: api.nexratech.pk
+Authorization: Bearer <span class="syntax-string">YOUR_JWT_TOKEN</span></code></pre>
+                    </div>
+                </section>
+
+                <!-- Section: Products -->
+                <section id="products" class="dc-section">
+                    <h2><i class="fa-solid fa-box-open"></i> Fetch Products</h2>
+                    <p>Retrieve the master product catalog. Supports pagination and category filtering.</p>
+                    
+                    <div class="code-block">
+                        <div class="cb-header">
+                            <span class="cb-lang">GET /api/v1/products</span>
+                            <button class="cb-copy" onclick="NexraDev.copyCode('code-prod-res')"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                        <pre><code id="code-prod-res" class="fira-font">{
+  <span class="syntax-key">"status"</span>: <span class="syntax-number">200</span>,
+  <span class="syntax-key">"data"</span>: [
+    {
+      <span class="syntax-key">"id"</span>: <span class="syntax-string">"prod_xyz"</span>,
+      <span class="syntax-key">"title"</span>: <span class="syntax-string">"SaaS Starter Kit"</span>,
+      <span class="syntax-key">"price"</span>: <span class="syntax-number">25000</span>,
+      <span class="syntax-key">"stock"</span>: <span class="syntax-number">50</span>
+    }
+  ]
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Section: Orders -->
+                <section id="orders" class="dc-section">
+                    <h2><i class="fa-solid fa-cart-arrow-down"></i> Order Submission</h2>
+                    <p>Create a new order securely. Requires a valid cart payload and signed payment intent.</p>
+                    
+                    <div class="code-block">
+                        <div class="cb-header">
+                            <span class="cb-lang">POST /api/v1/orders</span>
+                            <button class="cb-copy" onclick="NexraDev.copyCode('code-order-req')"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+                        <pre><code id="code-order-req" class="fira-font">{
+  <span class="syntax-key">"userId"</span>: <span class="syntax-string">"uid_12345"</span>,
+  <span class="syntax-key">"items"</span>: [
+    { <span class="syntax-key">"productId"</span>: <span class="syntax-string">"prod_xyz"</span>, <span class="syntax-key">"qty"</span>: <span class="syntax-number">1</span> }
+  ],
+  <span class="syntax-key">"paymentIntent"</span>: <span class="syntax-string">"pi_3MtwBw..."</span>
+}</code></pre>
+                    </div>
+                </section>
+
+                <!-- Section: Webhooks -->
+                <section id="webhooks" class="dc-section">
+                    <h2><i class="fa-solid fa-plug"></i> Webhooks</h2>
+                    <p>Listen for asynchronous events such as order fulfillment and license generation.</p>
+                    <div class="webhook-grid">
+                        <div class="wh-card">
+                            <div class="wh-title">order.completed</div>
+                            <div class="wh-desc">Fired when a payment is successful and assets are delivered.</div>
+                        </div>
+                        <div class="wh-card">
+                            <div class="wh-title">license.revoked</div>
+                            <div class="wh-desc">Fired when an admin revokes a software key.</div>
+                        </div>
+                    </div>
+                </section>
+
+            </div>
+        </div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/developer.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'},
+                {file:'/components/footer.html',mount:'#footer-mount'}
+            ]).then(()=>NexraDev.init()).catch(()=>NexraDev.init());
+        })();
+    </script>
+</body>
+</html>

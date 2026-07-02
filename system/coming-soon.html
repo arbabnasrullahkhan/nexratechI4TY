@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — COMING SOON / GLITCH MODULE (system/coming-soon.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Coming Soon | Nexra Tech PK</title>
+    <!-- Prevent indexing of placeholder pages -->
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="theme-color" content="#000000">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&family=Fira+Code:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/coming-soon.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body data-theme="dark" class="cs-theme">
+    <div id="toast-container" aria-live="polite"></div>
+    
+    <!-- We mount the header so users can navigate away -->
+    <div id="header-mount" style="position:relative; z-index:100;"></div>
+
+    <main class="cs-container" role="main">
+        
+        <div class="cs-content">
+            <!-- Glitch Title -->
+            <h1 class="glitch fira-font" data-text="COMING SOON">COMING SOON</h1>
+            
+            <p class="cs-desc">We are actively compiling the next generation of SaaS infrastructure. This module is currently restricted while core engineering is in progress.</p>
+            
+            <div class="cs-terminal fira-font">
+                <div class="cst-header">
+                    <span class="cst-dot red"></span>
+                    <span class="cst-dot yellow"></span>
+                    <span class="cst-dot green"></span>
+                    <span class="cst-title">deploy.sh</span>
+                </div>
+                <div class="cst-body">
+                    <div class="typewriter">> _Compiling ecosystem modules...</div>
+                    <div class="typewriter delay-1">> _Establishing secure endpoints...</div>
+                    <div class="typewriter delay-2">> _Awaiting final authorization...</div>
+                </div>
+            </div>
+
+            <form class="cs-waitlist" id="cs-form" onsubmit="event.preventDefault(); NexraComingSoon.joinWaitlist();">
+                <input type="email" id="cs-email" class="cs-input" placeholder="Enter your email to get early access..." required>
+                <button type="submit" class="cs-btn" id="cs-btn-submit">Initialize Waitlist</button>
+            </form>
+
+        </div>
+
+        <!-- Background grid animation -->
+        <div class="cs-grid-bg"></div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/coming-soon.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'}
+            ]).then(()=>NexraComingSoon.init()).catch(()=>NexraComingSoon.init());
+        })();
+    </script>
+</body>
+</html>

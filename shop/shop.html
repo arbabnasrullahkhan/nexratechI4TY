@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — DIGITAL MARKETPLACE (shop/shop.html)
+  Primary Commerce Module — Self-Contained Page
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED for its own content only.                           │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html  (floating island nav)   │
+  │  #sidebar-mount  ← /components/sidebar.html (off-canvas drawer)     │
+  │  #cart-mount     ← /components/cart-drawer.html (shopping cart)     │
+  │  #dock-mount     ← /components/dock.html (mobile bottom dock)       │
+  │  #footer-mount   ← /components/footer.html (enterprise footer)      │
+  │                                                                      │
+  │  STYLE FILES:                                                        │
+  │  /css/global.css  → Tokens, header, footer, cart, dock, sidebar    │
+  │  /css/shop.css    → All .sp-* scoped rules (this page only)         │
+  │                                                                      │
+  │  SCRIPT FILES:                                                       │
+  │  /js/app.js           → NexraApp (nav, cart, theme, toast)          │
+  │  /js/shop.js          → NexraShopEngine (all dynamic sections)      │
+  │  /components/loader.js→ NexraComponents.load() (component injector) │
+  │  /firebaseconfig.js   → Firebase SDK + NexraBrand + NexraRoutes     │
+  └─────────────────────────────────────────────────────────────────────┘
+
+  FIRESTORE COLLECTIONS USED BY shop.js:
+  ├── products            → main product grid (paginated, 12 per load)
+  │     Fields: id, title, slug, type, category, price, priceUSD,
+  │             salePrice, salePriceUSD, imageUrl, imageBase64,
+  │             stock, isSale, isTrending, isFeatured, isNew,
+  │             tags[], keywords[], rating, reviewCount, deliveryType,
+  │             description, publishedAt, active
+  ├── categories          → category swimlane pills
+  │     Fields: id, label, icon, slug, sortOrder, active
+  ├── banners             → promo banners above grid
+  │     Fields: id, imageUrl, ctaUrl, ctaText, badge, active, sortOrder
+  ├── settings/global     → maintenance mode check
+  │     Fields: maintenanceMode (bool), maintenanceMessage
+  ├── settings/shop       → page config
+  │     Fields: heroTitle, heroSubtitle, usdRate, promoText, promoActive
+  └── users/{uid}/wishlist → wishlist toggles (authenticated only)
+
+  DATA FLOW:
+  1. Firebase SDK loads → window.db, window.auth ready
+  2. NexraComponents.load() fetches all 5 component fragments in parallel
+  3. NexraBrand.refreshDOMAssets() updates .nx-brand-* srcs
+  4. NexraShopEngine.init() fires after all components mount
+  5. Engine reads URL params → ?search= ?category= ?type= ?sort=
+  6. Firestore query built → skeleton shows → products render
+  7. "Load More" appends next page via cursor-based pagination
+  8. Voice search (Web Speech API) feeds into same query flow
+  ============================================================================
+-->
+<head>
+    <!-- ════════════════════════════════════════════════════════════════
+         CHARSET & VIEWPORT
+         ════════════════════════════════════════════════════════════════ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRIMARY SEO META TAGS
+         Updated dynamically by NexraShopEngine.applySEO() from Firestore
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="sp-page-title">Digital Marketplace — Premium SaaS, Software & Tools | Nexra Tech PK</title>
+    <meta name="description" id="sp-meta-desc" content="Browse Pakistan's largest digital marketplace. Buy premium SaaS subscriptions, software licenses, AI tools & digital assets. Instant automated delivery. 1,700+ happy customers.">
+    <meta name="keywords" content="buy software pakistan, saas tools cheap, canva pro pakistan, chatgpt plus buy, capcut pro key, digital marketplace pk, premium software license, nexra tech shop">
+    <meta name="author" content="Nexra Tech PK">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="English">
+    <meta name="category" content="Digital Marketplace, E-commerce, SaaS">
+    <meta name="rating" content="general">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         CANONICAL URL
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="canonical" id="sp-canonical" href="https://nexratech.pk/shop/shop.html">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         THEME COLOR
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PWA META TAGS
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nexra Shop">
+    <meta name="application-name" content="Nexra Tech PK">
+    <meta name="msapplication-TileColor" content="#FF4A17">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         OPEN GRAPH — social sharing previews
+         ════════════════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:locale" content="en_PK">
+    <meta property="og:url" content="https://nexratech.pk/shop/shop.html">
+    <meta property="og:title" id="sp-og-title" content="Digital Marketplace — Nexra Tech PK">
+    <meta property="og:description" id="sp-og-desc" content="Pakistan's most trusted digital marketplace. Buy premium SaaS tools & software licenses — instant delivery.">
+    <meta property="og:image" id="sp-og-image" content="https://nexratech.pk/og-cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Nexra Tech PK Digital Marketplace">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TWITTER CARD
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@NexraTechPK">
+    <meta name="twitter:creator" content="@NexraTechPK">
+    <meta name="twitter:title" id="sp-tw-title" content="Digital Marketplace — Nexra Tech PK">
+    <meta name="twitter:description" id="sp-tw-desc" content="Premium SaaS tools, software licenses & digital assets — instant delivery in Pakistan.">
+    <meta name="twitter:image" id="sp-tw-image" content="https://nexratech.pk/og-cover.jpg">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         JSON-LD STRUCTURED DATA
+         ItemList schema makes product listings eligible for rich
+         snippets in Google Search (product cards in SERPs).
+         NexraShopEngine.injectProductSchema() adds individual
+         Product schemas dynamically after products load.
+         ════════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json" id="sp-ld-website">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://nexratech.pk/#website",
+                "url": "https://nexratech.pk",
+                "name": "Nexra Tech PK",
+                "description": "Pakistan's #1 Digital Ecosystem",
+                "inLanguage": "en-PK",
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                        "@type": "EntryPoint",
+                        "urlTemplate": "https://nexratech.pk/shop/shop.html?search={search_term_string}"
+                    },
+                    "query-input": "required name=search_term_string"
+                }
+            },
+            {
+                "@type": "BreadcrumbList",
+                "@id": "https://nexratech.pk/shop/shop.html#breadcrumb",
+                "itemListElement": [
+                    {
+                        "@type": "ListItem",
+                        "position": 1,
+                        "name": "Home",
+                        "item": "https://nexratech.pk"
+                    },
+                    {
+                        "@type": "ListItem",
+                        "position": 2,
+                        "name": "Digital Marketplace",
+                        "item": "https://nexratech.pk/shop/shop.html"
+                    }
+                ]
+            },
+            {
+                "@type": "ItemList",
+                "@id": "https://nexratech.pk/shop/shop.html#products",
+                "name": "Nexra Tech PK — Digital Marketplace Products",
+                "description": "Premium SaaS tools, software licenses, and digital assets available in Pakistan",
+                "numberOfItems": 0,
+                "itemListElement": []
+            }
+        ]
+    }
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC FAVICONS — targeted by NexraBrand.refreshDOMAssets()
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="">
+    <link rel="shortcut icon" id="dynamic-shortcut-icon" type="image/png" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" sizes="180x180" href="">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PERFORMANCE: DNS PREFETCH & PRECONNECT
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://i.postimg.cc">
+    <link rel="dns-prefetch" href="https://uploads.onecompiler.io">
+    <link rel="dns-prefetch" href="https://ibb.co">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GOOGLE FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FONT AWESOME 6
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GLOBAL STYLESHEET — tokens, header, footer, cart, dock
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SHOP PAGE STYLESHEET — all .sp-* scoped rules
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/shop.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK — must load BEFORE firebaseconfig.js
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE CONFIG & BRANDING ENGINE
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!--
+    ============================================================================
+    BODY STRUCTURE MAP
+    ============================================================================
+    [MOUNT] #toast-container   — Toast notifications (auto-created by NexraApp)
+    [MOUNT] #cart-mount        — Cart drawer + overlay
+    [MOUNT] #sidebar-mount     — Off-canvas sidebar + overlay
+    [MOUNT] #header-mount      — Floating island nav
+    [MAIN]  <main>             — All shop page content
+    [MOUNT] #dock-mount        — Mobile bottom dock
+    [MOUNT] #footer-mount      — Enterprise footer
+    ============================================================================
+    -->
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TOAST CONTAINER
+         Pre-defined for reliability — NexraApp.showToast() reuses this.
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="toast-container" aria-live="polite" aria-label="Notifications"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — CART DRAWER
+         Populated: /components/cart-drawer.html
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="cart-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — SIDEBAR DRAWER
+         Populated: /components/sidebar.html
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="sidebar-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — HEADER
+         Populated: /components/header.html
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MOBILE FILTER BOTTOM SHEET — Shop-specific overlay
+         Toggled by NexraShopEngine.toggleFilterSheet()
+         Populated with active filter controls on mobile
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="sp-filter-sheet-overlay" id="sp-filter-overlay" onclick="NexraShopEngine.closeFilterSheet()" aria-hidden="true"></div>
+
+    <div class="sp-filter-sheet" id="sp-filter-sheet" role="dialog" aria-labelledby="sp-filter-sheet-title" aria-modal="true">
+        <!-- Sheet handle -->
+        <div class="sp-sheet-handle" aria-hidden="true"></div>
+
+        <!-- Sheet header -->
+        <div class="sp-sheet-header">
+            <h2 class="sp-sheet-title" id="sp-filter-sheet-title">
+                <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                Filters & Sort
+            </h2>
+            <button class="sp-sheet-close" id="sp-filter-close-btn" onclick="NexraShopEngine.closeFilterSheet()" aria-label="Close filters">
+                <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+            </button>
+        </div>
+
+        <!-- Sheet content — mirrors desktop sidebar -->
+        <div class="sp-sheet-body" id="sp-sheet-body">
+
+            <!-- Sort section -->
+            <div class="sp-filter-group" id="sp-sheet-sort">
+                <div class="sp-filter-group-title">
+                    <i class="fa-solid fa-arrow-up-wide-short" aria-hidden="true"></i>
+                    Sort By
+                </div>
+                <div class="sp-sort-grid" id="sp-sheet-sort-grid">
+                    <!-- Populated by NexraShopEngine.renderSortOptions() -->
+                </div>
+            </div>
+
+            <!-- Type filter -->
+            <div class="sp-filter-group" id="sp-sheet-type">
+                <div class="sp-filter-group-title">
+                    <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                    Product Type
+                </div>
+                <div class="sp-check-list" id="sp-sheet-type-list">
+                    <!-- Populated by NexraShopEngine.renderTypeFilters() -->
+                </div>
+            </div>
+
+            <!-- Price range -->
+            <div class="sp-filter-group" id="sp-sheet-price">
+                <div class="sp-filter-group-title">
+                    <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                    Price Range (Rs.)
+                </div>
+                <div class="sp-price-range">
+                    <div class="sp-price-inputs">
+                        <input type="number" id="sp-sheet-price-min" class="sp-price-input" placeholder="Min" min="0" step="100" aria-label="Minimum price">
+                        <span class="sp-price-sep">—</span>
+                        <input type="number" id="sp-sheet-price-max" class="sp-price-input" placeholder="Max" min="0" step="100" aria-label="Maximum price">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Special filters -->
+            <div class="sp-filter-group" id="sp-sheet-special">
+                <div class="sp-filter-group-title">
+                    <i class="fa-solid fa-star" aria-hidden="true"></i>
+                    Special
+                </div>
+                <div class="sp-check-list" id="sp-sheet-special-list">
+                    <label class="sp-check-item">
+                        <input type="checkbox" id="sp-sheet-sale" onchange="NexraShopEngine.applyFilters()" aria-label="On sale only">
+                        <span class="sp-check-box"></span>
+                        On Sale
+                    </label>
+                    <label class="sp-check-item">
+                        <input type="checkbox" id="sp-sheet-new" onchange="NexraShopEngine.applyFilters()" aria-label="New arrivals">
+                        <span class="sp-check-box"></span>
+                        New Arrivals
+                    </label>
+                    <label class="sp-check-item">
+                        <input type="checkbox" id="sp-sheet-trending" onchange="NexraShopEngine.applyFilters()" aria-label="Trending products">
+                        <span class="sp-check-box"></span>
+                        Trending Now
+                    </label>
+                    <label class="sp-check-item">
+                        <input type="checkbox" id="sp-sheet-instock" onchange="NexraShopEngine.applyFilters()" aria-label="In stock only">
+                        <span class="sp-check-box"></span>
+                        In Stock Only
+                    </label>
+                </div>
+            </div>
+
+        </div><!-- /.sp-sheet-body -->
+
+        <!-- Sheet footer actions -->
+        <div class="sp-sheet-footer">
+            <button class="btn btn-outline sp-sheet-reset" id="sp-sheet-reset-btn" onclick="NexraShopEngine.resetFilters()" aria-label="Reset all filters">
+                <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                Reset All
+            </button>
+            <button class="btn btn-primary sp-sheet-apply" id="sp-sheet-apply-btn" onclick="NexraShopEngine.applyFilters(); NexraShopEngine.closeFilterSheet();" aria-label="Apply filters">
+                <i class="fa-solid fa-check" aria-hidden="true"></i>
+                Apply Filters
+                <span class="sp-filter-count-badge" id="sp-sheet-count-badge"></span>
+            </button>
+        </div>
+    </div><!-- /.sp-filter-sheet -->
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN PAGE CONTENT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="sp-main" role="main" class="sp">
+
+        <!-- ── SECTION 1: PROMO BANNER STRIP ────────────────────────────
+             Content: NexraShopEngine.loadPromoBanners()
+             Source:  Firestore 'banners' collection (active:true, ordered sortOrder)
+             Behavior: auto-scrolling horizontal carousel on mobile
+             Skeleton: shown during load, replaced on data
+             ─────────────────────────────────────────────────────────── -->
+        <section class="sp-banner-section" id="sp-banner-section" aria-label="Promotional Banners">
+            <div class="sp-banner-track" id="sp-banner-track" role="list">
+                <!-- Skeleton banners shown during load -->
+                <div class="sp-banner-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                <div class="sp-banner-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+            </div>
+        </section>
+
+        <!-- ── SECTION 2: SHOP HEADER ────────────────────────────────────
+             Title + subtitle from Firestore settings/shop
+             Result count updated dynamically by engine
+             Mobile filter trigger button lives here
+             ─────────────────────────────────────────────────────────── -->
+        <div class="sp-shop-header" id="sp-shop-header">
+            <div class="sp-shop-header-content">
+                <h1 class="sp-page-title tech-font" id="sp-hero-title">
+                    Digital Marketplace
+                </h1>
+                <p class="sp-page-subtitle" id="sp-hero-subtitle">
+                    Premium SaaS · Software Licenses · Digital Tools — Delivered Instantly
+                </p>
+            </div>
+
+            <!-- Result count + view toggle + mobile filter trigger -->
+            <div class="sp-toolbar" role="toolbar" aria-label="Shop controls">
+                <div class="sp-result-info" id="sp-result-info" aria-live="polite">
+                    <span id="sp-count-text">Loading products...</span>
+                </div>
+                <div class="sp-toolbar-actions">
+                    <!-- Grid view toggle -->
+                    <button class="sp-view-btn active" id="sp-view-grid" onclick="NexraShopEngine.setView('grid')" aria-label="Grid view" title="Grid View">
+                        <i class="fa-solid fa-grip" aria-hidden="true"></i>
+                    </button>
+                    <button class="sp-view-btn" id="sp-view-list" onclick="NexraShopEngine.setView('list')" aria-label="List view" title="List View">
+                        <i class="fa-solid fa-list" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- Mobile filter trigger (hidden on desktop) -->
+                    <button class="sp-mobile-filter-btn" id="sp-mobile-filter-btn" onclick="NexraShopEngine.openFilterSheet()" aria-label="Open filters" aria-expanded="false" aria-controls="sp-filter-sheet">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        Filters
+                        <span class="sp-filter-active-dot" id="sp-filter-active-dot" hidden aria-hidden="true"></span>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ── SECTION 3: VOICE SEARCH BAR ──────────────────────────────
+             Voice-enabled search that feeds real-time dropdown.
+             On submit → updates URL params → triggers new Firestore query.
+             NexraShopEngine.initSearch() wires up all event listeners.
+             ─────────────────────────────────────────────────────────── -->
+        <div class="sp-search-wrap" id="sp-search-wrap" role="search" aria-label="Product Search">
+            <div class="sp-search-bar" id="sp-search-bar">
+
+                <!-- Search icon -->
+                <i class="fa-solid fa-magnifying-glass sp-search-icon" aria-hidden="true"></i>
+
+                <!-- Main search input -->
+                <input
+                    type="search"
+                    id="sp-search-input"
+                    class="sp-search-input"
+                    placeholder="Search SaaS tools, software, licenses..."
+                    autocomplete="off"
+                    autocorrect="off"
+                    spellcheck="false"
+                    aria-label="Search products"
+                    aria-autocomplete="list"
+                    aria-controls="sp-search-dropdown"
+                    aria-expanded="false"
+                >
+
+                <!-- Voice search toggle -->
+                <button
+                    class="sp-voice-btn"
+                    id="sp-voice-btn"
+                    onclick="NexraShopEngine.startVoiceSearch()"
+                    aria-label="Search by voice"
+                    title="Voice Search"
+                >
+                    <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                </button>
+
+                <!-- Search submit -->
+                <button
+                    class="btn btn-primary sp-search-submit"
+                    id="sp-search-submit"
+                    onclick="NexraShopEngine.executeSearch()"
+                    aria-label="Search"
+                >
+                    <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                    <span class="sp-search-btn-text">SEARCH</span>
+                </button>
+
+            </div>
+
+            <!-- Live suggestion dropdown -->
+            <div class="sp-search-dropdown" id="sp-search-dropdown" role="listbox" aria-label="Search suggestions" hidden>
+                <!-- Populated by NexraShopEngine.renderSearchSuggestions() -->
+            </div>
+        </div>
+
+        <!-- ── SECTION 4: CATEGORY SWIMLANE ──────────────────────────────
+             Horizontally scrollable pill navigation.
+             Content: NexraShopEngine.renderCategories()
+             Source:  Firestore 'categories' (ordered by sortOrder asc)
+             Clicking a pill → updates active filter → re-queries products
+             "All" pill is always first (synthetic, not from Firestore)
+             ─────────────────────────────────────────────────────────── -->
+        <nav class="sp-cats-wrap" id="sp-cats-wrap" aria-label="Product Categories">
+            <button class="sp-cats-arrow sp-cats-left" id="sp-cats-left" onclick="NexraShopEngine.scrollCats(-1)" aria-label="Scroll categories left" hidden>
+                <i class="fa-solid fa-chevron-left" aria-hidden="true"></i>
+            </button>
+
+            <div class="sp-cats-track" id="sp-cats-track" role="list">
+                <!-- Skeleton pills shown during Firestore load -->
+                <div class="sp-cat-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                <div class="sp-cat-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                <div class="sp-cat-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                <div class="sp-cat-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                <div class="sp-cat-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+            </div>
+
+            <button class="sp-cats-arrow sp-cats-right" id="sp-cats-right" onclick="NexraShopEngine.scrollCats(1)" aria-label="Scroll categories right" hidden>
+                <i class="fa-solid fa-chevron-right" aria-hidden="true"></i>
+            </button>
+        </nav>
+
+        <!-- ── SECTION 5: ACTIVE FILTER CHIPS ────────────────────────────
+             Shows active filters as dismissible chips below category row.
+             Populated by NexraShopEngine.renderActiveFilterChips()
+             Hidden when no filters are active.
+             ─────────────────────────────────────────────────────────── -->
+        <div class="sp-active-filters" id="sp-active-filters" aria-label="Active filters" hidden>
+            <span class="sp-active-filters-label">Active:</span>
+            <div class="sp-chip-row" id="sp-chip-row">
+                <!-- Each chip: <button class="sp-filter-chip"> X label </button> -->
+            </div>
+            <button class="sp-clear-all-btn" id="sp-clear-all" onclick="NexraShopEngine.resetFilters()" aria-label="Clear all filters">
+                Clear All
+            </button>
+        </div>
+
+        <!-- ── SECTION 6: TWO-COLUMN LAYOUT — SIDEBAR + PRODUCT GRID ──────
+             ┌──────────────────┬──────────────────────────────────────┐
+             │  DESKTOP SIDEBAR  │           PRODUCT GRID              │
+             │  (filter/sort)    │  (renders products from Firestore)  │
+             │  sticky on scroll │                                     │
+             └──────────────────┴──────────────────────────────────────┘
+             On mobile: sidebar is hidden. Filter sheet (bottom drawer) used.
+             ─────────────────────────────────────────────────────────── -->
+        <div class="sp-layout" id="sp-layout">
+
+            <!-- ── DESKTOP STICKY FILTER SIDEBAR ─────────────────────────
+                 Hidden on mobile (<1024px). All controls mirror the
+                 mobile filter bottom sheet (sp-filter-sheet).
+                 NexraShopEngine syncs both when a filter changes.
+                 ─────────────────────────────────────────────────────── -->
+            <aside class="sp-sidebar" id="sp-sidebar" aria-label="Product Filters">
+
+                <!-- Sidebar header -->
+                <div class="sp-sidebar-header">
+                    <div class="sp-sidebar-title tech-font">
+                        <i class="fa-solid fa-sliders" aria-hidden="true"></i>
+                        Filters
+                    </div>
+                    <button class="sp-sidebar-reset" id="sp-sidebar-reset" onclick="NexraShopEngine.resetFilters()" aria-label="Reset all filters">
+                        Reset
+                    </button>
+                </div>
+
+                <!-- ── SORT BY ────────────────────────────────────────── -->
+                <div class="sp-filter-group">
+                    <div class="sp-filter-group-title">
+                        <i class="fa-solid fa-arrow-up-wide-short" aria-hidden="true"></i>
+                        Sort By
+                    </div>
+                    <div class="sp-sort-list" id="sp-sidebar-sort">
+                        <!-- Populated by NexraShopEngine.renderSortOptions() -->
+                    </div>
+                </div>
+
+                <!-- ── PRODUCT TYPE ───────────────────────────────────── -->
+                <div class="sp-filter-group">
+                    <div class="sp-filter-group-title">
+                        <i class="fa-solid fa-layer-group" aria-hidden="true"></i>
+                        Product Type
+                    </div>
+                    <div class="sp-check-list" id="sp-sidebar-type-list">
+                        <!-- Populated by NexraShopEngine.renderTypeFilters() -->
+                    </div>
+                </div>
+
+                <!-- ── PRICE RANGE ────────────────────────────────────── -->
+                <div class="sp-filter-group">
+                    <div class="sp-filter-group-title">
+                        <i class="fa-solid fa-tag" aria-hidden="true"></i>
+                        Price Range (Rs.)
+                    </div>
+                    <div class="sp-price-range">
+                        <div class="sp-price-inputs">
+                            <input type="number" id="sp-sidebar-price-min" class="sp-price-input" placeholder="Min" min="0" step="100" aria-label="Minimum price">
+                            <span class="sp-price-sep">—</span>
+                            <input type="number" id="sp-sidebar-price-max" class="sp-price-input" placeholder="Max" min="0" step="100" aria-label="Maximum price">
+                        </div>
+                        <button class="sp-price-apply-btn" onclick="NexraShopEngine.applyFilters()" aria-label="Apply price filter">
+                            Apply
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ── SPECIAL FILTERS ───────────────────────────────── -->
+                <div class="sp-filter-group">
+                    <div class="sp-filter-group-title">
+                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        Special
+                    </div>
+                    <div class="sp-check-list">
+                        <label class="sp-check-item">
+                            <input type="checkbox" id="sp-sidebar-sale" onchange="NexraShopEngine.applyFilters()" aria-label="On sale only">
+                            <span class="sp-check-box"></span>
+                            On Sale
+                        </label>
+                        <label class="sp-check-item">
+                            <input type="checkbox" id="sp-sidebar-new" onchange="NexraShopEngine.applyFilters()" aria-label="New arrivals">
+                            <span class="sp-check-box"></span>
+                            New Arrivals
+                        </label>
+                        <label class="sp-check-item">
+                            <input type="checkbox" id="sp-sidebar-trending" onchange="NexraShopEngine.applyFilters()" aria-label="Trending products">
+                            <span class="sp-check-box"></span>
+                            Trending Now
+                        </label>
+                        <label class="sp-check-item">
+                            <input type="checkbox" id="sp-sidebar-instock" onchange="NexraShopEngine.applyFilters()" aria-label="In stock only">
+                            <span class="sp-check-box"></span>
+                            In Stock Only
+                        </label>
+                    </div>
+                </div>
+
+                <!-- ── USD RATE DISPLAY ──────────────────────────────── -->
+                <div class="sp-usd-rate-box" id="sp-usd-rate-box">
+                    <i class="fa-solid fa-dollar-sign" aria-hidden="true"></i>
+                    <span>1 USD = Rs. <span id="sp-usd-rate">—</span></span>
+                </div>
+
+            </aside><!-- /.sp-sidebar -->
+
+            <!-- ── PRODUCT GRID AREA ──────────────────────────────────────
+                 NexraShopEngine.renderProducts() builds and injects product
+                 cards here. Skeleton cards are pre-rendered.
+                 .sp-grid and .sp-list are toggled by setView().
+                 ─────────────────────────────────────────────────────── -->
+            <div class="sp-grid-wrap" id="sp-grid-wrap">
+
+                <!-- Loading state — 8 skeleton cards -->
+                <div class="sp-product-grid" id="sp-product-grid" aria-live="polite" aria-label="Product listings">
+                    <!-- 8 skeleton cards pre-rendered for instant LCP -->
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                    <div class="sp-card-skeleton sp-skeleton-pulse" aria-hidden="true"></div>
+                </div>
+
+                <!-- Empty state (shown when no products found) -->
+                <div class="sp-empty-state" id="sp-empty-state" hidden role="status">
+                    <div class="sp-empty-icon" aria-hidden="true">
+                        <i class="fa-solid fa-box-open"></i>
+                    </div>
+                    <h3 class="sp-empty-title tech-font">No Products Found</h3>
+                    <p class="sp-empty-desc" id="sp-empty-desc">
+                        No products match your current filters. Try adjusting your search or clearing filters.
+                    </p>
+                    <button class="btn btn-primary sp-empty-cta" onclick="NexraShopEngine.resetFilters()" aria-label="Clear all filters and show all products">
+                        <i class="fa-solid fa-rotate-left" aria-hidden="true"></i>
+                        Clear Filters
+                    </button>
+                </div>
+
+                <!-- Error state (shown on Firestore error) -->
+                <div class="sp-error-state" id="sp-error-state" hidden role="alert">
+                    <div class="sp-error-icon" aria-hidden="true">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                    </div>
+                    <h3 class="sp-error-title tech-font">Failed to Load Products</h3>
+                    <p class="sp-error-desc" id="sp-error-desc">
+                        Could not reach the product database. Check your connection and try again.
+                    </p>
+                    <button class="btn btn-primary" onclick="NexraShopEngine.retryLoad()" aria-label="Retry loading products">
+                        <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                        Retry
+                    </button>
+                </div>
+
+                <!-- ── LOAD MORE BUTTON ───────────────────────────────────
+                     Cursor-based pagination — NexraShopEngine.loadMoreProducts()
+                     Hidden: when all products loaded or loading in progress
+                     ─────────────────────────────────────────────────────── -->
+                <div class="sp-load-more-wrap" id="sp-load-more-wrap" hidden>
+                    <button class="sp-load-more-btn" id="sp-load-more-btn" onclick="NexraShopEngine.loadMoreProducts()" aria-label="Load more products">
+                        <i class="fa-solid fa-chevron-down" aria-hidden="true"></i>
+                        Load More Products
+                        <span class="sp-load-more-sub" id="sp-load-more-sub"></span>
+                    </button>
+                </div>
+
+            </div><!-- /.sp-grid-wrap -->
+
+        </div><!-- /.sp-layout -->
+
+        <!-- ── SECTION 7: TRUST STRIP ────────────────────────────────────
+             Static trust signals rendered below the product grid.
+             Content is hardcoded (trust signals don't need DB).
+             ─────────────────────────────────────────────────────────── -->
+        <section class="sp-trust-section" aria-label="Trust signals">
+            <div class="sp-trust-grid">
+                <div class="sp-trust-card">
+                    <div class="sp-trust-icon" aria-hidden="true">
+                        <i class="fa-solid fa-bolt"></i>
+                    </div>
+                    <div class="sp-trust-text">
+                        <div class="sp-trust-title">Instant Delivery</div>
+                        <div class="sp-trust-sub">Automated vault system</div>
+                    </div>
+                </div>
+                <div class="sp-trust-card">
+                    <div class="sp-trust-icon" aria-hidden="true">
+                        <i class="fa-solid fa-shield-halved"></i>
+                    </div>
+                    <div class="sp-trust-text">
+                        <div class="sp-trust-title">256-Bit Secure</div>
+                        <div class="sp-trust-sub">Encrypted transactions</div>
+                    </div>
+                </div>
+                <div class="sp-trust-card">
+                    <div class="sp-trust-icon" aria-hidden="true">
+                        <i class="fa-solid fa-headset"></i>
+                    </div>
+                    <div class="sp-trust-text">
+                        <div class="sp-trust-title">15-Min Support</div>
+                        <div class="sp-trust-sub">WhatsApp & live chat</div>
+                    </div>
+                </div>
+                <div class="sp-trust-card">
+                    <div class="sp-trust-icon" aria-hidden="true">
+                        <i class="fa-solid fa-rotate-left"></i>
+                    </div>
+                    <div class="sp-trust-text">
+                        <div class="sp-trust-title">Replacement Policy</div>
+                        <div class="sp-trust-sub">If key fails, we replace</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main><!-- /#sp-main -->
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — MOBILE DOCK
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="dock-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — FOOTER
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="footer-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GLOBAL APP ENGINE — cart, theme, toast, navigation
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="/js/app.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT LOADER ENGINE
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="/components/loader.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SHOP PAGE ENGINE
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="/js/shop.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         BOOT SEQUENCE
+         Fires after all scripts load. Order matters:
+         1. Read & apply URL params (search, category, sort from ?query)
+         2. Load all 5 component HTML fragments in parallel
+         3. After components mount → init NexraShopEngine
+         ════════════════════════════════════════════════════════════════ -->
+    <script>
+        (function NexraShopBoot() {
+            'use strict';
+
+            // ── 1. RESTORE THEME ──────────────────────────────────────────
+            // Apply saved theme before anything renders (prevents FOUC)
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') {
+                document.body.setAttribute('data-theme', 'dark');
+            }
+
+            // ── 2. CAPTURE URL PARAMS ─────────────────────────────────────
+            // Read ?search= ?category= ?type= ?sort= from the URL.
+            // NexraShopEngine reads these via window.location on init.
+            // Nothing to do here — engine reads on init.
+
+            // ── 3. LOAD ALL COMPONENT FRAGMENTS ──────────────────────────
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+
+                // ── 4. INITIALIZE SHOP ENGINE ─────────────────────────────
+                // All Firestore queries, search, filters, and product
+                // rendering happen inside NexraShopEngine.init()
+                NexraShopEngine.init();
+
+            }).catch(function (err) {
+                console.error('[Nexra Shop Boot] Component load failed:', err);
+                // Even if components fail, still init the engine (data loads fine)
+                if (window.NexraShopEngine) NexraShopEngine.init();
+            });
+
+        })();
+    </script>
+
+</body>
+</html>

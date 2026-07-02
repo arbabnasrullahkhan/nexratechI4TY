@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — PROFILE DASHBOARD (user/profile-dashboard.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Personal Account Hub & Digital Vault.               │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html                          │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Bulletproof Firebase Auth Guard (Redirects unauth to auth.html)  │
+  │  - 6 Tab Interface: Vault, Orders, Wallet, Support, Wishlist, Sett. │
+  │  - Real-time onSnapshot tracking (Orders, Tickets, Wallet).         │
+  │  - Strict SEO No-Index Directive.                                   │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STRICT ENTERPRISE SECURITY & NO-INDEX DIRECTIVES
+         ════════════════════════════════════════════════════════════════ -->
+    <title>My Dashboard | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/profile.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FULL PAGE LOADER (Auth Guard State)
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="pr-auth-guard" class="pr-auth-guard">
+        <div class="pr-guard-spinner"><i class="fa-solid fa-circle-notch fa-spin"></i></div>
+        <p class="tech-font">Verifying Secure Session...</p>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN DASHBOARD LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="pr-main" class="pr-container" role="main" hidden>
+        
+        <!-- PROFILE HEADER -->
+        <header class="pr-header">
+            <div class="pr-header-bg"></div>
+            <div class="pr-header-content">
+                <div class="pr-avatar-wrap">
+                    <img src="/assets/avatar-placeholder.png" alt="Profile" class="pr-avatar" id="pr-val-avatar">
+                    <button class="pr-avatar-edit" aria-label="Update Avatar"><i class="fa-solid fa-camera"></i></button>
+                </div>
+                <div class="pr-user-info">
+                    <h1 class="pr-user-name tech-font" id="pr-val-name">Loading...</h1>
+                    <div class="pr-user-meta">
+                        <span class="pr-user-email" id="pr-val-email">...</span>
+                        <!-- Tier Badge: dynamically updated to Gold, Diamond, etc -->
+                        <span class="pr-tier-badge standard" id="pr-val-tier"><i class="fa-solid fa-medal"></i> Standard Member</span>
+                    </div>
+                </div>
+                <div class="pr-header-actions">
+                    <button class="btn btn-outline" onclick="NexraProfile.triggerLogoutModal()"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="pr-layout">
+            
+            <!-- ── SIDEBAR (Mobile Scrollable Tabs / Desktop Sticky) ── -->
+            <aside class="pr-sidebar">
+                <nav class="pr-nav-tabs" id="pr-nav-tabs">
+                    <button class="pr-tab-btn active" data-target="vault"><i class="fa-solid fa-vault"></i> Digital Vault</button>
+                    <button class="pr-tab-btn" data-target="orders"><i class="fa-solid fa-box-open"></i> Order History</button>
+                    <button class="pr-tab-btn" data-target="wallet"><i class="fa-solid fa-wallet"></i> Wallet & Affiliates</button>
+                    <button class="pr-tab-btn" data-target="support"><i class="fa-solid fa-headset"></i> Support Tickets</button>
+                    <button class="pr-tab-btn" data-target="wishlist"><i class="fa-solid fa-heart"></i> Wishlist</button>
+                    <button class="pr-tab-btn" data-target="settings"><i class="fa-solid fa-gear"></i> Settings</button>
+                </nav>
+            </aside>
+
+            <!-- ── MAIN CONTENT AREA (Tab Views) ── -->
+            <div class="pr-content-area">
+                
+                <!-- 1. DIGITAL VAULT TAB -->
+                <section class="pr-tab-content active" id="tab-vault">
+                    <div class="pr-tab-header">
+                        <h2 class="tech-font">Digital Vault</h2>
+                        <p>Your purchased SaaS keys, software links, and unlocked freebies.</p>
+                    </div>
+                    <div class="pr-vault-grid" id="pr-val-vault-grid">
+                        <div class="pr-skeleton-card"><div class="pr-skel-img"></div><div class="pr-skel-body"><div class="pr-skel-line w80"></div><div class="pr-skel-line w100"></div></div></div>
+                        <div class="pr-skeleton-card"><div class="pr-skel-img"></div><div class="pr-skel-body"><div class="pr-skel-line w80"></div><div class="pr-skel-line w100"></div></div></div>
+                    </div>
+                </section>
+
+                <!-- 2. ORDER HISTORY TAB -->
+                <section class="pr-tab-content" id="tab-orders">
+                    <div class="pr-tab-header">
+                        <h2 class="tech-font">Order History</h2>
+                        <p>Real-time tracking of your physical and digital deliveries.</p>
+                    </div>
+                    <div class="pr-orders-list" id="pr-val-orders-list">
+                        <!-- Loaded dynamically via onSnapshot -->
+                        <div class="pr-skeleton-card row"><div class="pr-skel-body" style="width:100%;"><div class="pr-skel-line w30"></div><div class="pr-skel-line w100"></div><div class="pr-skel-line w100"></div></div></div>
+                    </div>
+                </section>
+
+                <!-- 3. WALLET & AFFILIATES TAB -->
+                <section class="pr-tab-content" id="tab-wallet">
+                    <div class="pr-tab-header">
+                        <h2 class="tech-font">Wallet & Affiliates</h2>
+                        <p>Manage your Nexra Coins and track your referral earnings.</p>
+                    </div>
+                    
+                    <div class="pr-wallet-stats">
+                        <div class="pr-stat-box">
+                            <i class="fa-solid fa-coins pr-stat-icon"></i>
+                            <div class="pr-stat-label">Nexra Coins Balance</div>
+                            <div class="pr-stat-value tech-font" id="pr-val-coins">0.00</div>
+                        </div>
+                        <div class="pr-stat-box">
+                            <i class="fa-solid fa-users pr-stat-icon" style="color:var(--success);"></i>
+                            <div class="pr-stat-label">Total Referrals</div>
+                            <div class="pr-stat-value tech-font" id="pr-val-referrals">0</div>
+                        </div>
+                    </div>
+
+                    <div class="pr-affiliate-card">
+                        <h3 class="tech-font">Your Referral Engine</h3>
+                        <p>Share this link to earn 100 Nexra Coins per successful sign-up.</p>
+                        
+                        <div class="pr-ref-link-box">
+                            <input type="text" id="pr-val-ref-link" readonly value="Generating...">
+                            <button class="btn btn-primary" onclick="NexraProfile.copyRefLink()"><i class="fa-solid fa-copy"></i> Copy</button>
+                        </div>
+
+                        <div class="pr-ref-actions">
+                            <button class="pr-ref-btn wa" onclick="NexraProfile.shareRef('wa')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                            <button class="pr-ref-btn qr" onclick="NexraProfile.showQRModal()"><i class="fa-solid fa-qrcode"></i> Show QR</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- 4. SUPPORT TICKETS TAB -->
+                <section class="pr-tab-content" id="tab-support">
+                    <div class="pr-tab-header">
+                        <h2 class="tech-font">Support Tickets</h2>
+                        <p>Submit issues and track live resolutions from our team.</p>
+                    </div>
+                    
+                    <button class="btn btn-primary" style="margin-bottom: 24px;" onclick="NexraProfile.toggleTicketForm()"><i class="fa-solid fa-plus"></i> New Ticket</button>
+                    
+                    <div class="pr-ticket-form-wrap" id="pr-ticket-form-wrap" hidden>
+                        <form id="pr-ticket-form" onsubmit="NexraProfile.submitTicket(event)">
+                            <div class="input-group">
+                                <label>Issue Subject</label>
+                                <input type="text" id="pr-ticket-subject" placeholder="E.g., Order #1234 Delay" required>
+                            </div>
+                            <div class="input-group">
+                                <label>Description (Rich Context)</label>
+                                <textarea id="pr-ticket-desc" rows="4" placeholder="Describe your issue in detail..." required></textarea>
+                            </div>
+                            <div class="pr-form-actions">
+                                <button type="button" class="btn btn-outline" onclick="NexraProfile.toggleTicketForm()">Cancel</button>
+                                <button type="submit" class="btn btn-primary" id="pr-ticket-submit-btn">Submit Ticket</button>
+                            </div>
+                        </form>
+                    </div>
+
+                    <div class="pr-tickets-list" id="pr-val-tickets-list">
+                        <!-- Loaded dynamically -->
+                    </div>
+                </section>
+
+                <!-- 5. WISHLIST TAB -->
+                <section class="pr-tab-content" id="tab-wishlist">
+                    <div class="pr-tab-header">
+                        <h2 class="tech-font">My Wishlist</h2>
+                        <p>Items and articles you have saved for later.</p>
+                    </div>
+                    <div class="pr-vault-grid" id="pr-val-wishlist-grid">
+                        <div class="pr-skeleton-card"><div class="pr-skel-img"></div><div class="pr-skel-body"><div class="pr-skel-line w80"></div><div class="pr-skel-line w100"></div></div></div>
+                    </div>
+                </section>
+
+                <!-- 6. SETTINGS TAB -->
+                <section class="pr-tab-content" id="tab-settings">
+                    <div class="pr-tab-header">
+                        <h2 class="tech-font">Security & Settings</h2>
+                        <p>Manage your account preferences and security protocols.</p>
+                    </div>
+                    
+                    <div class="pr-settings-card">
+                        <h3 class="tech-font">Contact Information</h3>
+                        <form id="pr-settings-form" onsubmit="NexraProfile.updateSettings(event)">
+                            <div class="input-group">
+                                <label>Display Name</label>
+                                <input type="text" id="pr-set-name" required>
+                            </div>
+                            <div class="input-group">
+                                <label>WhatsApp Number (For Order Updates)</label>
+                                <input type="tel" id="pr-set-phone" placeholder="+92 300 1234567">
+                            </div>
+                            <button type="submit" class="btn btn-primary" id="pr-settings-submit">Save Changes</button>
+                        </form>
+                    </div>
+
+                    <div class="pr-settings-card danger-zone">
+                        <h3 class="tech-font" style="color:var(--error);">Security</h3>
+                        <p>Change your password or log out securely.</p>
+                        <div class="pr-form-actions" style="margin-top: 16px;">
+                            <button class="btn btn-outline" onclick="NexraProfile.triggerPasswordReset()">Reset Password</button>
+                            <button class="btn btn-outline" style="border-color:var(--error); color:var(--error);" onclick="NexraProfile.triggerLogoutModal()">Log Out</button>
+                        </div>
+                    </div>
+                </section>
+
+            </div><!-- /.pr-content-area -->
+        </div><!-- /.pr-layout -->
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MODALS
+         ════════════════════════════════════════════════════════════════ -->
+    <!-- QR Code Modal -->
+    <div class="pr-modal-overlay" id="pr-qr-modal" hidden>
+        <div class="pr-modal-box">
+            <button class="pr-modal-close" onclick="NexraProfile.closeModals()"><i class="fa-solid fa-xmark"></i></button>
+            <h3 class="tech-font">Your Referral QR</h3>
+            <p>Have your friends scan this to register instantly.</p>
+            <div class="pr-qr-wrap" id="pr-qr-wrap">
+                <img id="pr-qr-img" src="" alt="QR Code">
+            </div>
+            <button class="btn btn-primary" style="width:100%; margin-top:16px;" onclick="NexraProfile.closeModals()">Done</button>
+        </div>
+    </div>
+
+    <!-- Exit Intent Logout Modal -->
+    <div class="pr-modal-overlay" id="pr-logout-modal" hidden>
+        <div class="pr-modal-box text-center">
+            <i class="fa-solid fa-right-from-bracket pr-modal-icon" style="color:var(--error); font-size:48px; margin-bottom:16px;"></i>
+            <h3 class="tech-font">Secure Logout</h3>
+            <p>Are you sure you want to end your secure session? You will need to re-authenticate to access your Digital Vault.</p>
+            <div class="pr-form-actions" style="justify-content:center; margin-top:24px;">
+                <button class="btn btn-outline" onclick="NexraProfile.closeModals()">Cancel</button>
+                <button class="btn btn-primary" style="background:var(--error);" onclick="NexraProfile.executeLogout()">Confirm Logout</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Invoice Print Frame (Hidden) -->
+    <iframe id="pr-invoice-frame" style="display:none;"></iframe>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/profile.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraProfileBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            // Do not load footer immediately; let Profile JS handle it after auth.
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  }
+            ]).then(function () {
+                NexraProfile.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraProfile) NexraProfile.init();
+            });
+        })();
+    </script>
+</body>
+</html>

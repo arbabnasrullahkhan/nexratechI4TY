@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — OFFLINE PWA FALLBACK (system/offline.html)
+  ============================================================================
+  CRITICAL: All CSS and JS is INLINE. Zero external dependencies.
+  This page must render with absolutely NO internet connection.
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>You're Offline | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="No internet connection. You are viewing a cached version of Nexra Tech PK.">
+
+    <!-- PWA Meta -->
+    <link rel="manifest" href="/manifest.json">
+    <link rel="apple-touch-icon" href="/assets/icons/icon-192.png">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="theme-color" id="pwa-theme-color" content="#020202">
+
+    <!-- ════════════ EMBEDDED STYLES (Zero network requests) ════════════ -->
+    <style>
+        /* CSS Custom Properties — read localStorage theme */
+        :root {
+            --brand: #7c3aed;
+            --brand-glow: rgba(124,58,237,0.3);
+            --bg: #0a0a0f;
+            --surface: #14141e;
+            --text: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: rgba(255,255,255,0.08);
+        }
+        .light-mode {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #0f172a;
+            --text-sub: #64748b;
+            --border: rgba(0,0,0,0.08);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            background: var(--bg); color: var(--text);
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            min-height: 100vh; display: flex; flex-direction: column;
+            align-items: center; justify-content: center; padding: 24px;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* RADAR / SIGNAL SVG ANIMATION */
+        .of-radar { position: relative; width: 180px; height: 180px; margin-bottom: 40px; }
+        .of-radar-ring {
+            position: absolute; inset: 0; border-radius: 50%;
+            border: 2px solid var(--brand); opacity: 0;
+            animation: radarPulse 3s cubic-bezier(0,0.2,0.8,1) infinite;
+        }
+        .of-radar-ring:nth-child(2) { animation-delay: 1s; }
+        .of-radar-ring:nth-child(3) { animation-delay: 2s; }
+        @keyframes radarPulse {
+            0% { transform: scale(0.3); opacity: 0.8; }
+            100% { transform: scale(1); opacity: 0; }
+        }
+        .of-radar-core {
+            position: absolute; inset: 50%; transform: translate(-50%,-50%);
+            width: 80px; height: 80px; background: var(--surface); border-radius: 50%;
+            border: 2px solid var(--border); display: flex; align-items: center; justify-content: center;
+            font-size: 32px; box-shadow: 0 0 30px var(--brand-glow);
+        }
+
+        /* CONTENT */
+        .of-card {
+            background: var(--surface); border: 1px solid var(--border);
+            border-radius: 24px; padding: 40px 32px; max-width: 480px; width: 100%;
+            text-align: center; box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+        }
+        .of-title { font-size: 28px; font-weight: 900; margin-bottom: 12px; letter-spacing: -0.5px; }
+        .of-subtitle { font-size: 15px; color: var(--text-sub); margin-bottom: 32px; line-height: 1.6; }
+
+        /* RETRY BUTTON */
+        .of-retry-btn {
+            display: inline-flex; align-items: center; gap: 10px;
+            background: var(--brand); color: #fff;
+            padding: 14px 28px; border-radius: 50px; border: none;
+            font-size: 15px; font-weight: 800; cursor: pointer; width: 100%;
+            justify-content: center; margin-bottom: 16px;
+            animation: retryPulse 2s ease-in-out infinite;
+            transition: transform 0.2s;
+        }
+        .of-retry-btn:active { transform: scale(0.97); }
+        @keyframes retryPulse {
+            0%, 100% { box-shadow: 0 0 0 0 var(--brand-glow); }
+            50% { box-shadow: 0 0 0 12px transparent; }
+        }
+
+        /* STATUS INDICATOR */
+        .of-status-row {
+            display: flex; align-items: center; gap: 8px; justify-content: center;
+            font-size: 13px; font-weight: 700; color: var(--text-sub); margin-bottom: 32px;
+        }
+        .of-status-dot {
+            width: 8px; height: 8px; border-radius: 50%; background: #ef4444;
+            animation: dotBlink 1.5s ease-in-out infinite;
+        }
+        .of-status-dot.online { background: #10b981; animation: none; }
+        @keyframes dotBlink { 0%, 100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+        /* OFFLINE VAULT */
+        .of-vault-section { margin-top: 24px; text-align: left; }
+        .of-vault-title {
+            font-size: 13px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px;
+            color: var(--text-sub); margin-bottom: 12px; display: flex; align-items: center; gap: 6px;
+        }
+        .of-vault-list { display: flex; flex-direction: column; gap: 8px; }
+        .of-vault-item {
+            background: rgba(124,58,237,0.08); border: 1px solid rgba(124,58,237,0.2);
+            border-radius: 10px; padding: 10px 14px; font-size: 13px; font-weight: 600;
+            color: var(--text); display: flex; justify-content: space-between; align-items: center;
+        }
+        .of-vault-key { font-family: monospace; font-size: 12px; color: #10b981; }
+        .of-vault-empty { font-size: 13px; color: var(--text-sub); font-style: italic; padding: 12px 0; }
+
+        /* BRAND FOOTER */
+        .of-brand { margin-top: 32px; font-size: 12px; color: var(--text-sub); text-align: center; }
+        .of-brand strong { color: var(--brand); }
+    </style>
+</head>
+
+<body id="of-body">
+
+    <!-- RADAR ANIMATION -->
+    <div class="of-radar" aria-hidden="true">
+        <div class="of-radar-ring"></div>
+        <div class="of-radar-ring"></div>
+        <div class="of-radar-ring"></div>
+        <div class="of-radar-core">📡</div>
+    </div>
+
+    <!-- MAIN OFFLINE CARD -->
+    <div class="of-card">
+        <h1 class="of-title">You're Offline</h1>
+        <p class="of-subtitle">No internet connection detected. Some content may be unavailable. We'll reconnect you the moment signal is restored.</p>
+
+        <!-- Connection Status -->
+        <div class="of-status-row">
+            <div class="of-status-dot" id="of-status-dot"></div>
+            <span id="of-status-txt">No internet connection</span>
+        </div>
+
+        <!-- Retry Button -->
+        <button class="of-retry-btn" onclick="NexraOffline.retry()" id="of-retry-btn">
+            <span>🔄</span> Retry Connection
+        </button>
+
+        <!-- Offline Vault -->
+        <div class="of-vault-section">
+            <div class="of-vault-title">🔒 Cached License Keys</div>
+            <div class="of-vault-list" id="of-vault-list">
+                <p class="of-vault-empty">Reading local cache...</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="of-brand">
+        Powered by <strong>Nexra Tech PK</strong> — Your digital ecosystem awaits.
+    </div>
+
+    <!-- ════════════ EMBEDDED JAVASCRIPT (Zero network requests) ════════════ -->
+    <script>
+    (function NexraOfflineModule() {
+        'use strict';
+
+        // 1. Apply saved theme from localStorage
+        var savedTheme = localStorage.getItem('nexra_theme');
+        if (savedTheme !== 'dark') {
+            document.getElementById('of-body').classList.add('light-mode');
+            var themeColor = document.getElementById('pwa-theme-color');
+            if (themeColor) themeColor.content = '#f8fafc';
+        }
+
+        // 2. Load cached vault keys from localStorage
+        function loadOfflineVault() {
+            var list = document.getElementById('of-vault-list');
+            var vaultRaw = localStorage.getItem('nexra_offline_vault');
+            
+            if (!vaultRaw) {
+                list.innerHTML = '<p class="of-vault-empty">No cached assets found. Connect to the internet to load your Digital Vault.</p>';
+                return;
+            }
+
+            try {
+                var vault = JSON.parse(vaultRaw);
+                if (!vault.length) {
+                    list.innerHTML = '<p class="of-vault-empty">Your vault is empty.</p>';
+                    return;
+                }
+
+                var html = '';
+                vault.forEach(function(item) {
+                    html += '<div class="of-vault-item">';
+                    html += '<span>' + (item.title || 'License') + '</span>';
+                    html += item.key ? '<span class="of-vault-key">' + item.key.slice(-8) + '</span>' : '';
+                    html += '</div>';
+                });
+                list.innerHTML = html;
+            } catch(e) {
+                list.innerHTML = '<p class="of-vault-empty">Could not parse cached data.</p>';
+            }
+        }
+
+        // 3. Online detection — auto-reload previously requested route
+        function watchConnection() {
+            window.addEventListener('online', function() {
+                document.getElementById('of-status-dot').classList.add('online');
+                document.getElementById('of-status-txt').innerText = 'Connected! Redirecting...';
+
+                var btn = document.getElementById('of-retry-btn');
+                if (btn) { btn.innerText = '✅ Back Online!'; btn.disabled = true; }
+
+                // Redirect to previously requested route or homepage
+                var lastRoute = sessionStorage.getItem('nexra_offline_redirect') || '/';
+                setTimeout(function() { window.location.href = lastRoute; }, 1200);
+            });
+
+            window.addEventListener('offline', function() {
+                document.getElementById('of-status-dot').classList.remove('online');
+                document.getElementById('of-status-txt').innerText = 'No internet connection';
+            });
+        }
+
+        // 4. Manual retry
+        window.NexraOffline = {
+            retry: function() {
+                var btn = document.getElementById('of-retry-btn');
+                btn.innerHTML = '<span>⏳</span> Checking...';
+                btn.disabled = true;
+
+                setTimeout(function() {
+                    if (navigator.onLine) {
+                        var lastRoute = sessionStorage.getItem('nexra_offline_redirect') || '/';
+                        window.location.href = lastRoute;
+                    } else {
+                        btn.innerHTML = '<span>🔄</span> Retry Connection';
+                        btn.disabled = false;
+                    }
+                }, 1500);
+            }
+        };
+
+        // 5. Store current broken URL for post-reconnect redirect
+        (function() {
+            var prevPage = document.referrer;
+            if (prevPage && prevPage !== window.location.href) {
+                sessionStorage.setItem('nexra_offline_redirect', prevPage);
+            }
+        })();
+
+        // Boot
+        loadOfflineVault();
+        watchConnection();
+
+    })();
+    </script>
+</body>
+</html>

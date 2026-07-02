@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — PERSONAL ALERTS INBOX (user/notifications.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Alerts Inbox & Promo Center.                        │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html                          │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Real-time onSnapshot listeners for targeted & global alerts.     │
+  │  - Client-side filtering (Promos, Orders, Security).                │
+  │  - Interactive Coupon Reveal Engine & Swipe-to-Delete.              │
+  │  - Atomic batched writes for "Mark All As Read".                    │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STRICT ENTERPRISE SECURITY & ANTI-SCRAPING (No Index)
+         ════════════════════════════════════════════════════════════════ -->
+    <title>Inbox & Alerts | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/notifications.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+    <!-- Anti-Scraping -->
+    <style>
+        body.nt-protected { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+    </style>
+    <script>
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && (e.key === 'c' || e.key === 'u' || e.key === 's')) { e.preventDefault(); }
+        });
+    </script>
+</head>
+
+<body class="nt-protected">
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FULL PAGE LOADER (Auth Guard State)
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="nt-pre-guard" class="nt-pre-guard">
+        <div class="nt-guard-icon"><i class="fa-solid fa-shield-halved fa-beat"></i></div>
+        <p class="tech-font">Securing Inbox Connection...</p>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN NOTIFICATIONS LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="nt-main" class="nt-container" role="main" hidden>
+        
+        <!-- HEADER -->
+        <header class="nt-header">
+            <div class="nt-header-title">
+                <h1 class="tech-font"><i class="fa-solid fa-bell"></i> Notifications</h1>
+                <span class="nt-unread-badge" id="nt-unread-count">0 Unread</span>
+            </div>
+            
+            <button class="nt-mark-read-btn" id="nt-btn-markread" onclick="NexraNotif.markAllAsRead()">
+                <i class="fa-solid fa-check-double"></i> Mark All Read
+            </button>
+        </header>
+
+        <!-- HORIZONTAL FILTER STRIP -->
+        <div class="nt-filter-strip">
+            <div class="nt-filter-track" id="nt-filter-track" role="tablist">
+                <button class="nt-filter-pill active" role="tab" onclick="NexraNotif.filterAlerts('all', this)">All</button>
+                <button class="nt-filter-pill" role="tab" onclick="NexraNotif.filterAlerts('promo', this)">Promos & Coupons</button>
+                <button class="nt-filter-pill" role="tab" onclick="NexraNotif.filterAlerts('order', this)">Orders</button>
+                <button class="nt-filter-pill" role="tab" onclick="NexraNotif.filterAlerts('security', this)">Security</button>
+            </div>
+        </div>
+
+        <!-- ALERTS INBOX FEED -->
+        <div class="nt-inbox-feed" id="nt-inbox-feed">
+            <!-- Skeleton Loaders -->
+            <div class="nt-alert-card skeleton" style="height:100px;"></div>
+            <div class="nt-alert-card skeleton" style="height:100px;"></div>
+            <div class="nt-alert-card skeleton" style="height:100px;"></div>
+            <div class="nt-alert-card skeleton" style="height:100px;"></div>
+        </div>
+
+    </main>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/notifications.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraNotifBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  }
+            ]).then(function () {
+                NexraNotif.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraNotif) NexraNotif.init();
+            });
+        })();
+    </script>
+</body>
+</html>

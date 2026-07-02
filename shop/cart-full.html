@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — FULL SHOPPING CART & UPSELL ENGINE (shop/cart-full.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script>if(self===top){document.getElementById('antiClickjack').remove();}else{top.location=self.location;}</script>
+    <title>Your Shopping Cart | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/cart-full.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body data-theme="dark">
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <main id="cart-main" class="cart-container" role="main">
+        
+        <div class="cart-header">
+            <h1 class="tech-font cart-title"><i class="fa-solid fa-cart-shopping" style="color:var(--brand-main);"></i> Secure Checkout</h1>
+            <button class="cart-btn-clear" onclick="NexraFullCart.clearCart()"><i class="fa-solid fa-trash-can"></i> Clear Cart</button>
+        </div>
+
+        <div class="cart-layout">
+            <!-- Left: Cart Items & Upsells -->
+            <div class="cart-left">
+                
+                <!-- Gamification Progress Bar -->
+                <div class="cart-promo-bar">
+                    <div class="cp-text" id="cp-text">Add Rs. <strong id="cp-diff">0</strong> more to unlock a <strong style="color:var(--brand-main);">10% Bundle Discount!</strong></div>
+                    <div class="cp-track">
+                        <div class="cp-fill" id="cp-fill"></div>
+                    </div>
+                </div>
+
+                <div class="cart-items-list" id="cart-items-list">
+                    <!-- Skeleton -->
+                    <div class="cf-item skeleton" style="height:120px;"></div>
+                    <div class="cf-item skeleton" style="height:120px;"></div>
+                </div>
+
+                <!-- EMPTY STATE -->
+                <div id="cart-empty" class="cart-empty-state" style="display:none;">
+                    <i class="fa-solid fa-basket-shopping" style="font-size:48px; color:var(--text-300); margin-bottom:16px;"></i>
+                    <h2 class="tech-font">Your cart is currently empty.</h2>
+                    <p>Start exploring our premium digital assets.</p>
+                    <button class="cart-btn-primary" onclick="window.location.href='/shop/shop.html'" style="width:200px; margin:20px auto 0;">Continue Shopping</button>
+                </div>
+
+                <!-- Frequently Bought Together Slider -->
+                <div class="cart-upsell-section" id="upsell-section" style="display:none;">
+                    <h3 class="tech-font cart-upsell-title"><i class="fa-solid fa-fire"></i> Frequently Bought Together</h3>
+                    <div class="cart-upsell-slider" id="upsell-slider">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Right: Order Summary Calculator -->
+            <div class="cart-right">
+                <div class="cart-summary-card">
+                    <h3 class="tech-font cs-title">Order Summary</h3>
+                    
+                    <div class="cs-row">
+                        <span>Subtotal</span>
+                        <span id="cs-subtotal">Rs. 0</span>
+                    </div>
+                    
+                    <div class="cs-row" id="cs-discount-row" style="display:none; color:#10b981;">
+                        <span>Bundle Discount (10%)</span>
+                        <span id="cs-discount">- Rs. 0</span>
+                    </div>
+
+                    <div class="cs-row">
+                        <span>Tax & Fees</span>
+                        <span>Calculated at checkout</span>
+                    </div>
+
+                    <div class="cs-divider"></div>
+
+                    <div class="cs-row cs-total">
+                        <span>Grand Total</span>
+                        <span id="cs-total" style="color:var(--brand-main);">Rs. 0</span>
+                    </div>
+
+                    <button class="cart-btn-checkout" id="btn-checkout" onclick="NexraFullCart.proceedToCheckout()">
+                        Proceed to Checkout <i class="fa-solid fa-arrow-right"></i>
+                    </button>
+
+                    <div class="cs-secure-badges">
+                        <i class="fa-solid fa-lock"></i> SSL Encrypted Connection
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/cart-full.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'},
+                {file:'/components/footer.html',mount:'#footer-mount'}
+            ]).then(()=>NexraFullCart.init()).catch(()=>NexraFullCart.init());
+        })();
+    </script>
+</body>
+</html>

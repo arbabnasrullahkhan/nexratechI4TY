@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — COMPANY STORY & VISION (system/about.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <title>About Nexra Tech PK | Our Story & Vision</title>
+    <meta name="description" id="meta-desc" content="Learn the story, vision, and team behind Nexra Tech PK — Pakistan's leading SaaS marketplace ecosystem.">
+    <meta name="keywords" content="About Nexra Tech, Pakistan SaaS, Team, Vision, Company Story">
+    <meta name="author" content="Nexra Tech PK">
+    <link rel="canonical" href="https://nexratech.pk/system/about.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="About Nexra Tech PK | Our Story & Vision">
+    <meta property="og:description" content="Pakistan's leading SaaS marketplace — our story, mission, and the team building it.">
+    <meta property="og:url" content="https://nexratech.pk/system/about.html">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta name="twitter:card" content="summary_large_image">
+
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/about.css">
+
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+    <script type="application/ld+json" id="ab-json-ld">{}</script>
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <main role="main">
+
+        <!-- CINEMATIC HERO -->
+        <section class="ab-hero" id="ab-hero">
+            <canvas id="ab-watermark-canvas" class="ab-watermark-canvas"></canvas>
+            <div class="ab-hero-content">
+                <div class="ab-hero-badge"><i class="fa-solid fa-star"></i> Nexra Tech PK</div>
+                <h1 class="tech-font ab-hero-title" id="ab-hero-title">Building Pakistan's Digital Future</h1>
+                <p class="ab-hero-sub" id="ab-hero-sub">A SaaS ecosystem empowering creators, resellers, and digital entrepreneurs across Pakistan and beyond.</p>
+                <div class="ab-hero-ctas">
+                    <a href="/reseller/reseller-dashboard.html" class="ab-btn-primary"><i class="fa-solid fa-handshake"></i> Become a Partner</a>
+                    <a href="/discovery/home.html" class="ab-btn-ghost"><i class="fa-solid fa-store"></i> Explore Catalog</a>
+                </div>
+            </div>
+            <div class="ab-hero-scroll-hint"><i class="fa-solid fa-chevron-down fa-bounce"></i></div>
+        </section>
+
+        <!-- MISSION STATEMENT -->
+        <section class="ab-section ab-mission">
+            <div class="ab-container">
+                <div class="ab-section-label">Our Mission</div>
+                <h2 class="tech-font ab-section-title" id="ab-mission-title">—</h2>
+                <p class="ab-mission-body" id="ab-mission-body">Loading...</p>
+            </div>
+        </section>
+
+        <!-- LIVE STATISTICS GRID -->
+        <section class="ab-section ab-stats-section">
+            <div class="ab-container">
+                <div class="ab-section-label">Platform At A Glance</div>
+                <div class="ab-stats-grid" id="ab-stats-grid">
+                    <div class="ab-stat-card skeleton" style="height:120px;"></div>
+                    <div class="ab-stat-card skeleton" style="height:120px;"></div>
+                    <div class="ab-stat-card skeleton" style="height:120px;"></div>
+                    <div class="ab-stat-card skeleton" style="height:120px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMPANY TIMELINE -->
+        <section class="ab-section ab-timeline-section">
+            <div class="ab-container">
+                <div class="ab-section-label">Our Journey</div>
+                <h2 class="tech-font ab-section-title">From Idea to Ecosystem</h2>
+                <div class="ab-timeline" id="ab-timeline">
+                    <div class="ab-timeline-item skeleton" style="height:100px;"></div>
+                    <div class="ab-timeline-item skeleton" style="height:100px;"></div>
+                    <div class="ab-timeline-item skeleton" style="height:100px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MEET THE TEAM -->
+        <section class="ab-section ab-team-section">
+            <div class="ab-container">
+                <div class="ab-section-label">The People</div>
+                <h2 class="tech-font ab-section-title">Meet the Team</h2>
+                <div class="ab-team-grid" id="ab-team-grid">
+                    <div class="ab-team-card skeleton" style="height:220px;"></div>
+                    <div class="ab-team-card skeleton" style="height:220px;"></div>
+                    <div class="ab-team-card skeleton" style="height:220px;"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- STICKY B2B CTA -->
+        <div class="ab-sticky-cta" id="ab-sticky-cta" style="display:none;">
+            <span><i class="fa-solid fa-rocket"></i> Ready to Grow Your Agency?</span>
+            <a href="/reseller/reseller-dashboard.html" class="ab-btn-primary ab-btn-sm">Join Network</a>
+        </div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/about.js"></script>
+    <script>
+        (function() {
+            const t = localStorage.getItem('nexra_theme');
+            if (t === 'dark') document.body.setAttribute('data-theme', 'dark');
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount' },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'   },
+                { file: '/components/dock.html',        mount: '#dock-mount'   },
+                { file: '/components/footer.html',      mount: '#footer-mount' }
+            ]).then(function() { NexraAbout.init(); })
+              .catch(function() { NexraAbout.init(); });
+        })();
+    </script>
+</body>
+</html>

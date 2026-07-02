@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — DIGITAL VAULT (user/digital-vault.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Secure Digital Asset Repository.                    │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html                          │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - onSnapshot listeners on users/{uid}/vault & unlocked.            │
+  │  - Secure Masked Key Reveal Engine w/ Clipboard API & Audit Logging.│
+  │  - Grid vs List View Toggle. Client-side Category Filtering.        │
+  │  - Strict Security: NoIndex, Anti-Clickjacking, No-Select.          │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Anti-Clickjacking Frame Buster -->
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script type="text/javascript">
+        if (self === top) { var antiClickjack = document.getElementById("antiClickjack"); antiClickjack.parentNode.removeChild(antiClickjack); }
+        else { top.location = self.location; }
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STRICT ENTERPRISE SECURITY & ANTI-SCRAPING (No Index)
+         ════════════════════════════════════════════════════════════════ -->
+    <title>My Digital Vault | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/vault.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+    <!-- Anti-Scraping / No Select -->
+    <style>
+        body.nt-secure-mode { -webkit-user-select: none; -moz-user-select: none; -ms-user-select: none; user-select: none; }
+        .vt-key-reveal { user-select: text; -webkit-user-select: text; } /* Only keys are selectable */
+    </style>
+    <script>
+        document.addEventListener('contextmenu', function(e) { e.preventDefault(); });
+    </script>
+</head>
+
+<body class="nt-secure-mode">
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FULL PAGE LOADER (Auth Guard State)
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="vt-pre-guard" class="vt-pre-guard">
+        <div class="vt-guard-icon"><i class="fa-solid fa-vault fa-fade"></i></div>
+        <p class="tech-font">Decrypting Vault Access...</p>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN VAULT LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="vt-main" class="vt-container" role="main" hidden>
+        
+        <!-- HEADER -->
+        <header class="vt-header">
+            <div class="vt-header-content">
+                <h1 class="tech-font"><i class="fa-solid fa-lock" style="color:var(--brand-main);"></i> My Digital Vault</h1>
+                <p>Secure repository for all your purchased licenses, downloads, and unlocked freebies.</p>
+            </div>
+            
+            <div class="vt-view-toggles">
+                <button class="vt-view-btn active" id="btn-grid" onclick="NexraVault.switchView('grid')" title="Grid View"><i class="fa-solid fa-table-cells-large"></i></button>
+                <button class="vt-view-btn" id="btn-list" onclick="NexraVault.switchView('list')" title="List View"><i class="fa-solid fa-list-ul"></i></button>
+            </div>
+        </header>
+
+        <!-- HORIZONTAL FILTER STRIP -->
+        <div class="vt-filter-strip">
+            <div class="vt-filter-track" id="vt-filter-track" role="tablist">
+                <button class="vt-filter-pill active" role="tab" onclick="NexraVault.filterAssets('all', this)">All Assets</button>
+                <button class="vt-filter-pill" role="tab" onclick="NexraVault.filterAssets('software', this)">Software Keys</button>
+                <button class="vt-filter-pill" role="tab" onclick="NexraVault.filterAssets('download', this)">Direct Downloads</button>
+                <button class="vt-filter-pill" role="tab" onclick="NexraVault.filterAssets('freebie', this)">Unlocked Freebies</button>
+            </div>
+        </div>
+
+        <!-- ASSETS GRID/LIST -->
+        <div class="vt-asset-grid" id="vt-asset-grid">
+            
+            <!-- Skeletons (x4) -->
+            <div class="vt-card skeleton" style="height: 280px;"></div>
+            <div class="vt-card skeleton" style="height: 280px;"></div>
+            <div class="vt-card skeleton" style="height: 280px;"></div>
+            <div class="vt-card skeleton" style="height: 280px;"></div>
+
+        </div>
+
+    </main>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/vault.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraVaultBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  }
+            ]).then(function () {
+                NexraVault.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraVault) NexraVault.init();
+            });
+        })();
+    </script>
+</body>
+</html>

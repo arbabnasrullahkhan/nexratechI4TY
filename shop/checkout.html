@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — SECURE CHECKOUT & PAYMENT GATEWAY (shop/checkout.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED checkout module.                                    │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html                          │
+  │  #sidebar-mount  ← /components/sidebar.html                         │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  NOTE: Cart drawer (#cart-mount) is excluded intentionally because  │
+  │  users are already in the checkout funnel.                          │
+  │                                                                      │
+  │  SECURITY DIRECTIVES:                                                │
+  │  - noindex, nofollow to prevent search engine crawling.             │
+  │  - Exit intent blocking via beforeunload.                           │
+  │  - Base64 Storage-Free Image Processing Engine.                     │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STRICT SECURITY & NOINDEX SEO DIRECTIVES
+         ════════════════════════════════════════════════════════════════ -->
+    <title>Secure Checkout | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         THEME COLOR
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DNS PREFETCH HOOKS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FONTS & ICONS
+         ════════════════════════════════════════════════════════════════ -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/checkout.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body oncontextmenu="return false;">
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         CHECKOUT MAIN LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="co-main" class="co-container" role="main">
+        
+        <!-- TRIPLE-STEP PROGRESS TRACKER -->
+        <div class="co-progress-tracker">
+            <div class="co-step active" id="step-1-nav">
+                <div class="co-step-icon"><i class="fa-solid fa-user-check"></i></div>
+                <div class="co-step-label">Identity</div>
+            </div>
+            <div class="co-step-line"></div>
+            <div class="co-step" id="step-2-nav">
+                <div class="co-step-icon"><i class="fa-solid fa-credit-card"></i></div>
+                <div class="co-step-label">Payment</div>
+            </div>
+            <div class="co-step-line"></div>
+            <div class="co-step" id="step-3-nav">
+                <div class="co-step-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                <div class="co-step-label">Verify</div>
+            </div>
+        </div>
+
+        <div class="co-layout">
+            
+            <!-- ── LEFT: FORM STEPS ── -->
+            <section class="co-forms-section" id="co-forms-section">
+                
+                <!-- STEP 1: IDENTITY & SHIPPING -->
+                <div class="co-step-card" id="co-step-1">
+                    <h2 class="co-card-title tech-font"><i class="fa-solid fa-id-badge"></i> Contact Information</h2>
+                    <div class="co-auth-banner" id="co-auth-banner">
+                        Checking authentication...
+                    </div>
+                    <form class="co-form-grid" id="co-contact-form" onsubmit="event.preventDefault(); NexraCheckout.nextStep(2);">
+                        <div class="co-input-group">
+                            <label for="co-name">Full Name *</label>
+                            <div class="co-input-wrap">
+                                <i class="fa-solid fa-user"></i>
+                                <input type="text" id="co-name" placeholder="Ali Raza" required>
+                            </div>
+                        </div>
+                        <div class="co-input-group">
+                            <label for="co-email">Email Address *</label>
+                            <div class="co-input-wrap">
+                                <i class="fa-solid fa-envelope"></i>
+                                <input type="email" id="co-email" placeholder="you@example.com" required>
+                            </div>
+                        </div>
+                        <div class="co-input-group">
+                            <label for="co-phone">WhatsApp Number *</label>
+                            <div class="co-input-wrap">
+                                <i class="fa-brands fa-whatsapp"></i>
+                                <input type="tel" id="co-phone" placeholder="03001234567" required>
+                            </div>
+                        </div>
+                        
+                        <!-- DYNAMIC SHIPPING FORM (Hidden for Digital-only) -->
+                        <div class="co-shipping-module" id="co-shipping-module" hidden>
+                            <h3 class="co-sub-title"><i class="fa-solid fa-truck"></i> Shipping Address</h3>
+                            <div class="co-input-group full-width">
+                                <label for="co-address">Street Address *</label>
+                                <div class="co-input-wrap">
+                                    <i class="fa-solid fa-location-dot"></i>
+                                    <input type="text" id="co-address" placeholder="House #, Street, Block">
+                                </div>
+                            </div>
+                            <div class="co-input-group">
+                                <label for="co-city">City *</label>
+                                <div class="co-input-wrap">
+                                    <i class="fa-solid fa-building"></i>
+                                    <input type="text" id="co-city" placeholder="Lahore">
+                                </div>
+                            </div>
+                            <div class="co-input-group">
+                                <label for="co-zip">Postal Code</label>
+                                <div class="co-input-wrap">
+                                    <i class="fa-solid fa-map-pin"></i>
+                                    <input type="text" id="co-zip" placeholder="54000">
+                                </div>
+                            </div>
+                            <div class="co-shipping-fee-notice">
+                                Standard Shipping Fee (Rs. 250) will be added to your total.
+                            </div>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary co-next-btn">Continue to Payment <i class="fa-solid fa-arrow-right"></i></button>
+                    </form>
+                </div>
+
+                <!-- STEP 2: PAYMENT METHOD -->
+                <div class="co-step-card" id="co-step-2" hidden>
+                    <h2 class="co-card-title tech-font"><i class="fa-solid fa-wallet"></i> Select Payment Method</h2>
+                    
+                    <div class="co-payment-selector">
+                        <label class="co-pay-option">
+                            <input type="radio" name="pay-method" value="easypaisa" checked onchange="NexraCheckout.selectGateway('easypaisa')">
+                            <div class="co-pay-box">
+                                <img src="/assets/icons/easypaisa.png" alt="EasyPaisa" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iIzEwYjk4MSIvPjwvc3ZnPg=='">
+                                <span>EasyPaisa</span>
+                            </div>
+                        </label>
+                        <label class="co-pay-option">
+                            <input type="radio" name="pay-method" value="jazzcash" onchange="NexraCheckout.selectGateway('jazzcash')">
+                            <div class="co-pay-box">
+                                <img src="/assets/icons/jazzcash.png" alt="JazzCash" onerror="this.src='data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxMDAgMTAwIj48cmVjdCB3aWR0aD0iMTAwIiBoZWlnaHQ9IjEwMCIgZmlsbD0iI2Y1OWUwYiIvPjwvc3ZnPg=='">
+                                <span>JazzCash</span>
+                            </div>
+                        </label>
+                        <label class="co-pay-option">
+                            <input type="radio" name="pay-method" value="bank" onchange="NexraCheckout.selectGateway('bank')">
+                            <div class="co-pay-box">
+                                <i class="fa-solid fa-building-columns" style="font-size:24px; color:var(--brand-main);"></i>
+                                <span>Bank Transfer</span>
+                            </div>
+                        </label>
+                        <label class="co-pay-option">
+                            <input type="radio" name="pay-method" value="crypto" onchange="NexraCheckout.selectGateway('crypto')">
+                            <div class="co-pay-box">
+                                <i class="fa-brands fa-bitcoin" style="font-size:24px; color:#f59e0b;"></i>
+                                <span>Crypto Pay</span>
+                            </div>
+                        </label>
+                    </div>
+
+                    <!-- Dynamic Gateway Details -->
+                    <div class="co-gateway-details" id="co-gateway-details">
+                        <!-- Injected by JS -->
+                        <div class="co-skeleton" style="height:100px; border-radius:12px;"></div>
+                    </div>
+
+                    <div class="co-step-actions">
+                        <button class="btn btn-outline" onclick="NexraCheckout.nextStep(1)"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                        <button class="btn btn-primary" onclick="NexraCheckout.nextStep(3)">I Have Sent the Payment <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
+                </div>
+
+                <!-- STEP 3: VERIFICATION (Base64 Upload) -->
+                <div class="co-step-card" id="co-step-3" hidden>
+                    <h2 class="co-card-title tech-font"><i class="fa-solid fa-file-shield"></i> Payment Verification</h2>
+                    <p class="co-desc">Upload a screenshot of your successful transaction. Our system will encrypt and verify it directly via Firestore atomic injection.</p>
+                    
+                    <div class="co-upload-zone" id="co-upload-zone">
+                        <input type="file" id="co-proof-file" accept="image/png, image/jpeg, image/jpg" onchange="NexraCheckout.handleProofUpload(event)">
+                        <div class="co-upload-content" id="co-upload-content">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <div class="co-upload-text">Click to upload screenshot</div>
+                            <div class="co-upload-hint">JPG, PNG (Auto-compressed to Base64)</div>
+                        </div>
+                        <img id="co-upload-preview" src="" alt="Preview" hidden>
+                        <button class="co-upload-clear" id="co-upload-clear" onclick="NexraCheckout.clearProof(event)" hidden><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                    
+                    <div class="co-step-actions">
+                        <button class="btn btn-outline" onclick="NexraCheckout.nextStep(2)"><i class="fa-solid fa-arrow-left"></i> Back</button>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ── RIGHT: ORDER ENGINE & CART SUMMARY ── -->
+            <section class="co-summary-section">
+                <div class="co-summary-card">
+                    <h2 class="co-card-title tech-font"><i class="fa-solid fa-bag-shopping"></i> Order Summary</h2>
+                    
+                    <!-- Cart Items -->
+                    <div class="co-cart-list" id="co-cart-list">
+                        <!-- Injected by JS -->
+                        <div class="co-skeleton" style="height:60px; margin-bottom:12px;"></div>
+                        <div class="co-skeleton" style="height:60px;"></div>
+                    </div>
+
+                    <!-- Influencer Promo Module -->
+                    <div class="co-promo-box">
+                        <div class="co-input-wrap">
+                            <i class="fa-solid fa-tag"></i>
+                            <input type="text" id="co-promo-input" placeholder="Promo code (e.g. @influncer)">
+                            <button class="co-promo-btn" onclick="NexraCheckout.applyPromo()">Apply</button>
+                        </div>
+                    </div>
+
+                    <!-- Nexra Coins Toggle -->
+                    <div class="co-coins-box" id="co-coins-box" hidden>
+                        <div class="co-coins-info">
+                            <i class="fa-solid fa-coins" style="color:#f59e0b;"></i>
+                            <span>Redeem <strong id="co-user-coins">0</strong> Coins (Rs. <span id="co-coins-value">0</span>)</span>
+                        </div>
+                        <label class="co-switch">
+                            <input type="checkbox" id="co-coins-toggle" onchange="NexraCheckout.toggleCoins()">
+                            <span class="co-slider"></span>
+                        </label>
+                    </div>
+
+                    <!-- Math Engine -->
+                    <div class="co-math-engine">
+                        <div class="co-math-row">
+                            <span>Subtotal</span>
+                            <span id="co-val-sub">Rs. 0</span>
+                        </div>
+                        <div class="co-math-row" id="co-row-shipping" hidden>
+                            <span>Shipping <span class="co-badge">Physical</span></span>
+                            <span id="co-val-shipping">Rs. 250</span>
+                        </div>
+                        <div class="co-math-row co-math-discount" id="co-row-discount" hidden>
+                            <span>Discount <span id="co-discount-label"></span></span>
+                            <span id="co-val-discount">- Rs. 0</span>
+                        </div>
+                        <div class="co-math-row co-math-coins" id="co-row-coins" hidden>
+                            <span>Coins Redeemed</span>
+                            <span id="co-val-coins-used">- Rs. 0</span>
+                        </div>
+                        <div class="co-math-divider"></div>
+                        <div class="co-math-row co-math-total">
+                            <span>Total (PKR)</span>
+                            <span class="tech-font" id="co-val-total">Rs. 0</span>
+                        </div>
+                        <div class="co-math-row co-math-usd">
+                            <span>≈ USD</span>
+                            <span id="co-val-usd">$0.00</span>
+                        </div>
+                    </div>
+                    
+                    <div class="co-loyalty-earn">
+                        <i class="fa-solid fa-gift"></i> You will earn <strong id="co-earn-coins">0</strong> coins from this order.
+                    </div>
+
+                    <!-- Desktop Submit -->
+                    <button class="co-submit-btn" id="co-submit-desktop" onclick="NexraCheckout.submitOrder()">
+                        <i class="fa-solid fa-lock"></i> Submit Encrypted Order
+                    </button>
+                    <div class="co-secure-badge">
+                        <i class="fa-solid fa-shield-check"></i> 256-bit AES Encryption
+                    </div>
+                </div>
+            </section>
+        </div><!-- /.co-layout -->
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         EXIT INTENT MODAL (Security Guard)
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="co-modal-overlay" id="co-exit-modal" hidden>
+        <div class="co-modal-box">
+            <div class="co-modal-icon pulse-warning"><i class="fa-solid fa-triangle-exclamation"></i></div>
+            <h3 class="tech-font">Transaction in Progress!</h3>
+            <p>You have items in your secure checkout. Navigating away might result in data loss or duplicate charges if payment was sent.</p>
+            <div class="co-modal-actions">
+                <button class="btn btn-outline" onclick="NexraCheckout.allowExit()">Leave Page</button>
+                <button class="btn btn-primary" onclick="NexraCheckout.closeExitModal()">Continue Checkout</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STICKY MOBILE ACTION ISLAND
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="co-mobile-island" id="co-mobile-island">
+        <div class="co-island-math">
+            <div class="co-island-label">Grand Total</div>
+            <div class="co-island-total tech-font" id="co-island-val-total">Rs. 0</div>
+        </div>
+        <button class="co-island-submit pulse-btn" id="co-submit-mobile" onclick="NexraCheckout.submitOrder()">
+            <i class="fa-solid fa-lock"></i> Pay Now
+        </button>
+    </div>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/checkout.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraCheckoutBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraCheckout.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraCheckout) NexraCheckout.init();
+            });
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,282 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — CHECKOUT SUCCESS & RECEIPT (shop/checkout-success.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED post-purchase confirmation module.                  │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html                          │
+  │  #sidebar-mount  ← /components/sidebar.html                         │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SECURITY & FUNCTIONALITY:                                           │
+  │  - noindex, nofollow directives for sensitive receipt data.         │
+  │  - Real-time onSnapshot Firebase listener for order approval.       │
+  │  - High-performance canvas-based confetti engine.                   │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    
+    <!-- Cache Prevention -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STRICT SECURITY & NOINDEX SEO DIRECTIVES
+         ════════════════════════════════════════════════════════════════ -->
+    <title>Order Confirmed | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="googlebot" content="noindex, nofollow">
+    <meta name="referrer" content="strict-origin-when-cross-origin">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         THEME COLOR
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DNS PREFETCH HOOKS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="dns-prefetch" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FONTS & ICONS
+         ════════════════════════════════════════════════════════════════ -->
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/checkout-success.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- Canvas for Confetti -->
+    <canvas id="cs-confetti-canvas" class="cs-confetti"></canvas>
+
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN SUCCESS LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="cs-main" class="cs-container" role="main">
+        
+        <div class="cs-header-banner">
+            <div class="cs-success-icon-wrap">
+                <i class="fa-solid fa-check cs-check-icon"></i>
+            </div>
+            <h1 class="tech-font cs-main-title">Order Received!</h1>
+            <p class="cs-main-subtitle">Thank you for choosing Nexra Tech PK. Your order is secure.</p>
+        </div>
+
+        <div class="cs-layout">
+            
+            <!-- ── LEFT: DIGITAL TICKET / RECEIPT CARD ── -->
+            <section class="cs-ticket-section">
+                
+                <div class="cs-ticket">
+                    <!-- Ticket Header -->
+                    <div class="cs-ticket-header">
+                        <div class="cs-ticket-logo tech-font">NEXRA TECH</div>
+                        <div class="cs-ticket-id">
+                            <span>Order ID</span>
+                            <strong id="cs-val-orderid">NEX-XXXXX</strong>
+                        </div>
+                    </div>
+                    
+                    <!-- Ticket Status (Real-time Morphing) -->
+                    <div class="cs-ticket-status pending" id="cs-status-banner">
+                        <i class="fa-solid fa-circle-notch fa-spin"></i>
+                        <span>Verification Pending</span>
+                    </div>
+
+                    <!-- Ticket Body -->
+                    <div class="cs-ticket-body">
+                        <div class="cs-tb-row">
+                            <div class="cs-tb-col">
+                                <span class="cs-tb-label">Date & Time</span>
+                                <span class="cs-tb-val" id="cs-val-date">Loading...</span>
+                            </div>
+                            <div class="cs-tb-col right">
+                                <span class="cs-tb-label">Payment Method</span>
+                                <span class="cs-tb-val" id="cs-val-method">Loading...</span>
+                            </div>
+                        </div>
+
+                        <div class="cs-tb-row">
+                            <div class="cs-tb-col">
+                                <span class="cs-tb-label">Customer Name</span>
+                                <span class="cs-tb-val" id="cs-val-name">Loading...</span>
+                            </div>
+                            <div class="cs-tb-col right">
+                                <span class="cs-tb-label">Product Type</span>
+                                <span class="cs-tb-val" id="cs-val-type">Loading...</span>
+                            </div>
+                        </div>
+
+                        <div class="cs-ticket-divider"></div>
+
+                        <!-- Items List -->
+                        <div class="cs-ticket-items" id="cs-val-items">
+                            <div class="cs-skeleton-row"></div>
+                            <div class="cs-skeleton-row"></div>
+                        </div>
+
+                        <div class="cs-ticket-divider"></div>
+                        
+                        <!-- Totals -->
+                        <div class="cs-ticket-totals">
+                            <div class="cs-tot-row">
+                                <span>Subtotal</span>
+                                <span id="cs-val-sub">Rs. 0</span>
+                            </div>
+                            <div class="cs-tot-row" id="cs-row-shipping" hidden>
+                                <span>Shipping Fee</span>
+                                <span id="cs-val-shipping">Rs. 0</span>
+                            </div>
+                            <div class="cs-tot-row cs-discount-row" id="cs-row-discount" hidden>
+                                <span>Discount</span>
+                                <span id="cs-val-discount">- Rs. 0</span>
+                            </div>
+                            <div class="cs-tot-row cs-total-row">
+                                <span>Grand Total</span>
+                                <span class="tech-font" id="cs-val-total">Rs. 0</span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- Perforated Cutout Effect -->
+                    <div class="cs-ticket-cutout">
+                        <div class="cs-hole left"></div>
+                        <div class="cs-perforation"></div>
+                        <div class="cs-hole right"></div>
+                    </div>
+
+                    <!-- Ticket Footer (QR & Delivery) -->
+                    <div class="cs-ticket-footer">
+                        <div class="cs-qr-box">
+                            <img id="cs-val-qr" src="" alt="Encrypted QR Code" hidden>
+                            <div class="cs-qr-skeleton" id="cs-qr-skeleton"></div>
+                        </div>
+                        <div class="cs-delivery-box" id="cs-delivery-box">
+                            <h4 class="tech-font"><i class="fa-solid fa-lock"></i> Secure Vault</h4>
+                            <p>Awaiting admin verification of your payment proof.</p>
+                            <div class="cs-delivery-action" id="cs-delivery-action">
+                                <!-- Morphs when approved -->
+                                <div class="cs-skeleton-row" style="height:24px;"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ── RIGHT: RETENTION & LOYALTY MODULES ── -->
+            <section class="cs-retention-section">
+                
+                <!-- Countdown Timer -->
+                <div class="cs-card cs-timer-card">
+                    <div class="cs-circular-timer">
+                        <svg class="cs-timer-svg" viewBox="0 0 100 100">
+                            <circle class="cs-timer-bg" cx="50" cy="50" r="45"></circle>
+                            <circle class="cs-timer-progress" id="cs-timer-circle" cx="50" cy="50" r="45"></circle>
+                        </svg>
+                        <div class="cs-timer-text" id="cs-timer-text">15</div>
+                    </div>
+                    <div class="cs-timer-info">
+                        <h3>Redirecting automatically</h3>
+                        <p>Heading to your <span id="cs-redirect-dest">profile</span> momentarily.</p>
+                        <button class="btn btn-outline btn-sm" onclick="NexraSuccess.cancelTimer()">Pause Timer</button>
+                    </div>
+                </div>
+
+                <!-- Loyalty Rewards -->
+                <div class="cs-card cs-loyalty-card">
+                    <div class="cs-loyalty-icon"><i class="fa-solid fa-coins"></i></div>
+                    <div class="cs-loyalty-info">
+                        <h3>Coins Earned!</h3>
+                        <p>You received <strong id="cs-val-coins" class="tech-font">0</strong> Nexra Coins for this order. They have been added to your wallet.</p>
+                    </div>
+                </div>
+
+                <!-- Affiliate Invite -->
+                <div class="cs-card cs-affiliate-card">
+                    <div class="cs-affiliate-header">
+                        <i class="fa-solid fa-handshake-angle"></i> 
+                        <h3>Refer & Earn 10%</h3>
+                    </div>
+                    <p>Share your unique link with friends. When they buy, you earn a 10% commission straight to your vault.</p>
+                    <div class="cs-affiliate-input-wrap">
+                        <input type="text" id="cs-affiliate-link" readonly value="Generating...">
+                        <button onclick="NexraSuccess.copyAffiliate()"><i class="fa-solid fa-copy"></i> Copy</button>
+                    </div>
+                </div>
+
+                <div class="cs-support-links">
+                    <a href="mailto:support@nexratech.pk"><i class="fa-solid fa-envelope"></i> Email Support</a>
+                    <a href="#" onclick="window.open('https://wa.me/923000000000', '_blank')"><i class="fa-brands fa-whatsapp"></i> WhatsApp Support</a>
+                </div>
+
+            </section>
+        </div><!-- /.cs-layout -->
+    </main>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <!-- Lightweight Canvas Confetti Engine built into cs script to avoid external deps -->
+    <script src="/js/checkout-success.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraSuccessBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraSuccess.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraSuccess) NexraSuccess.init();
+            });
+        })();
+    </script>
+</body>
+</html>

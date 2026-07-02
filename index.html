@@ -1,0 +1,763 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — MASTER GATEWAY (index.html)
+  Cinematic Splash Screen & Deep-Link Interceptor
+  ============================================================================
+  ROLE:
+    This is the ONLY file served at the root URL (/). It is the first
+    thing users, ad links, and social media deep-links hit.
+  
+  BEHAVIOR:
+    1. Immediately renders the cinematic splash (logo, progress bar, text)
+    2. Reads the URL path & query params for deep-link routing
+    3. Validates the route against NexraRoutes.registry
+    4. Checks Firestore settings/global.maintenanceMode (if Firebase ready)
+    5. Animates progress bar through 5 stages with dynamic text
+    6. After animation completes → location.href to target page
+       (NO HISTORY PUSHSTATE — real redirect so back button works)
+  
+  DEEP LINK EXAMPLES:
+    / or /home                   → /discovery/home.html
+    /shop                        → /shop/shop.html
+    /product/capcut-pro          → /shop/product-detail.html?id=capcut-pro
+    /free-vault                  → /freebies/free-vault.html
+    /blog                        → /academy/blog.html
+    /?ref=USERNAME               → /discovery/home.html?ref=USERNAME
+    /?maintenance=1 (Firestore)  → shows maintenance overlay instead
+  ============================================================================
+-->
+<head>
+    <!-- ════════════════════════════════════════════════════════════════
+         BASE META
+         ════════════════════════════════════════════════════════════════ -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- SEO — index.html is a gateway, not content, so noindex -->
+    <title>Loading — Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow">
+    <meta name="description" content="Pakistan's #1 Digital Ecosystem. Loading your gateway...">
+
+    <!-- Theme color for browser chrome -->
+    <meta name="theme-color" content="#020202">
+
+    <!-- PWA -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Nexra Tech PK">
+
+    <!-- Open Graph — for when the root URL is shared directly -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Nexra Tech PK — Pakistan's #1 Digital Ecosystem">
+    <meta property="og:description" content="Premium software licenses, SaaS tools & free resources — instant delivery.">
+    <meta property="og:image" content="https://nexratech.pk/og-cover.jpg">
+    <meta property="og:url" content="https://nexratech.pk">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PERFORMANCE: preconnect critical origins
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link rel="dns-prefetch" href="https://uploads.onecompiler.io">
+
+    <!-- Google Fonts — Space Grotesk (brand display font) -->
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         INLINE STYLES
+         Self-contained — no external CSS file dependency.
+         index.html MUST be fully independent (no /css/global.css load).
+         ════════════════════════════════════════════════════════════════ -->
+    <style>
+        /* ── RESET & BASE ──────────────────────────────────────────── */
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        :root {
+            --brand:    #FF4A17;
+            --brand-glow: rgba(255, 74, 23, 0.40);
+            --brand-dim:  rgba(255, 74, 23, 0.10);
+            --bg:       #020202;
+            --t1:       #ffffff;
+            --t2:       rgba(255,255,255,0.55);
+            --t3:       rgba(255,255,255,0.28);
+            --success:  #10b981;
+            --ease:     cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        html, body {
+            width: 100%; height: 100%;
+            overflow: hidden;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--t1);
+            font-family: 'Space Grotesk', system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            min-height: 100vh;
+            min-height: 100svh;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        /* ── AMBIENT BACKGROUND ────────────────────────────────────── */
+        .gw-bg {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            overflow: hidden;
+        }
+
+        /* Central radial brand glow */
+        .gw-glow {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: min(70vw, 500px);
+            height: min(70vw, 500px);
+            background: var(--brand);
+            filter: blur(140px);
+            opacity: 0.12;
+            border-radius: 50%;
+            animation: gwPulse 5s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        /* Secondary glow (offset for depth) */
+        .gw-glow-2 {
+            position: absolute;
+            top: 60%;
+            left: 40%;
+            transform: translate(-50%, -50%);
+            width: min(40vw, 280px);
+            height: min(40vw, 280px);
+            background: #a855f7;
+            filter: blur(120px);
+            opacity: 0.06;
+            border-radius: 50%;
+            animation: gwPulse2 7s ease-in-out infinite alternate;
+            pointer-events: none;
+        }
+
+        /* Subtle dot grid */
+        .gw-grid {
+            position: absolute;
+            inset: 0;
+            background-image: radial-gradient(circle, rgba(255,74,23,0.04) 1px, transparent 1px);
+            background-size: 36px 36px;
+            pointer-events: none;
+        }
+
+        @keyframes gwPulse {
+            0%   { opacity: 0.08; transform: translate(-50%,-50%) scale(0.92); }
+            100% { opacity: 0.20; transform: translate(-50%,-50%) scale(1.08); }
+        }
+        @keyframes gwPulse2 {
+            0%   { opacity: 0.04; transform: translate(-50%,-50%) scale(1.0); }
+            100% { opacity: 0.10; transform: translate(-50%,-50%) scale(0.88); }
+        }
+
+        /* ── SPLASH CONTENT ────────────────────────────────────────── */
+        .gw-content {
+            position: relative;
+            z-index: 2;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+            padding: 0 32px;
+            width: 100%;
+            max-width: 440px;
+        }
+
+        /* Logo */
+        .gw-logo {
+            width: clamp(64px, 14vw, 88px);
+            height: auto;
+            margin-bottom: 22px;
+            filter: drop-shadow(0 12px 30px var(--brand-glow));
+            animation: gwFloat 4s ease-in-out infinite;
+        }
+        @keyframes gwFloat {
+            0%, 100% { transform: translateY(0px); }
+            50%       { transform: translateY(-8px); }
+        }
+
+        /* Brand wordmark */
+        .gw-wordmark {
+            font-size: clamp(11px, 3vw, 13px);
+            font-weight: 900;
+            letter-spacing: 3.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #fff 0%, rgba(255,255,255,0.65) 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        /* Tagline */
+        .gw-tagline {
+            font-size: 11px;
+            font-weight: 600;
+            color: var(--t3);
+            letter-spacing: 0.5px;
+            margin-bottom: 44px;
+        }
+
+        /* ── PROGRESS SECTION ─────────────────────────────────────── */
+        .gw-progress-wrap {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 18px;
+        }
+
+        /* Track bar */
+        .gw-bar-bg {
+            width: 100%;
+            height: 3px;
+            background: rgba(255,255,255,0.07);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 14px;
+            position: relative;
+        }
+
+        /* Fill bar */
+        .gw-bar-fill {
+            height: 100%;
+            width: 0%;
+            border-radius: 10px;
+            background: linear-gradient(90deg, var(--brand), #ff8a00);
+            box-shadow: 0 0 10px var(--brand), 0 0 4px var(--brand-glow);
+            transition: width 0.25s var(--ease);
+            position: relative;
+        }
+
+        /* Shimmer on fill bar */
+        .gw-bar-fill::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: 0;
+            width: 40px;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.5), transparent);
+            animation: gwShimmer 1.2s ease-in-out infinite;
+        }
+        @keyframes gwShimmer {
+            0%   { opacity: 0; transform: translateX(-20px); }
+            50%  { opacity: 1; }
+            100% { opacity: 0; transform: translateX(20px); }
+        }
+
+        /* Status text */
+        .gw-status {
+            font-size: 9.5px;
+            font-weight: 800;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--t3);
+            transition: opacity 0.3s ease;
+            min-height: 16px;
+        }
+
+        /* Percentage counter */
+        .gw-pct {
+            font-size: 10px;
+            font-weight: 700;
+            color: var(--brand);
+            letter-spacing: 1px;
+            margin-top: 6px;
+            transition: opacity 0.3s;
+        }
+
+        /* ── BOTTOM TRUST ROW ─────────────────────────────────────── */
+        .gw-trust-row {
+            position: fixed;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: rgba(16,185,129,0.08);
+            border: 1px solid rgba(16,185,129,0.18);
+            color: var(--success);
+            padding: 9px 18px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 800;
+            letter-spacing: 1.5px;
+            text-transform: uppercase;
+            white-space: nowrap;
+        }
+        .gw-trust-dot {
+            width: 7px;
+            height: 7px;
+            background: var(--success);
+            border-radius: 50%;
+            box-shadow: 0 0 8px var(--success);
+            animation: gwDotPulse 2s infinite;
+        }
+        @keyframes gwDotPulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50%       { transform: scale(1.4); opacity: 0.6; }
+        }
+
+        /* ── MAINTENANCE OVERLAY ──────────────────────────────────── */
+        .gw-maintenance {
+            position: fixed;
+            inset: 0;
+            z-index: 999;
+            background: var(--bg);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            flex-direction: column;
+            text-align: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.5s ease;
+        }
+        .gw-maintenance.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .gw-maint-icon {
+            width: 72px;
+            height: 72px;
+            border-radius: 24px;
+            background: var(--brand-dim);
+            border: 1px solid rgba(255,74,23,0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            margin: 0 auto 20px;
+            animation: gwWrench 4s ease-in-out infinite;
+        }
+        @keyframes gwWrench {
+            0%,90%,100% { transform: rotate(0deg); }
+            45%          { transform: rotate(-15deg); }
+            50%          { transform: rotate(15deg); }
+        }
+        .gw-maint-logo {
+            height: 30px;
+            margin: 0 auto 18px;
+        }
+        .gw-maint-title {
+            font-size: clamp(22px, 6vw, 30px);
+            font-weight: 900;
+            color: var(--t1);
+            margin-bottom: 12px;
+            letter-spacing: -0.5px;
+        }
+        .gw-maint-desc {
+            font-size: 14px;
+            color: var(--t2);
+            line-height: 1.7;
+            max-width: 380px;
+            margin-bottom: 24px;
+        }
+        .gw-maint-eta {
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            padding: 8px 20px;
+            border-radius: 50px;
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--t3);
+            letter-spacing: 0.5px;
+        }
+
+        /* ── TRANSITION FADE-OUT ─────────────────────────────────── */
+        .gw-fade-exit {
+            animation: gwFadeOut 0.6s var(--ease) forwards;
+        }
+        @keyframes gwFadeOut {
+            0%   { opacity: 1; transform: scale(1); }
+            100% { opacity: 0; transform: scale(0.97); }
+        }
+
+        /* ── DEEP LINK LABEL ─────────────────────────────────────── */
+        .gw-deep-link-label {
+            position: fixed;
+            top: 24px;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 2;
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.08);
+            color: var(--t3);
+            padding: 6px 16px;
+            border-radius: 50px;
+            font-size: 10px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            white-space: nowrap;
+            max-width: 90vw;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            opacity: 0;
+            transition: opacity 0.4s ease 0.3s;
+        }
+        .gw-deep-link-label.visible { opacity: 1; }
+    </style>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK — loaded here for maintenance mode check only.
+         We use the compat version to match firebaseconfig.js.
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         AMBIENT BACKGROUND LAYERS
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="gw-bg" aria-hidden="true">
+        <div class="gw-glow"></div>
+        <div class="gw-glow-2"></div>
+        <div class="gw-grid"></div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DEEP LINK DESTINATION LABEL
+         Shows which page the user is being routed to
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="gw-deep-link-label" id="gw-route-label"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN SPLASH CONTENT
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="gw-content" id="gw-content">
+
+        <!-- Brand Logo — src injected by JS from NexraBrand -->
+        <img
+            id="gw-logo"
+            class="gw-logo"
+            src="https://uploads.onecompiler.io/42yatf6fu/1782533768745/logo_orange%20y.png"
+            alt="Nexra Tech PK"
+            draggable="false"
+        >
+
+        <!-- Brand Wordmark -->
+        <div class="gw-wordmark">NEXRA TECH PK</div>
+        <div class="gw-tagline" id="gw-tagline">Pakistan's #1 Digital Ecosystem</div>
+
+        <!-- Progress section -->
+        <div class="gw-progress-wrap">
+            <div class="gw-bar-bg">
+                <div class="gw-bar-fill" id="gw-bar"></div>
+            </div>
+            <div class="gw-status" id="gw-status">INITIALIZING CORE SYSTEMS...</div>
+            <div class="gw-pct" id="gw-pct">0%</div>
+        </div>
+
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         BOTTOM SECURE BADGE
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="gw-trust-row" role="status" aria-live="polite">
+        <div class="gw-trust-dot"></div>
+        256-BIT SECURE GATEWAY
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAINTENANCE MODE OVERLAY
+         Shown instead of the splash if Firestore reports maintenance.
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="gw-maintenance" id="gw-maintenance" role="alertdialog" aria-labelledby="gw-maint-title">
+        <div class="gw-maint-icon" aria-hidden="true">🔧</div>
+        <img
+            class="gw-maint-logo"
+            id="gw-maint-logo"
+            src="https://uploads.onecompiler.io/42yatf6fu/1782533768745/logo_orange%20y.png"
+            alt="Nexra Tech PK"
+        >
+        <h1 class="gw-maint-title" id="gw-maint-title">Under Maintenance</h1>
+        <p class="gw-maint-desc" id="gw-maint-desc">
+            We're upgrading the Nexra ecosystem for you. We'll be back very shortly — thank you for your patience!
+        </p>
+        <div class="gw-maint-eta" id="gw-maint-eta">Estimated time: checking...</div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GATEWAY BOOT SCRIPT
+         Self-contained routing logic. No external JS file dependency.
+         ════════════════════════════════════════════════════════════════ -->
+    <script>
+    (function NexraGateway() {
+        'use strict';
+
+        /* ── ROUTE REGISTRY ─────────────────────────────────────────
+           Maps URL paths → destination HTML files.
+           Kept in sync with firebaseconfig.js NexraRoutes.registry.
+           The gateway has its own copy so it works even if
+           firebaseconfig.js fails to load (offline safety).
+        ──────────────────────────────────────────────────────────── */
+        var ROUTES = {
+            '':                  '/discovery/home.html',
+            'home':              '/discovery/home.html',
+            'discovery':         '/discovery/home.html',
+            'search':            '/discovery/search-results.html',
+            'coming-soon':       '/discovery/coming-soon.html',
+            'shop':              '/shop/shop.html',
+            'product-detail':    '/shop/product-detail.html',
+            'checkout':          '/shop/checkout.html',
+            'checkout-success':  '/shop/checkout-success.html',
+            'bundle-builder':    '/shop/bundle-builder.html',
+            'free-vault':        '/freebies/freebies.html',
+            'freebies':          '/freebies/freebies.html',
+            'freebie-detail':    '/freebies/freebie-detail.html',
+            'giveaway-live':     '/freebies/giveaway-live.html',
+            'blog':              '/academy/blog.html',
+            'blog-detail':       '/academy/blog-detail.html',
+            'auth-gate':         '/user/auth-gate.html',
+            'auth':              '/user/auth-gate.html',
+            'profile':           '/user/profile-dashboard.html',
+            'profile-dashboard': '/user/profile-dashboard.html',
+            'user-vault':        '/user/user-vault.html',
+            'user-wallet':       '/user/user-wallet.html',
+            'wishlist':          '/user/wishlist.html',
+            'reseller':          '/reseller/landing.html',
+            'reseller-landing':  '/reseller/landing.html',
+            'reseller-auth':     '/reseller/reseller-auth.html',
+            'reseller-dashboard':'/reseller/reseller-dashboard.html',
+            'store-builder':     '/reseller/store-builder.html',
+            'submissions':       '/reseller/submissions.html',
+            'vip':               '/vip/vip-tiers.html',
+            'vip-tiers':         '/vip/vip-tiers.html',
+            'vip-dashboard':     '/vip/vip-dashboard.html',
+            'support':           '/support/support-hub.html',
+            'support-hub':       '/support/support-hub.html',
+            'support-chat':      '/support/support-chat.html',
+            'about':             '/system/about.html',
+            'policies':          '/system/policies.html',
+            'error-404':         '/system/error-404.html',
+            '404':               '/system/error-404.html',
+            'admin':             '/admin/index.html',
+            'admin-dashboard':   '/admin/index.html',
+        };
+
+        /* ── PROGRESS STEPS ─────────────────────────────────────────
+           Each step: [progressPercent, statusText, delayMs from prev]
+        ──────────────────────────────────────────────────────────── */
+        var STEPS = [
+            [8,   'CONNECTING TO SECURE SERVERS...',    180],
+            [22,  'AUTHENTICATING SESSION...',          250],
+            [45,  'SYNCING FIRESTORE CONFIG...',        280],
+            [68,  'LOADING ECOSYSTEM MODULES...',       300],
+            [88,  'VALIDATING ROUTE REGISTRY...',       260],
+            [100, 'ENTERING NEXRA...',                  300],
+        ];
+
+        /* ── STATE ──────────────────────────────────────────────── */
+        var _targetUrl    = '/discovery/home.html';
+        var _targetLabel  = 'HOME';
+        var _stepIndex    = 0;
+        var _maintenanceActive = false;
+        var _maintenanceChecked = false;
+
+        /* ── DOM REFS ───────────────────────────────────────────── */
+        var bar        = document.getElementById('gw-bar');
+        var status     = document.getElementById('gw-status');
+        var pct        = document.getElementById('gw-pct');
+        var content    = document.getElementById('gw-content');
+        var routeLabel = document.getElementById('gw-route-label');
+        var maintenanceOverlay = document.getElementById('gw-maintenance');
+
+        /* ── DEEP LINK RESOLVER ─────────────────────────────────── */
+        function resolveRoute() {
+            var rawPath  = window.location.pathname;
+            var search   = window.location.search;
+            var params   = new URLSearchParams(search);
+
+            // Normalize path: remove leading slash and trailing slash
+            var clean = rawPath.replace(/^\/+/, '').replace(/\/+$/, '').toLowerCase();
+
+            // Handle /discovery/home → route to 'home'
+            if (clean.startsWith('discovery/')) {
+                clean = clean.replace('discovery/', '');
+            }
+
+            // Get the first path segment as the route key
+            var segments = clean.split('/');
+            var routeKey = segments[0] || '';
+
+            // Preserve any sub-segments as possible ID params
+            var subSegment = segments[1] || '';
+
+            // Look up target URL
+            var dest = ROUTES[routeKey] || null;
+
+            // Unknown route → 404
+            if (!dest) {
+                dest = '/system/error-404.html';
+                _targetLabel = '404 — NOT FOUND';
+            } else {
+                _targetLabel = routeKey.toUpperCase() || 'HOME';
+            }
+
+            // Attach sub-segment as ?id= if present (e.g., /product/capcut-pro)
+            if (subSegment) {
+                dest += '?id=' + encodeURIComponent(subSegment);
+            }
+
+            // Forward all original query params
+            var forwardParams = [];
+            params.forEach(function(val, key) {
+                forwardParams.push(encodeURIComponent(key) + '=' + encodeURIComponent(val));
+            });
+            if (forwardParams.length > 0) {
+                dest += (dest.indexOf('?') !== -1 ? '&' : '?') + forwardParams.join('&');
+            }
+
+            _targetUrl = dest;
+            return dest;
+        }
+
+        /* ── MAINTENANCE CHECK ──────────────────────────────────── */
+        function checkMaintenance() {
+            return new Promise(function(resolve) {
+                if (!window.db) { resolve(false); return; }
+                // 2-second timeout — don't block the splash
+                var timeout = setTimeout(function() {
+                    resolve(false);
+                }, 2000);
+
+                window.db.collection('settings').doc('global').get()
+                    .then(function(doc) {
+                        clearTimeout(timeout);
+                        if (!doc.exists) { resolve(false); return; }
+                        var data = doc.data();
+                        if (data.maintenanceMode === true) {
+                            // Update maintenance overlay text if available
+                            var descEl = document.getElementById('gw-maint-desc');
+                            var etaEl  = document.getElementById('gw-maint-eta');
+                            if (descEl && data.maintenanceMessage) {
+                                descEl.textContent = data.maintenanceMessage;
+                            }
+                            if (etaEl && data.maintenanceETA) {
+                                etaEl.textContent = 'Estimated time: ' + data.maintenanceETA;
+                            } else if (etaEl) {
+                                etaEl.textContent = 'We\'ll be back very soon!';
+                            }
+                            resolve(true);
+                        } else {
+                            resolve(false);
+                        }
+                    })
+                    .catch(function() {
+                        clearTimeout(timeout);
+                        resolve(false);
+                    });
+            });
+        }
+
+        /* ── SHOW MAINTENANCE ───────────────────────────────────── */
+        function showMaintenance() {
+            _maintenanceActive = true;
+            if (content)    content.style.opacity = '0';
+            if (maintenanceOverlay) maintenanceOverlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        /* ── PROGRESS ANIMATION ─────────────────────────────────── */
+        function setProgress(percent, text) {
+            if (bar)    bar.style.width  = percent + '%';
+            if (status) status.textContent = text;
+            if (pct)    pct.textContent  = percent + '%';
+        }
+
+        function runStep() {
+            if (_maintenanceActive) return;
+            if (_stepIndex >= STEPS.length) {
+                // All steps done — navigate
+                navigateToTarget();
+                return;
+            }
+
+            var step  = STEPS[_stepIndex];
+            var prog  = step[0];
+            var text  = step[1];
+            var delay = step[2];
+
+            // If this is the last step, customize the status text
+            if (_stepIndex === STEPS.length - 1) {
+                text = 'LOADING ' + _targetLabel + '...';
+            }
+
+            _stepIndex++;
+            setProgress(prog, text);
+
+            setTimeout(runStep, delay);
+        }
+
+        /* ── NAVIGATE ───────────────────────────────────────────── */
+        function navigateToTarget() {
+            // Fade out content before navigating
+            if (content) {
+                content.classList.add('gw-fade-exit');
+            }
+            setTimeout(function() {
+                window.location.href = _targetUrl;
+            }, 500);
+        }
+
+        /* ── DEEP LINK LABEL UPDATE ─────────────────────────────── */
+        function showRouteLabel(dest) {
+            if (!routeLabel) return;
+            // Only show if route is not the default home
+            if (dest === '/discovery/home.html') return;
+            routeLabel.textContent = '→ ' + _targetLabel.replace(/-/g, ' ');
+            routeLabel.classList.add('visible');
+        }
+
+        /* ── INIT ───────────────────────────────────────────────── */
+        async function init() {
+            // 1. Resolve destination from URL
+            var dest = resolveRoute();
+            showRouteLabel(dest);
+
+            // 2. Check maintenance mode (with 2s timeout to not block)
+            var inMaintenance = await checkMaintenance();
+            if (inMaintenance) {
+                showMaintenance();
+                return; // Stop — don't navigate
+            }
+
+            // 3. Kick off progress animation
+            setTimeout(runStep, 120);
+        }
+
+        // Start when DOM is ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
+        }
+
+    })();
+    </script>
+
+</body>
+</html>

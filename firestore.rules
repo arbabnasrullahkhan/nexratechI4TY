@@ -1,0 +1,326 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // =========================================================================
+    // Core Role-Based Access Control Helpers
+    // =========================================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // Checks if the active user matches the target userId
+    function isUser(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // Fetches the user data document for the active request
+    function getUserData() {
+      return get(/databases/$(database)/documents/users/$(request.auth.uid)).data;
+    }
+
+    // Verifies if the user has the 'admin' role
+    function isAdmin() {
+      return isAuthenticated() && getUserData().role == 'admin';
+    }
+
+    // Verifies if the user is the Super Admin (UID-locked for core settings protection)
+    function isSuperAdmin() {
+      return isAuthenticated() && request.auth.uid == 'AvwpDXKLJHcivs6pyZKmxCmV6zA3';
+    }
+
+    // =========================================================================
+    // Root Collections
+    // =========================================================================
+
+    // Users Collection
+    match /users/{userId} {
+      allow read: if isUser(userId) || isAdmin() || isSuperAdmin();
+      allow create: if isUser(userId) 
+                    && (request.resource.data.role == 'user' || request.resource.data.role == 'standard')
+                    && (!('coins' in request.resource.data) || request.resource.data.coins == 0)
+                    && (!('nexraCoins' in request.resource.data) || request.resource.data.nexraCoins == 0)
+                    && (!('tier' in request.resource.data) || request.resource.data.tier == 'Standard' || request.resource.data.tier == 'Free');
+      
+      allow update: if isUser(userId) && (
+        (
+          // Role is unchanged OR promoted to reseller using key validation
+          request.resource.data.role == resource.data.role || 
+          (request.resource.data.role == 'reseller' && 
+           (resource.data.role == 'user' || resource.data.role == 'standard') && 
+           get(/databases/$(database)/documents/reseller_keys/$(request.resource.data.resellerKeyId)).data.usedBy == request.auth.uid)
+        ) && (
+          // Tier is unchanged, standard, or free
+          (!('tier' in request.resource.data) || 
+           request.resource.data.tier == resource.data.tier || 
+           request.resource.data.tier == 'Standard' || 
+           request.resource.data.tier == 'Free')
+        ) && (
+          // Coins & NexraCoins are either unchanged, rewarded (+10), or deducted
+          (!('coins' in request.resource.data) || 
+           request.resource.data.coins == resource.data.coins || 
+           request.resource.data.coins == resource.data.coins + 10 || 
+           request.resource.data.coins < resource.data.coins) &&
+          (!('nexraCoins' in request.resource.data) || 
+           request.resource.data.nexraCoins == resource.data.nexraCoins || 
+           request.resource.data.nexraCoins == resource.data.nexraCoins + 10 || 
+           request.resource.data.nexraCoins < resource.data.nexraCoins)
+        )
+      ) || isAdmin() || isSuperAdmin();
+      
+      allow delete: if isAdmin() || isSuperAdmin();
+
+      // Sub-collections under Users
+      match /wishlist/{wishlistId} {
+        allow read, write: if isUser(userId) || isAdmin() || isSuperAdmin();
+      }
+
+      match /cart/{cartId} {
+        allow read, write: if isUser(userId) || isAdmin() || isSuperAdmin();
+      }
+
+      match /sessions/{sessionId} {
+        allow read, write: if isUser(userId) || isAdmin() || isSuperAdmin();
+      }
+
+      match /unlocked/{unlockedId} {
+        allow read, write: if isUser(userId) || isAdmin() || isSuperAdmin();
+      }
+
+      match /vault/{vaultId} {
+        allow read: if isUser(userId) || isAdmin() || isSuperAdmin();
+        // Allow user to audit reveal timestamp on copy
+        allow update: if isUser(userId) && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastRevealedAt']);
+        allow create, delete: if isAdmin() || isSuperAdmin();
+      }
+
+      match /notifications/{notificationId} {
+        allow read, write: if isUser(userId) || isAdmin() || isSuperAdmin();
+      }
+
+      match /tickets/{ticketId} {
+        allow read, write: if isUser(userId) || isAdmin() || isSuperAdmin();
+      }
+
+      match /orders/{orderId} {
+        allow read: if isUser(userId) || isAdmin() || isSuperAdmin();
+        allow write: if isAdmin() || isSuperAdmin();
+      }
+    }
+
+    // Products Collection
+    match /products/{productId} {
+      allow read: if true; // Public read access
+      allow write: if isAdmin() || isSuperAdmin();
+
+      match /reviews/{reviewId} {
+        allow read: if true;
+        allow create: if isAuthenticated();
+        allow update, delete: if isAdmin() || isSuperAdmin() || resource.data.userId == request.auth.uid;
+      }
+    }
+
+    // Blogs Collection
+    match /blogs/{blogId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+
+      match /comments/{commentId} {
+        allow read: if true;
+        allow create: if isAuthenticated() && request.resource.data.authorId == request.auth.uid;
+        allow update, delete: if isAuthenticated() && (resource.data.authorId == request.auth.uid || isAdmin() || isSuperAdmin());
+      }
+    }
+
+    // Freebies Collection
+    match /freebies/{freebieId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Giveaways Collection
+    match /giveaways/{giveawayId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Giveaway Tickets Collection
+    match /giveawayTickets/{ticketId} {
+      allow read: if true;
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Giveaway Winners Collection
+    match /giveaway_winners/{winnerId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Banners Collection
+    match /banners/{bannerId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Categories Collection
+    match /categories/{categoryId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Team Members Collection
+    match /team/{memberId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // FAQs Collection
+    match /faqs/{faqId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Incident Logs (System Status) Collection
+    match /incident_logs/{logId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Global Notifications / Broadcasts
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || resource.data.uid == 'ALL');
+      allow update: if isAuthenticated() && resource.data.uid == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAdmin() || isSuperAdmin();
+    }
+
+    // VIP Broadcast Feed
+    match /vip_broadcasts/{broadcastId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Live Stats (Counter increment)
+    match /stats/{statId} {
+      allow read, create, update: if true;
+      allow delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Settings Collection
+    match /settings/{settingId} {
+      allow read: if true; // Public config access for routes, branding, status, etc.
+      
+      // RESTRICT API keys, OpenRouter keys, and routes config strictly to Super Admin!
+      allow write: if isSuperAdmin() || (
+        isAdmin() && 
+        settingId != 'ai_config' && 
+        settingId != 'api_keys' && 
+        settingId != 'routes'
+      );
+
+      match /plans/{planId} {
+        allow read: if true;
+        allow write: if isAdmin() || isSuperAdmin();
+      }
+    }
+
+    // Resellers Profile Collection
+    match /resellers/{userId} {
+      allow read: if true; // Branded storefront needs to be read publicly
+      allow create, update: if isAuthenticated() && request.auth.uid == userId;
+      allow delete: if isAdmin() || isSuperAdmin();
+
+      match /custom_blocks/{blockId} {
+        allow read: if true;
+        allow create, update, delete: if isAuthenticated() && request.auth.uid == userId;
+      }
+    }
+
+    // Reseller Verification Keys
+    match /reseller_keys/{keyId} {
+      allow read: if isAuthenticated(); // Needed to query key status during onboarding
+      // Allows user to mark a key as used by them in their reseller batch transaction
+      allow update: if isAuthenticated() 
+                    && resource.data.used == false 
+                    && request.resource.data.used == true 
+                    && request.resource.data.usedBy == request.auth.uid;
+      allow create, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Reseller Promotions Collection
+    match /promotions/{promoId} {
+      allow read: if true; // Branded storefront/promos are public
+      allow create: if isAuthenticated() && request.resource.data.resellerId == request.auth.uid;
+      allow update: if isAuthenticated() && (resource.data.resellerId == request.auth.uid || isAdmin() || isSuperAdmin());
+      allow delete: if isAuthenticated() && (resource.data.resellerId == request.auth.uid || isAdmin() || isSuperAdmin());
+    }
+
+    // Orders Collection
+    match /orders/{orderId} {
+      allow read: if true; // Needed for public checkout success & order receipt page lookups
+      allow create: if true; // Anyone (guest or logged-in) can submit orders
+      allow update: if isAdmin() || isSuperAdmin() || (isAuthenticated() && resource.data.userId == request.auth.uid);
+      allow delete: if isAdmin() || isSuperAdmin();
+
+      match /items/{itemId} {
+        allow read, create: if true;
+        allow update, delete: if isAdmin() || isSuperAdmin();
+      }
+    }
+
+    // Payout Requests Collection
+    match /payouts/{payoutId} {
+      allow read: if isAuthenticated() && (resource.data.uid == request.auth.uid || isAdmin() || isSuperAdmin());
+      allow create: if isAuthenticated() && request.resource.data.uid == request.auth.uid;
+      allow update, delete: if isAdmin() || isSuperAdmin();
+    }
+
+    // Reseller Profits Tracking
+    match /reseller_profits/{profitId} {
+      allow read: if isAuthenticated() && (resource.data.resellerId == request.auth.uid || isAdmin() || isSuperAdmin());
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Support Chat Tickets (Real-time Support)
+    match /chat_tickets/{ticketId} {
+      allow read, write: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
+    }
+
+    // Support Tickets (Forms / Help Desk)
+    match /tickets/{ticketId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
+      allow create: if isAuthenticated() && request.resource.data.userId == request.auth.uid;
+      allow update: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
+      allow delete: if isAdmin() || isSuperAdmin();
+
+      match /messages/{messageId} {
+        allow read: if isAuthenticated() && (get(/databases/$(database)/documents/tickets/$(ticketId)).data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
+        allow create: if isAuthenticated() && (get(/databases/$(database)/documents/tickets/$(ticketId)).data.userId == request.auth.uid || isAdmin() || isSuperAdmin());
+        allow update, delete: if isAdmin() || isSuperAdmin();
+      }
+    }
+
+    // Dead Link Audit Logs
+    match /logs/{logId} {
+      allow read, write: if isAdmin() || isSuperAdmin();
+
+      match /entries/{entryId} {
+        allow create: if true; // Public client-side link audit logs
+        allow read, update, delete: if isAdmin() || isSuperAdmin();
+      }
+    }
+
+    // Testimonials Collection
+    match /testimonials/{testimonialId} {
+      allow read: if true;
+      allow write: if isAdmin() || isSuperAdmin();
+    }
+
+    // Newsletters Collection
+    match /newsletters/{newsletterId} {
+      allow create: if true; // Anyone can sign up for the newsletter
+      allow read, update, delete: if isAdmin() || isSuperAdmin();
+    }
+  }
+}

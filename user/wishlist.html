@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — WISHLIST & SAVED ASSETS (user/wishlist.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script>if(self===top){document.getElementById('antiClickjack').remove();}else{top.location=self.location;}</script>
+    <title>My Wishlist | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/wishlist.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body data-theme="dark">
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+    
+    <!-- Auth Guard Spinner -->
+    <div id="wl-guard" class="wl-guard">
+        <div class="wl-guard-icon"><i class="fa-solid fa-heart fa-beat"></i></div>
+        <p class="tech-font">Loading Wishlist...</p>
+    </div>
+
+    <main id="wl-main" class="wl-container" hidden role="main">
+        
+        <!-- HEADER -->
+        <div class="wl-header">
+            <div>
+                <h1 class="tech-font wl-title"><i class="fa-solid fa-heart" style="color:var(--brand-main);"></i> My Wishlist</h1>
+                <p class="wl-sub">Saved products and FOMO alerts.</p>
+            </div>
+            <div class="wl-stats">
+                <span id="wl-count-badge">0 Items</span>
+            </div>
+        </div>
+
+        <!-- NOTIFICATION BAR (FOMO / Price Drops) -->
+        <div id="wl-fomo-banner" class="wl-fomo-banner" style="display:none;">
+            <div class="wl-fomo-icon"><i class="fa-solid fa-bolt fa-fade" style="color:#f59e0b;"></i></div>
+            <div class="wl-fomo-text"><strong>Attention:</strong> Some of your saved items have dropped in price or are running low on stock!</div>
+        </div>
+
+        <!-- GRID -->
+        <div class="wl-grid" id="wl-grid">
+            <!-- Skeleton Loaders -->
+            <div class="wl-card skeleton"></div>
+            <div class="wl-card skeleton"></div>
+            <div class="wl-card skeleton"></div>
+        </div>
+
+        <!-- EMPTY STATE -->
+        <div id="wl-empty" class="wl-empty-state" style="display:none;">
+            <div class="wl-empty-icon"><i class="fa-regular fa-heart"></i></div>
+            <h2 class="tech-font">Your wishlist is empty</h2>
+            <p>Explore the catalog and save items you love.</p>
+            <button class="wl-btn-primary" onclick="window.location.href='/shop/shop.html'" style="margin-top:20px; width:auto; padding:12px 24px;">Explore Products</button>
+        </div>
+
+    </main>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/wishlist.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'},
+                {file:'/components/footer.html',mount:'#footer-mount'}
+            ]).then(()=>NexraWishlist.init()).catch(()=>NexraWishlist.init());
+        })();
+    </script>
+</body>
+</html>

@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — UNIVERSAL AUTH GATEWAY (user/auth-gate.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script>if(self===top){document.getElementById('antiClickjack').remove();}else{top.location=self.location;}</script>
+    <title>Secure Login | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/auth-gate.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+
+    <!-- PRE-AUTH GUARD SPINNER -->
+    <div id="ag-guard" class="ag-guard">
+        <div class="ag-guard-icon"><i class="fa-solid fa-shield-halved fa-beat"></i></div>
+        <p class="tech-font">Securing connection...</p>
+    </div>
+
+    <!-- BACKGROUND GRAPHICS -->
+    <div class="ag-bg-orb orb-1"></div>
+    <div class="ag-bg-orb orb-2"></div>
+
+    <main id="ag-main" class="ag-container" hidden role="main">
+        <div class="ag-brand-header">
+            <img src="" alt="Nexra Logo" class="ag-brand-logo nx-brand-logo">
+            <img src="" alt="Nexra Title" class="ag-brand-text nx-brand-title" style="height:30px; object-fit:contain;">
+        </div>
+
+        <div class="ag-3d-wrapper">
+            <div class="ag-card-flipper" id="ag-flipper">
+                
+                <!-- ================= FRONT: LOGIN ================= -->
+                <div class="ag-card-face ag-face-front" id="ag-login-face">
+                    <h1 class="tech-font ag-title">Welcome Back</h1>
+                    <p class="ag-sub">Log in to access your digital vault and exclusive tools.</p>
+                    
+                    <button class="ag-btn-google" onclick="NexraAuth.signInGoogle()">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+                        Continue with Google
+                    </button>
+                    
+                    <div class="ag-divider"><span>OR CONTINUE WITH EMAIL</span></div>
+
+                    <form id="login-form" onsubmit="NexraAuth.signInEmail(event)">
+                        <div class="ag-field">
+                            <i class="fa-solid fa-envelope ag-field-icon"></i>
+                            <input type="email" id="login-email" class="ag-input" placeholder="name@example.com" required>
+                        </div>
+                        <div class="ag-field">
+                            <i class="fa-solid fa-lock ag-field-icon"></i>
+                            <input type="password" id="login-pwd" class="ag-input" placeholder="Password" required>
+                            <button type="button" class="ag-pwd-toggle" onclick="NexraAuth.togglePwd('login-pwd', this)"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                        <div class="ag-forgot-link">
+                            <button type="button" onclick="NexraAuth.flipTo('forgot')">Forgot password?</button>
+                        </div>
+                        <button type="submit" class="ag-btn-primary" id="btn-login">
+                            Log In <i class="fa-solid fa-arrow-right"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="ag-footer-link">
+                        New to Nexra? <button type="button" onclick="NexraAuth.flipTo('register')">Create an account</button>
+                    </div>
+                </div>
+
+                <!-- ================= BACK: REGISTER ================= -->
+                <div class="ag-card-face ag-face-back" id="ag-register-face">
+                    <h1 class="tech-font ag-title">Join the Ecosystem</h1>
+                    <p class="ag-sub">Create your account to unlock premium tools and resources.</p>
+                    
+                    <button class="ag-btn-google" onclick="NexraAuth.signInGoogle()">
+                        <img src="https://www.svgrepo.com/show/475656/google-color.svg" alt="Google">
+                        Sign up with Google
+                    </button>
+                    
+                    <div class="ag-divider"><span>OR REGISTER WITH EMAIL</span></div>
+
+                    <form id="reg-form" onsubmit="NexraAuth.registerEmail(event)">
+                        <div class="ag-field">
+                            <i class="fa-solid fa-user ag-field-icon"></i>
+                            <input type="text" id="reg-name" class="ag-input" placeholder="Full Name" required>
+                        </div>
+                        <div class="ag-field">
+                            <i class="fa-solid fa-envelope ag-field-icon"></i>
+                            <input type="email" id="reg-email" class="ag-input" placeholder="name@example.com" required>
+                        </div>
+                        <div class="ag-field">
+                            <i class="fa-solid fa-lock ag-field-icon"></i>
+                            <input type="password" id="reg-pwd" class="ag-input" placeholder="Create Password" required oninput="NexraAuth.checkStrength(this.value)">
+                            <button type="button" class="ag-pwd-toggle" onclick="NexraAuth.togglePwd('reg-pwd', this)"><i class="fa-solid fa-eye"></i></button>
+                        </div>
+                        
+                        <!-- Password Strength Meter -->
+                        <div class="ag-strength-meter">
+                            <div class="ag-strength-bar"><div class="ag-strength-fill" id="str-fill"></div></div>
+                            <div class="ag-strength-text" id="str-text">Password Strength</div>
+                        </div>
+
+                        <button type="submit" class="ag-btn-primary" id="btn-reg">
+                            Create Account <i class="fa-solid fa-user-plus"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="ag-footer-link">
+                        Already have an account? <button type="button" onclick="NexraAuth.flipTo('login')">Log in</button>
+                    </div>
+                </div>
+
+                <!-- ================= RIGHT: FORGOT PASSWORD ================= -->
+                <div class="ag-card-face ag-face-right" id="ag-forgot-face">
+                    <h1 class="tech-font ag-title">Reset Password</h1>
+                    <p class="ag-sub">Enter your email address to receive a secure reset link.</p>
+                    
+                    <form id="forgot-form" onsubmit="NexraAuth.resetPassword(event)" style="margin-top:24px;">
+                        <div class="ag-field">
+                            <i class="fa-solid fa-envelope ag-field-icon"></i>
+                            <input type="email" id="forgot-email" class="ag-input" placeholder="name@example.com" required>
+                        </div>
+                        <button type="submit" class="ag-btn-primary" id="btn-forgot" style="margin-top:20px;">
+                            Send Reset Link <i class="fa-solid fa-paper-plane"></i>
+                        </button>
+                    </form>
+                    
+                    <div class="ag-footer-link" style="margin-top:40px;">
+                        Remembered your password? <button type="button" onclick="NexraAuth.flipTo('login')">Back to Log in</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    </main>
+
+    <!-- Note: NO header or footer mounts injected here intentionally to keep auth distraction-free -->
+    <script src="/js/app.js"></script>
+    <script src="/js/auth-gate.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraAuth.init();
+        })();
+    </script>
+</body>
+</html>

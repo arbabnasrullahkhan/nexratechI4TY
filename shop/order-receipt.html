@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — DIGITAL INVOICE & ORDER RECEIPT (shop/order-receipt.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Secure Digital Invoice Generator.                   │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html (hidden on print)        │
+  │  #dock-mount     ← /components/dock.html   (hidden on print)        │
+  │  #footer-mount   ← /components/footer.html (hidden on print)        │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - URL Params ?orderId= ownership guard.                             │
+  │  - @media print strips glassmorphism for clean A4 PDF output.       │
+  │  - Floating Action Island: PDF, Copy Link, Report Issue.            │
+  │  - PKR + estimated USD dual-currency display.                        │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Anti-Clickjacking Frame Buster -->
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script>
+        if (self === top) { var a = document.getElementById("antiClickjack"); a.parentNode.removeChild(a); }
+        else { top.location = self.location; }
+    </script>
+
+    <!-- ════════════ SECURITY ════════════ -->
+    <title>Order Receipt | Nexra Tech PK</title>
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+    <meta name="theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+
+    <!-- ════════════ FONTS & ICONS ════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════ STYLESHEETS ════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/order-receipt.css">
+
+    <!-- ════════════ FIREBASE ════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+    <!-- Anti-Scraping License Keys -->
+    <style>
+        body { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
+        .rc-key-cell { user-select: text; -webkit-user-select: text; }
+    </style>
+    <script>document.addEventListener('contextmenu', function(e) { e.preventDefault(); });</script>
+</head>
+
+<body>
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════ MAIN RECEIPT LAYOUT ════════════ -->
+    <main id="rc-main" class="rc-container" role="main">
+
+        <!-- SKELETON -->
+        <div id="rc-skeleton" class="rc-skeleton">
+            <div class="skeleton" style="height: 80px; border-radius: 16px; margin-bottom: 24px;"></div>
+            <div class="skeleton" style="height: 500px; border-radius: 16px;"></div>
+        </div>
+
+        <!-- ERROR STATE -->
+        <div id="rc-error" class="rc-error-state" style="display:none;">
+            <i class="fa-solid fa-file-circle-xmark"></i>
+            <h2 class="tech-font" id="rc-error-title">Receipt Unavailable</h2>
+            <p id="rc-error-desc">This receipt is private or no longer available.</p>
+        </div>
+
+        <!-- THE INVOICE DOCUMENT -->
+        <div id="rc-invoice" class="rc-invoice" style="display:none;">
+
+            <!-- INVOICE HEADER -->
+            <div class="rc-inv-header">
+                <div class="rc-brand">
+                    <img src="/assets/logo.png" class="rc-brand-logo" id="rc-brand-logo" alt="Nexra Tech PK" onerror="this.style.display='none'">
+                    <div class="rc-brand-text">
+                        <div class="rc-brand-name tech-font">Nexra Tech PK</div>
+                        <div class="rc-brand-tagline">Official Digital Receipt</div>
+                    </div>
+                </div>
+                <div class="rc-inv-meta">
+                    <div class="rc-meta-row"><span>Invoice ID</span><strong id="rc-inv-id" class="rc-mono">#NX-000000</strong></div>
+                    <div class="rc-meta-row"><span>Date</span><strong id="rc-inv-date">—</strong></div>
+                    <div class="rc-meta-row"><span>Status</span><span class="rc-status-pill" id="rc-status">Paid</span></div>
+                </div>
+            </div>
+
+            <!-- DIVIDER -->
+            <div class="rc-divider"></div>
+
+            <!-- BILLING INFO -->
+            <div class="rc-billing-grid">
+                <div class="rc-billing-block">
+                    <div class="rc-billing-title">Bill To</div>
+                    <div id="rc-customer-name" class="rc-billing-val">—</div>
+                    <div id="rc-customer-email" class="rc-billing-sub">—</div>
+                </div>
+                <div class="rc-billing-block rc-text-right">
+                    <div class="rc-billing-title">Fulfilled By</div>
+                    <div class="rc-billing-val">Nexra Tech PK</div>
+                    <div class="rc-billing-sub">nexratech.pk</div>
+                </div>
+            </div>
+
+            <!-- ITEMIZED TABLE -->
+            <div class="rc-table-wrap">
+                <table class="rc-table">
+                    <thead>
+                        <tr>
+                            <th class="rc-th-item">Item</th>
+                            <th class="rc-th-qty">Qty</th>
+                            <th class="rc-th-price">Unit Price</th>
+                            <th class="rc-th-total">Total</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rc-tbody">
+                        <!-- Injected by JS -->
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MATH BREAKDOWN -->
+            <div class="rc-totals-block">
+                <div class="rc-totals-inner">
+                    <div class="rc-total-row"><span>Subtotal</span><span id="rc-subtotal">Rs. 0</span></div>
+                    <div class="rc-total-row rc-promo-row" id="rc-promo-row" style="display:none; color:var(--success);">
+                        <span><i class="fa-solid fa-tag"></i> Promo Code (<span id="rc-promo-code">—</span>)</span>
+                        <span id="rc-promo-amt">- Rs. 0</span>
+                    </div>
+                    <div class="rc-total-row rc-coins-row" id="rc-coins-row" style="display:none; color:#f59e0b;">
+                        <span><i class="fa-solid fa-coins"></i> Nexra Coins Used</span>
+                        <span id="rc-coins-amt">- Rs. 0</span>
+                    </div>
+                    <div class="rc-total-row rc-grand-total">
+                        <span>Grand Total (PKR)</span>
+                        <span id="rc-grand-pkr" class="rc-grand-val">Rs. 0</span>
+                    </div>
+                    <div class="rc-usd-note" id="rc-usd-note">≈ $0.00 USD (estimated)</div>
+                </div>
+            </div>
+
+            <!-- FOOTER NOTE -->
+            <div class="rc-inv-footer">
+                <p>Thank you for your purchase! All licenses are non-transferable and governed by Nexra Tech PK's Terms of Service.</p>
+                <p class="rc-mono" style="font-size:11px; opacity:0.5;">Generated: <span id="rc-generated-ts"></span></p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- FLOATING ACTION ISLAND -->
+    <div class="rc-action-island" id="rc-action-island" style="opacity:0; pointer-events:none;">
+        <button class="rc-island-btn rc-btn-download" onclick="NexraReceipt.downloadPDF()" title="Download PDF">
+            <i class="fa-solid fa-file-arrow-down"></i><span>Save PDF</span>
+        </button>
+        <div class="rc-island-sep"></div>
+        <button class="rc-island-btn" onclick="NexraReceipt.copyLink()" title="Copy Order Link">
+            <i class="fa-solid fa-link"></i><span>Copy</span>
+        </button>
+        <div class="rc-island-sep"></div>
+        <a class="rc-island-btn rc-btn-report" id="rc-btn-report" href="/support/support-hub.html" title="Report Issue">
+            <i class="fa-solid fa-triangle-exclamation"></i><span>Issue</span>
+        </a>
+    </div>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/order-receipt.js"></script>
+
+    <script>
+        (function() {
+            'use strict';
+            const t = localStorage.getItem('nexra_theme');
+            if (t === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',  mount: '#header-mount' },
+                { file: '/components/dock.html',    mount: '#dock-mount'   },
+                { file: '/components/footer.html',  mount: '#footer-mount' }
+            ]).then(function() { NexraReceipt.init(); })
+              .catch(function() { NexraReceipt.init(); });
+        })();
+    </script>
+</body>
+</html>

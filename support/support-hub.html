@@ -1,0 +1,254 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — ULTIMATE SUPPORT HUB (support/support-hub.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Help Center & Ticketing Portal.                     │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html                          │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Intelligent Knowledge Base with Voice & Debounced Search.        │
+  │  - Live Ticketing Portal with Base64 attachment engine.             │
+  │  - Real-time Ticket Tracking Grid (onSnapshot).                     │
+  │  - Dynamic JSON-LD FAQ Schema injection.                            │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SEO, OPEN GRAPH & TWITTER CARDS
+         ════════════════════════════════════════════════════════════════ -->
+    <title>Support Hub & Knowledge Base | Nexra Tech PK</title>
+    <meta name="description" content="Get instant help, browse the intelligent knowledge base, or submit a priority ticket to the Nexra Tech PK enterprise support team.">
+    <meta name="keywords" content="Nexra Tech Support, Help Center, Open Ticket, Software Support Pakistan, Nexra FAQs">
+    <meta name="author" content="Nexra Tech PK">
+    <link rel="canonical" href="https://nexratech.pk/support/support-hub.html">
+
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="Support Hub & Knowledge Base | Nexra Tech PK">
+    <meta property="og:description" content="Get instant help, browse FAQs, or open a support ticket.">
+    <meta property="og:url" content="https://nexratech.pk/support/support-hub.html">
+    <meta property="og:image" content="https://nexratech.pk/assets/og-support.jpg">
+    <meta property="og:site_name" content="Nexra Tech PK">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Support Hub | Nexra Tech PK">
+    <meta name="twitter:description" content="Need help? Access the Nexra Tech PK Support Hub instantly.">
+    <meta name="twitter:image" content="https://nexratech.pk/assets/twitter-support.jpg">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/support.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+
+    <!-- Dynamic JSON-LD Mount -->
+    <script type="application/ld+json" id="sp-json-ld">{}</script>
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN SUPPORT HUB LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="sp-main" class="sp-container" role="main">
+        
+        <!-- HEADER HERO & SEARCH -->
+        <header class="sp-hero">
+            <div class="sp-hero-badge"><i class="fa-solid fa-life-ring"></i> Support Hub</div>
+            <h1 class="sp-hero-title tech-font">How can we help you today?</h1>
+            
+            <div class="sp-search-bar" id="sp-search-wrap">
+                <i class="fa-solid fa-magnifying-glass sp-search-icon" aria-hidden="true"></i>
+                <input type="text" id="sp-search-input" class="sp-search-input" placeholder="Search for answers, guides, or errors..." aria-label="Search FAQs" autocomplete="off">
+                <button class="sp-voice-btn" id="sp-voice-btn" onclick="NexraSupport.startVoiceSearch()" aria-label="Search by voice">
+                    <i class="fa-solid fa-microphone"></i>
+                    <span class="sp-voice-pulse"></span>
+                </button>
+                
+                <!-- Predictive Search Dropdown -->
+                <div class="sp-search-dropdown" id="sp-search-dropdown" role="listbox" hidden>
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+        </header>
+
+        <!-- HORIZONTAL CATEGORY PILLS -->
+        <div class="sp-cats-wrap">
+            <button class="sp-cats-scroll left" onclick="NexraSupport.scrollCats(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+            <div class="sp-cats-track" id="sp-cats-track" role="tablist">
+                <button class="sp-cat-pill active" role="tab" onclick="NexraSupport.filterFaqs('all', this)">All Topics</button>
+                <button class="sp-cat-pill" role="tab" onclick="NexraSupport.filterFaqs('orders', this)">Orders & Keys</button>
+                <button class="sp-cat-pill" role="tab" onclick="NexraSupport.filterFaqs('payments', this)">Payments</button>
+                <button class="sp-cat-pill" role="tab" onclick="NexraSupport.filterFaqs('tech', this)">Tech Support</button>
+                <button class="sp-cat-pill" role="tab" onclick="NexraSupport.filterFaqs('account', this)">Account Issues</button>
+            </div>
+            <button class="sp-cats-scroll right" onclick="NexraSupport.scrollCats(1)"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+
+        <div class="sp-layout-grid">
+            
+            <!-- ════════════════════════════════════════════════════════════════
+                 LEFT: INTELLIGENT KNOWLEDGE BASE (FAQs)
+                 ════════════════════════════════════════════════════════════════ -->
+            <section class="sp-kb-section">
+                <h2 class="sp-section-title tech-font">Knowledge Base</h2>
+                <div class="sp-faq-list" id="sp-faq-list">
+                    <!-- Skeleton Loaders -->
+                    <div class="sp-faq-item skeleton" style="height:60px;"></div>
+                    <div class="sp-faq-item skeleton" style="height:60px;"></div>
+                    <div class="sp-faq-item skeleton" style="height:60px;"></div>
+                    <div class="sp-faq-item skeleton" style="height:60px;"></div>
+                </div>
+            </section>
+
+            <!-- ════════════════════════════════════════════════════════════════
+                 RIGHT: LIVE TICKETING PORTAL
+                 ════════════════════════════════════════════════════════════════ -->
+            <section class="sp-ticket-section">
+                
+                <!-- Ticket Submission Form -->
+                <div class="sp-card sp-form-card" id="sp-form-card">
+                    <h2 class="sp-section-title tech-font" style="margin-bottom:8px;"><i class="fa-solid fa-ticket"></i> Open a Ticket</h2>
+                    <p class="sp-hint mb-4">Our enterprise support team aims to reply within 2-4 hours.</p>
+
+                    <!-- Auth Block overlay if not logged in -->
+                    <div id="sp-auth-block" class="sp-auth-block active">
+                        <i class="fa-solid fa-lock" style="font-size:32px; color:var(--text-300); margin-bottom:16px;"></i>
+                        <p style="margin-bottom:16px; font-weight:600;">You must be logged in to submit a support ticket.</p>
+                        <button class="btn btn-primary" onclick="window.location.href='/user/auth-gate.html?redirect=/support/support-hub.html'">Secure Login</button>
+                    </div>
+
+                    <form id="sp-ticket-form" onsubmit="NexraSupport.submitTicket(event)">
+                        <div class="sp-input-group">
+                            <label>Category</label>
+                            <select id="sp-t-category" class="sp-input" required>
+                                <option value="license">License Key Issue</option>
+                                <option value="payment">Payment Verification</option>
+                                <option value="technical">Technical Support</option>
+                                <option value="other">General Inquiry</option>
+                            </select>
+                        </div>
+                        
+                        <div class="sp-input-group">
+                            <label>Priority Level</label>
+                            <select id="sp-t-priority" class="sp-input" required>
+                                <option value="low">Low (General Query)</option>
+                                <option value="medium" selected>Medium (Standard)</option>
+                                <option value="high">High (Service Disruption)</option>
+                            </select>
+                        </div>
+
+                        <div class="sp-input-group">
+                            <label>Subject</label>
+                            <input type="text" id="sp-t-subject" class="sp-input" placeholder="Brief summary of the issue" required>
+                        </div>
+
+                        <div class="sp-input-group">
+                            <label>Detailed Description</label>
+                            <textarea id="sp-t-desc" class="sp-input" rows="4" placeholder="Please provide as much detail as possible..." required></textarea>
+                        </div>
+
+                        <div class="sp-input-group">
+                            <label>Attach Screenshot (Optional)</label>
+                            <div class="sp-file-upload">
+                                <label class="btn btn-outline sp-upload-btn">
+                                    <i class="fa-solid fa-image"></i> Select Image
+                                    <input type="file" id="sp-t-img" accept="image/*" hidden onchange="NexraSupport.handleTicketImage(this)">
+                                </label>
+                                <span id="sp-file-name" class="sp-file-name">No file chosen</span>
+                            </div>
+                            <p class="sp-hint">Max 2MB. Auto-compressed.</p>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary w-100" id="sp-btn-submit">Submit Ticket</button>
+                    </form>
+                </div>
+
+                <!-- Live Ticket Tracking Grid -->
+                <div class="sp-card sp-tracking-card mt-4" id="sp-tracking-card" style="display:none;">
+                    <h3 class="tech-font" style="font-size:18px; margin-bottom:16px;"><i class="fa-solid fa-bars-progress"></i> Active Tickets</h3>
+                    <div id="sp-ticket-grid" class="sp-ticket-grid">
+                        <!-- Skeletons / Injected via JS -->
+                        <div class="sp-t-card skeleton" style="height:100px;"></div>
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+    </main>
+
+    <!-- LIVE CHAT FAB -->
+    <button class="sp-fab-chat" onclick="NexraSupport.openLiveChat()" aria-label="Live Chat">
+        <i class="fa-solid fa-comment-dots"></i>
+    </button>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/support.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraSupportBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  }
+            ]).then(function () {
+                NexraSupport.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraSupport) NexraSupport.init();
+            });
+        })();
+    </script>
+</body>
+</html>
