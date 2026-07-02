@@ -1,0 +1,983 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — HOME PAGE (home.html)
+  Primary Discovery Dashboard & Landing Page
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  This file is SELF-CONTAINED for its own content only.              │
+  │  Global UI shell elements are EXCLUDED from this markup and are     │
+  │  fetched at runtime from the /components/ directory by loader.js.   │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html  (floating island nav)   │
+  │  #sidebar-mount  ← /components/sidebar.html (off-canvas drawer)     │
+  │  #cart-mount     ← /components/cart-drawer.html (shopping cart)     │
+  │  #dock-mount     ← /components/dock.html (mobile bottom dock)       │
+  │  #footer-mount   ← /components/footer.html (enterprise footer)      │
+  │                                                                      │
+  │  STYLE FILES:                                                        │
+  │  /css/global.css  → Tokens, header, footer, cart, dock, sidebar,   │
+  │                      toasts, buttons (shared across ALL pages)       │
+  │  /css/home.css    → All .nh-* scoped rules (this page only)         │
+  │                                                                      │
+  │  SCRIPT FILES:                                                       │
+  │  /js/app.js          → NexraApp (nav, cart, theme, toast)           │
+  │  /js/home.js         → NexraHomeEngine (all dynamic section fills)  │
+  │  /components/loader.js → NexraComponents.load() (component injector)│
+  │  /firebaseconfig.js  → Firebase SDK init + NexraBrand + NexraRoutes │
+  └─────────────────────────────────────────────────────────────────────┘
+  
+  DATA FLOW:
+  1. Firebase SDK loads → window.db, window.auth ready
+  2. NexraComponents.load() fetches all component fragments in parallel
+  3. NexraBrand.refreshDOMAssets() updates all .nx-brand-* image srcs
+  4. NexraHomeEngine.init() fires after components mount
+  5. Each section queries Firestore → shows skeleton → replaces with data
+  6. NexraApp.subscribeToLiveBranding() keeps theme/logo in sync live
+  ============================================================================
+-->
+
+<head>
+    <!-- ════════════════════════════════════════════════════════════════
+         CHARSET & VIEWPORT
+         Mobile-first viewport. user-scalable=no prevents zoom jank on
+         mobile. viewport-fit=cover handles iPhone notch safely.
+         ════════════════════════════════════════════════════════════════ -->
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRIMARY SEO META TAGS
+         Note: title + description are updated dynamically by
+         NexraHomeEngine.applyLiveSEO() from Firestore settings/seo doc
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="page-title">Nexra Tech PK — Pakistan's #1 Digital Ecosystem | Premium SaaS & Software</title>
+    <meta name="description" id="meta-description"
+        content="Nexra Tech PK — Pakistan's most trusted digital marketplace. Buy premium software licenses, SaaS tools, AI subscriptions, and access free resources. Instant delivery. 1700+ happy customers.">
+    <meta name="keywords"
+        content="nexra tech, pakistan software, saas tools, digital marketplace, capcut pro pakistan, canva pro cheap, chatgpt plus pakistan, premium software licenses, digital tools pk">
+    <meta name="author" content="Nexra Tech PK">
+    <meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">
+    <meta name="language" content="English">
+    <meta name="revisit-after" content="3 days">
+    <meta name="rating" content="general">
+    <meta name="category" content="Digital Marketplace, SaaS, Technology">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         CANONICAL URL — prevents duplicate content penalty
+         Updated dynamically by JS when query params change
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="canonical" id="canonical-url" href="https://nexratech.pk/home">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         THEME COLOR — matched to brand edition (updated by NexraBrand)
+         Light: uses bg-base (#f8fafc), Dark: uses #020202
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PWA & MOBILE WEB-APP META TAGS
+         Makes the site behave like a native app when added to homescreen
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="Nexra Tech PK">
+    <meta name="application-name" content="Nexra Tech PK">
+    <meta name="msapplication-TileColor" content="#FF4A17">
+    <meta name="msapplication-config" content="/browserconfig.xml">
+    <meta name="format-detection" content="telephone=no">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         OPEN GRAPH (Facebook, WhatsApp, Telegram, LinkedIn previews)
+         og:image is updated by NexraHomeEngine.applyLiveSEO() from
+         Firestore settings/seo so Admin can change preview without code
+         ════════════════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:locale" content="en_PK">
+    <meta property="og:url" content="https://nexratech.pk/home">
+    <meta property="og:title" id="og-title" content="Nexra Tech PK — Pakistan's #1 Digital Ecosystem">
+    <meta property="og:description" id="og-description"
+        content="Premium software licenses, SaaS tools & free resources — delivered instantly to your vault. Trusted by 1,700+ customers across Pakistan.">
+    <meta property="og:image" id="og-image" content="https://nexratech.pk/og-cover.jpg">
+    <meta property="og:image:width" content="1200">
+    <meta property="og:image:height" content="630">
+    <meta property="og:image:alt" content="Nexra Tech PK Digital Ecosystem">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TWITTER CARD (X / Twitter previews + Google Discover)
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:site" content="@NexraTechPK">
+    <meta name="twitter:creator" content="@NexraTechPK">
+    <meta name="twitter:title" id="tw-title" content="Nexra Tech PK — Pakistan's #1 Digital Ecosystem">
+    <meta name="twitter:description" id="tw-description"
+        content="Premium software licenses, SaaS tools & free resources — instant delivery. Pakistan's most trusted digital marketplace.">
+    <meta name="twitter:image" id="tw-image" content="https://nexratech.pk/og-cover.jpg">
+    <meta name="twitter:image:alt" content="Nexra Tech PK Digital Ecosystem">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC FAVICON & ICONS
+         All ids here are targeted by NexraBrand.refreshDOMAssets()
+         so brand edition changes (Alpha/Beta) update icons instantly
+         without any page reload.
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="icon" id="dynamic-favicon" type="image/png" href="">
+    <link rel="shortcut icon" id="dynamic-shortcut-icon" type="image/png" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" sizes="180x180" href="">
+    <link rel="apple-touch-icon" sizes="152x152" href="">
+    <link rel="apple-touch-icon" sizes="120x120" href="">
+    <link rel="manifest" href="/manifest.json">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         JSON-LD STRUCTURED DATA
+         - WebSite schema enables Google Sitelinks Search Box
+         - Organization schema powers Knowledge Panel in SERPs
+         - breadcrumbs schema added per-section by home.js dynamically
+         ════════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@graph": [
+            {
+                "@type": "WebSite",
+                "@id": "https://nexratech.pk/#website",
+                "url": "https://nexratech.pk",
+                "name": "Nexra Tech PK",
+                "description": "Pakistan's most trusted digital marketplace for premium software licenses, SaaS tools, and free digital resources.",
+                "inLanguage": "en-PK",
+                "potentialAction": {
+                    "@type": "SearchAction",
+                    "target": {
+                        "@type": "EntryPoint",
+                        "urlTemplate": "https://nexratech.pk/shop/shop.html?search={search_term_string}"
+                    },
+                    "query-input": "required name=search_term_string"
+                }
+            },
+            {
+                "@type": "Organization",
+                "@id": "https://nexratech.pk/#organization",
+                "name": "Nexra Tech PK",
+                "url": "https://nexratech.pk",
+                "logo": {
+                    "@type": "ImageObject",
+                    "url": "https://uploads.onecompiler.io/42yatf6fu/1782533768745/logo_orange%20y.png",
+                    "width": 200,
+                    "height": 200
+                },
+                "description": "Pakistan's premier digital ecosystem offering premium software licenses, SaaS subscriptions, and free digital resources.",
+                "address": {
+                    "@type": "PostalAddress",
+                    "addressCountry": "PK",
+                    "addressLocality": "Pakistan"
+                },
+                "contactPoint": {
+                    "@type": "ContactPoint",
+                    "contactType": "customer support",
+                    "availableLanguage": ["English", "Urdu"]
+                },
+                "sameAs": [
+                    "https://www.facebook.com/NexraTechPK",
+                    "https://www.instagram.com/NexraTechPK",
+                    "https://t.me/NexraTechPK"
+                ]
+            },
+            {
+                "@type": "WebPage",
+                "@id": "https://nexratech.pk/home#webpage",
+                "url": "https://nexratech.pk/home",
+                "name": "Nexra Tech PK — Home",
+                "isPartOf": {"@id": "https://nexratech.pk/#website"},
+                "about": {"@id": "https://nexratech.pk/#organization"},
+                "breadcrumb": {
+                    "@type": "BreadcrumbList",
+                    "itemListElement": [
+                        {
+                            "@type": "ListItem",
+                            "position": 1,
+                            "name": "Home",
+                            "item": "https://nexratech.pk/home"
+                        }
+                    ]
+                }
+            }
+        ]
+    }
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PERFORMANCE: DNS PREFETCH & PRECONNECT
+         Establishes TCP connections early for critical third parties.
+         This significantly improves LCP (Largest Contentful Paint).
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+    <link rel="dns-prefetch" href="https://i.postimg.cc">
+    <link rel="dns-prefetch" href="https://uploads.onecompiler.io">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GOOGLE FONTS
+         Plus Jakarta Sans: body/UI text — clean, modern, very readable
+         Space Grotesk: headings, brand text — premium, distinctive
+         display=swap prevents FOIT (Flash of Invisible Text)
+         ════════════════════════════════════════════════════════════════ -->
+    <link
+        href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap"
+        rel="stylesheet">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FONT AWESOME 6 (Icons)
+         Used across header, cards, badges, navigation dock, footer
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css"
+        crossorigin="anonymous" referrerpolicy="no-referrer">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         GLOBAL STYLESHEET
+         Contains: design tokens, reset, buttons, header, footer,
+         cart drawer, sidebar, dock, toast — all shared across pages.
+         DO NOT put page-specific rules here.
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         HOME PAGE STYLESHEET
+         Contains: all .nh-* scoped rules — hero, search, categories,
+         products grid, freebies, blogs, marquee, FAQ, newsletter.
+         This file is loaded ONLY on home.html.
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/home.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK (Compat version — works with firebaseconfig.js)
+         Must load BEFORE firebaseconfig.js.
+         - firebase-app-compat:       core SDK
+         - firebase-firestore-compat: Firestore real-time database
+         - firebase-auth-compat:      Authentication
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE CONFIG & BRANDING ENGINE
+         Single shared file — the ONE exception to the self-contained
+         rule. Sets up: window.db, window.auth, window.NexraBrand,
+         window.NexraRoutes, window.NexraStorage.
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!--
+  ============================================================================
+  BODY STRUCTURE MAP
+  ============================================================================
+  [MOUNT] #toast-container   — Toast notifications (auto-created by NexraApp)
+  [MOUNT] #cart-mount        — Cart drawer + overlay
+  [MOUNT] #sidebar-mount     — Off-canvas sidebar + overlay
+  [MOUNT] #header-mount      — Floating island nav
+  [MAIN]  <main>             — All page content (sections below)
+  [MOUNT] #dock-mount        — Mobile bottom dock (below main)
+  [MOUNT] #footer-mount      — Enterprise footer (below dock)
+  ============================================================================
+-->
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TOAST CONTAINER
+         Programmatically created by NexraApp.showToast() in app.js.
+         Placed at body root so it's always above everything (z:99999).
+         Mount point pre-defined here for reliability — app.js will
+         reuse this element rather than creating a new one.
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="toast-container" aria-live="polite" aria-label="Notifications"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — CART DRAWER
+         Populated by: /components/cart-drawer.html
+         Contains: #cart-overlay, #cart-drawer, #cart-items-container
+         Controlled by: NexraApp.toggleCart() / closeCart()
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="cart-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — SIDEBAR DRAWER
+         Populated by: /components/sidebar.html
+         Contains: #sidebar-overlay, #sidebar (.sb-drawer)
+         Controlled by: NexraApp.toggleSidebar() / closeSidebar()
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="sidebar-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — HEADER
+         Populated by: /components/header.html
+         Contains: .island-nav with logo, desktop links, cart/theme/menu
+         Brand images use .nx-brand-logo / .nx-brand-title classes
+         so NexraBrand.refreshDOMAssets() updates them automatically.
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN PAGE CONTENT
+         All sections are wrapped in <main> for semantic HTML & a11y.
+         The outer .nh wrapper provides the scoped CSS variable namespace
+         that home.css reads with var(--nh-brand) etc.
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="nh-main" role="main">
+
+        <!-- ── ANNOUNCEMENT STRIP ──────────────────────────────────────
+             Content is fetched from Firestore: settings/announcements
+             NexraHomeEngine.loadAnnouncement() populates:
+               #nh-announce-text  → announcement message
+               #nh-announce-link  → CTA button href
+             Admin can update this live from the Admin Panel without
+             touching any code.
+             The strip can be dismissed per-session (localStorage flag).
+             ─────────────────────────────────────────────────────────── -->
+        <div class="nh" id="nh-announce-wrap">
+            <div class="nh-announce-strip" id="nh-announce-strip" role="alert" aria-label="Site Announcement">
+                <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                <span id="nh-announce-text">Loading latest announcement...</span>
+                <a id="nh-announce-link" href="/shop/shop.html" class="nh-announce-cta">View Now →</a>
+                <button class="nh-announce-close" id="nh-announce-close" aria-label="Dismiss announcement"
+                    title="Dismiss">
+                    <i class="fa-solid fa-xmark" aria-hidden="true"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- ──────────────────────────────────────────────────────────── -->
+        <div class="nh">
+
+            <!-- ── SECTION 1: HERO ──────────────────────────────────────
+                 Full-viewport cinematic hero with:
+                 - Autoplaying muted looping video background (blurred)
+                 - Dark overlay gradient for text legibility
+                 - Kinetic rotating typography (CSS @keyframes nhRotateWord)
+                 - Sub-headline text
+                 - Two CTA buttons (Explore Market / Free Vault)
+                 - Live trust statistics bar (populated by renderLiveStats()
+                   which subscribes to Firestore stats/live onSnapshot)
+                 
+                 NOTE: Video src can be updated from Firestore settings/branding
+                 heroVideoUrl field — NexraHomeEngine.applyLiveBranding() handles this.
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-hero" id="nh-hero" aria-label="Hero Banner">
+
+                <!-- Video background — poster shown while video loads -->
+                <div class="nh-hero__bg" aria-hidden="true">
+                    <video id="nh-hero-video" class="nh-hero__video" autoplay loop muted playsinline preload="none"
+                        poster="" aria-hidden="true">
+                        <!-- Primary source — updated by JS from Firestore if heroVideoUrl exists -->
+                        <source
+                            src="https://static.videezy.com/system/resources/previews/000/042/774/original/BG-03.mp4"
+                            type="video/mp4">
+                    </video>
+                    <!-- Gradient overlay: transparent top → brand color trace → bg-base bottom -->
+                    <div class="nh-hero__overlay" aria-hidden="true"></div>
+                    <!-- Subtle animated grid pattern overlay -->
+                    <div class="nh-hero__grid" aria-hidden="true"></div>
+                </div>
+
+                <!-- Hero content — sits above the video/overlay -->
+                <div class="nh-hero__content">
+
+                    <!-- Eyebrow badge — fetched from Firestore settings/branding.heroEyebrow -->
+                    <div class="nh-eyebrow" id="nh-hero-eyebrow" aria-label="Site tagline">
+                        <i class="fa-solid fa-bolt" aria-hidden="true"></i>
+                        <span id="nh-eyebrow-text">Pakistan's #1 Digital Ecosystem</span>
+                    </div>
+
+                    <!-- Primary headline with kinetic rotating accent word -->
+                    <h1 class="nh-hero__headline" id="nh-hero-headline">
+                        <span class="nh-hero__headline-static">YOUR DIGITAL</span><br>
+                        <!-- .nh-kinetic-wrap: JS cycles through words from Firestore settings/branding.heroWords[] -->
+                        <span class="nh-hero__headline-accent nh-kinetic-wrap" id="nh-kinetic-wrap" aria-live="polite">
+                            <span class="nh-kinetic-word active" id="nh-kinetic-word">ECOSYSTEM</span>
+                        </span>
+                    </h1>
+
+                    <!-- Hero description — fetched from Firestore settings/branding.heroDesc -->
+                    <p class="nh-hero__desc" id="nh-hero-desc">
+                        Pakistan's most trusted marketplace for premium software licenses, SaaS tools &amp; free digital
+                        resources — delivered instantly to your vault.
+                    </p>
+
+                    <!-- Primary CTA buttons -->
+                    <div class="nh-hero__ctas" role="group" aria-label="Primary Actions">
+                        <button class="btn btn-primary nh-btn-hero-primary" id="nh-cta-shop"
+                            onclick="NexraApp.navTo('shop')" aria-label="Explore the Digital Marketplace">
+                            <i class="fa-solid fa-store" aria-hidden="true"></i>
+                            EXPLORE MARKET
+                        </button>
+                        <button class="btn nh-btn-hero-outline" id="nh-cta-vault" onclick="NexraApp.navTo('freebies')"
+                            aria-label="Browse the Free Vault">
+                            <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i>
+                            FREE VAULT
+                        </button>
+                    </div>
+
+                    <!-- ── TRUST STATISTICS BAR ──────────────────────────
+                         Each stat is populated by renderLiveStats() which
+                         subscribes to Firestore stats/live via onSnapshot.
+                         Stats update in real-time as orders/users are added.
+                         
+                         Firestore doc: stats/live
+                         Fields: activeUsers, totalDeliveries, trustScore, avgSupportMin
+                         ─────────────────────────────────────────────────── -->
+                    <div class="nh-trust" role="list" aria-label="Platform Statistics">
+                        <div class="nh-trust-card" role="listitem">
+                            <div class="nh-trust-val nh-text-grad" id="nh-stat-users">1,700+</div>
+                            <div class="nh-trust-lbl">Active Users</div>
+                        </div>
+                        <div class="nh-trust-card" role="listitem">
+                            <div class="nh-trust-val" id="nh-stat-deliveries">52,000+</div>
+                            <div class="nh-trust-lbl">Deliveries</div>
+                        </div>
+                        <div class="nh-trust-card" role="listitem">
+                            <div class="nh-trust-val" id="nh-stat-trust">99.9%</div>
+                            <div class="nh-trust-lbl">Trust Score</div>
+                        </div>
+                        <div class="nh-trust-card" role="listitem">
+                            <div class="nh-trust-val" id="nh-stat-support">15 Min</div>
+                            <div class="nh-trust-lbl">Avg. Support</div>
+                        </div>
+                    </div>
+
+                </div><!-- /.nh-hero__content -->
+
+                <!-- Scroll indicator arrow -->
+                <div class="nh-hero__scroll-hint" aria-hidden="true">
+                    <i class="fa-solid fa-chevron-down"></i>
+                </div>
+
+            </section><!-- /#nh-hero -->
+
+            <!-- ── SECTION 2: LIVE SEARCH BAR ───────────────────────────
+                 Voice-enabled search bar that:
+                 - Shows real-time dropdown results on keyup
+                 - Supports Web Speech API via mic button (initVoiceSearch())
+                 - On Enter / Search button: navigates to /shop/shop.html?search=
+                 - Dropdown results fetched from Firestore products collection
+                   using keywords array-contains query
+                 
+                 Overlaps the hero section bottom via negative margin-top (CSS).
+                 ─────────────────────────────────────────────────────────── -->
+            <div class="nh-search-wrap" id="nh-search-wrap" role="search" aria-label="Site Search">
+                <div class="nh-search" id="nh-search-bar">
+
+                    <!-- Search icon (decorative) -->
+                    <i class="fa-solid fa-magnifying-glass nh-search-icon" aria-hidden="true"></i>
+
+                    <!-- Search input — keyup triggers live dropdown, Enter triggers full search -->
+                    <input id="nh-search-input" type="search" placeholder="Search tools, SaaS, assets, guides..."
+                        autocomplete="off" autocorrect="off" spellcheck="false" aria-label="Search products"
+                        aria-autocomplete="list" aria-controls="nh-search-dropdown" aria-expanded="false">
+
+                    <!-- Voice search button — triggers Web Speech API -->
+                    <button class="nh-search-voice-btn" id="nh-voice-btn" onclick="NexraHomeEngine.startVoiceSearch()"
+                        aria-label="Search by voice" title="Voice Search">
+                        <i class="fa-solid fa-microphone" aria-hidden="true"></i>
+                    </button>
+
+                    <!-- Submit search button -->
+                    <button class="btn btn-primary nh-search-submit-btn" id="nh-search-submit"
+                        onclick="NexraHomeEngine.executeSearch()" aria-label="Submit search">
+                        <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        <span class="nh-search-btn-text">SEARCH</span>
+                    </button>
+
+                </div>
+
+                <!-- Live search dropdown — populated by NexraHomeEngine.renderSearchDropdown() -->
+                <div class="nh-search-dropdown" id="nh-search-dropdown" role="listbox" aria-label="Search suggestions"
+                    hidden>
+                    <!-- Items injected by JS: each is .nh-search-result-item -->
+                </div>
+            </div><!-- /.nh-search-wrap -->
+
+            <!-- ── SECTION 2b: INLINE GLOBAL SEARCH RESULTS ───────────
+                 Hidden by default. Shown when user executes a full search.
+                 Replaces the former standalone search-results.html page.
+                 Supports filter tabs: All / Products / Blogs / Freebies
+                 Results fetched from Firestore and filtered locally.
+                 ─────────────────────────────────────────────────────── -->
+            <section class="nh-search-results" id="nh-search-results" style="display:none;" aria-label="Search Results">
+                <div class="nh-container">
+
+                    <!-- Search Results Header -->
+                    <div class="sr-header">
+                        <h2 class="nh-sec-title">Search Results</h2>
+                        <p class="nh-sec-sub">Showing matches for: <span id="sr-query-text" style="color:var(--brand-main); font-weight:800;">"..."</span></p>
+                    </div>
+
+                    <!-- Filter Tabs -->
+                    <div class="sr-tabs" id="sr-tabs">
+                        <button class="sr-tab active" data-filter="all" onclick="NexraHomeEngine.switchSearchTab('all')">All Results</button>
+                        <button class="sr-tab" data-filter="products" onclick="NexraHomeEngine.switchSearchTab('products')">SaaS Tools <span class="sr-count" id="count-prod">0</span></button>
+                        <button class="sr-tab" data-filter="blogs" onclick="NexraHomeEngine.switchSearchTab('blogs')">Articles <span class="sr-count" id="count-blog">0</span></button>
+                        <button class="sr-tab" data-filter="freebies" onclick="NexraHomeEngine.switchSearchTab('freebies')">Freebies <span class="sr-count" id="count-free">0</span></button>
+                    </div>
+
+                    <!-- Results Grid -->
+                    <div class="sr-grid" id="sr-grid"></div>
+
+                    <!-- Empty State -->
+                    <div class="sr-empty" id="sr-empty" style="display:none;">
+                        <i class="fa-solid fa-ghost"></i>
+                        <h3>No Exact Matches Found</h3>
+                        <p>Try adjusting your keywords or browsing our most popular categories.</p>
+                        <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap; justify-content:center;">
+                            <button class="btn btn-primary" onclick="window.location.href='/shop/shop.html'">Browse Shop</button>
+                            <button class="btn btn-outline" onclick="NexraHomeEngine.closeSearchResults()">Back to Home</button>
+                        </div>
+                    </div>
+
+                    <!-- Back to Home -->
+                    <div style="text-align:center; margin-top:32px;">
+                        <button class="btn btn-outline" onclick="NexraHomeEngine.closeSearchResults()">
+                            <i class="fa-solid fa-arrow-left" aria-hidden="true"></i>
+                            BACK TO HOME
+                        </button>
+                    </div>
+
+                </div>
+            </section>
+
+
+            <!-- ── SECTION 3: CATEGORY SWIMLANE ─────────────────────────
+                 Horizontally scrollable pill navigation.
+                 Content: NexraHomeEngine.renderCategories()
+                 Source:  Firestore collection 'categories' (ordered by sortOrder)
+                 Fallback: static array in home.js
+                 Clicking a pill: calls NexraApp.navTo('shop') with category filter
+                 ─────────────────────────────────────────────────────────── -->
+            <nav class="nh-cats" id="nh-cats-row" aria-label="Product Categories" role="navigation">
+                <!-- Populated by NexraHomeEngine.renderCategories() -->
+                <!-- Skeleton: pills shown until Firestore responds -->
+                <div class="nh-cat-skeleton"></div>
+                <div class="nh-cat-skeleton"></div>
+                <div class="nh-cat-skeleton"></div>
+                <div class="nh-cat-skeleton"></div>
+                <div class="nh-cat-skeleton"></div>
+            </nav>
+
+            <!-- ── SECTION 4: TRENDING PRODUCTS GRID ───────────────────
+                 2-column mobile → 3 tablet → 4 laptop → 5 desktop grid.
+                 Content: NexraHomeEngine.renderTrending()
+                 Source:  Firestore products where trending==true,
+                          ordered by sold_count DESC, limit 8
+                 Cards: .nh-prod with badge, image, title, price, add-to-cart
+                 Empty state: rendered by NexraHomeEngine.renderEmptyState()
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-section nh-reveal" id="nh-trending-section" aria-labelledby="nh-trending-title">
+                <div class="nh-container">
+                    <div class="nh-head-row">
+                        <div>
+                            <div class="nh-eyebrow">
+                                <i class="fa-solid fa-fire" aria-hidden="true"></i>
+                                HOT RIGHT NOW
+                            </div>
+                            <h2 class="nh-sec-title" id="nh-trending-title">
+                                TRENDING <span class="nh-text-grad">ASSETS</span>
+                            </h2>
+                            <p class="nh-sec-sub">Top-selling tools updated in real-time from our marketplace.</p>
+                        </div>
+                        <button class="btn-ghost" onclick="NexraApp.navTo('shop')"
+                            aria-label="View all products in marketplace">
+                            VIEW ALL <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <!-- Products grid — populated by NexraHomeEngine.renderTrending() -->
+                    <!-- Skeleton cards shown by NexraHomeEngine.renderSkeletons() on init -->
+                    <div class="nh-products-grid" id="nh-trending-grid" aria-label="Trending Products" role="list">
+                        <!-- Skeleton cards injected by JS then replaced with real data -->
+                    </div>
+                </div>
+            </section>
+
+
+
+            <!-- ── SECTION 6: COMMUNITY FREEBIES VAULT ─────────────────
+                 3-card grid of free resources.
+                 Content: NexraHomeEngine.renderFreebies()
+                 Source:  Firestore collection 'freebies', ordered by
+                          created_at DESC, limit 3
+                 Cards: .nh-freebie with image bg, overlay, category badge,
+                        title, sub-info (file type, size, format)
+                 Clicking: NexraApp.navTo('freebie-detail', doc.id)
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-section nh-reveal" id="nh-freebies-section" aria-labelledby="nh-freebies-title">
+                <div class="nh-container">
+                    <div style="text-align:center; margin-bottom:36px;">
+                        <div class="nh-eyebrow" style="margin: 0 auto 12px;">
+                            <i class="fa-solid fa-cloud-arrow-down" aria-hidden="true"></i>
+                            COMMUNITY VAULT
+                        </div>
+                        <h2 class="nh-sec-title nh-text-grad" id="nh-freebies-title">FREE RESOURCES</h2>
+                        <p class="nh-sec-sub">
+                            Premium assets — share 3 times to unlock permanently. No payment ever required.
+                        </p>
+                    </div>
+
+                    <!-- Freebies grid — populated by NexraHomeEngine.renderFreebies() -->
+                    <div class="nh-freebies-grid" id="nh-freebies-grid" aria-label="Free Resources" role="list">
+                        <!-- Skeleton cards injected by JS then replaced -->
+                    </div>
+
+                    <div style="text-align:center; margin-top:32px;">
+                        <button class="btn btn-outline" onclick="NexraApp.navTo('freebies')"
+                            aria-label="Browse the complete free resource vault">
+                            <i class="fa-solid fa-vault" aria-hidden="true"></i>
+                            BROWSE FULL VAULT
+                        </button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── SECTION 7: TECH INSIGHTS BLOG GRID ──────────────────
+                 3-column blog card grid.
+                 Content: NexraHomeEngine.renderBlogs()
+                 Source:  Firestore collection 'blogs', where published==true,
+                          ordered by created_at DESC, limit 3
+                 Cards: .nh-blog with cover image, category tag, title, date
+                 Clicking: NexraApp.navTo('blog-detail', doc.id)
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-section nh-reveal" id="nh-blogs-section" aria-labelledby="nh-blogs-title">
+                <div class="nh-container">
+                    <div class="nh-head-row">
+                        <div>
+                            <div class="nh-eyebrow">
+                                <i class="fa-solid fa-newspaper" aria-hidden="true"></i>
+                                LEARNING ACADEMY
+                            </div>
+                            <h2 class="nh-sec-title" id="nh-blogs-title">
+                                TECH <span class="nh-text-grad">INSIGHTS</span>
+                            </h2>
+                            <p class="nh-sec-sub">Expert guides, tutorials, and industry news for digital entrepreneurs.
+                            </p>
+                        </div>
+                        <button class="btn-ghost" onclick="NexraApp.navTo('blog')" aria-label="Read all blog articles">
+                            READ ALL <i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+                        </button>
+                    </div>
+
+                    <!-- Blog grid — populated by NexraHomeEngine.renderBlogs() -->
+                    <div class="nh-blogs-grid" id="nh-blogs-grid" aria-label="Blog Articles" role="list">
+                        <!-- Skeleton cards injected by JS then replaced -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── SECTION 8: TESTIMONIALS MARQUEE ─────────────────────
+                 Dual-row infinite-scroll marquee (rows move in opposite
+                 directions for a premium layered effect).
+                 Content: NexraHomeEngine.renderMarquee()
+                 Source:  Firestore collection 'testimonials',
+                          ordered by approved==true, limit 12
+                 Cards: .nh-review-card with stars, quote, avatar, name, location
+                 Animation: CSS @keyframes nhScroll (48s infinite linear)
+                 Pauses on hover via CSS animation-play-state: paused
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-section nh-reveal" id="nh-testimonials-section" aria-labelledby="nh-testimonials-title">
+                <div class="nh-container" style="text-align:center;">
+                    <div class="nh-eyebrow" style="margin: 0 auto 12px;">
+                        <i class="fa-solid fa-star" aria-hidden="true"></i>
+                        VERIFIED REVIEWS
+                    </div>
+                    <h2 class="nh-sec-title" id="nh-testimonials-title">
+                        WHAT OUR <span class="nh-text-grad">COMMUNITY SAYS</span>
+                    </h2>
+                    <p class="nh-sec-sub" style="max-width:520px; margin: 0 auto;">
+                        Trusted by 1,700+ customers across Pakistan. Every review is verified by our team.
+                    </p>
+                </div>
+
+                <!-- Row 1: scrolls left → right -->
+                <div class="nh-marquee nh-marquee--fwd" id="nh-marquee-1" aria-hidden="true">
+                    <div class="nh-marquee-track" id="nh-marquee-track-1">
+                        <!-- Populated by NexraHomeEngine.renderMarquee() -->
+                    </div>
+                </div>
+
+                <!-- Row 2: scrolls right → left (reverse) -->
+                <div class="nh-marquee nh-marquee--rev" id="nh-marquee-2" aria-hidden="true">
+                    <div class="nh-marquee-track nh-marquee-track--rev" id="nh-marquee-track-2">
+                        <!-- Populated by NexraHomeEngine.renderMarquee() -->
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- ── SECTION 9: FAQ ACCORDION ──────────────────────────────
+                 Native HTML <details>/<summary> accordion.
+                 Content: NexraHomeEngine.renderFAQs()
+                 Source:  Firestore collection 'faqs', ordered by sortOrder ASC,
+                          where published==true, limit 8
+                 Fallback: static FAQ items already in markup below
+                 Using native <details> avoids JS dependency for expand/collapse
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-section nh-reveal" id="nh-faq-section" aria-labelledby="nh-faq-title">
+                <div class="nh-container" style="max-width:820px;">
+                    <div style="text-align:center; margin-bottom:40px;">
+                        <div class="nh-eyebrow" style="margin: 0 auto 12px;">
+                            <i class="fa-solid fa-circle-question" aria-hidden="true"></i>
+                            QUICK ANSWERS
+                        </div>
+                        <h2 class="nh-sec-title" id="nh-faq-title">
+                            FREQUENTLY <span class="nh-text-grad">ASKED</span>
+                        </h2>
+                        <p class="nh-sec-sub">Everything you need to know before you buy.</p>
+                    </div>
+
+                    <!-- FAQ items — NexraHomeEngine.renderFAQs() targets #nh-faq-list.
+                         If Firestore has faqs, the static items below are REPLACED.
+                         Static items are shown as fallback when Firestore is unavailable. -->
+                    <div id="nh-faq-list">
+
+                    </div><!-- /#nh-faq-list -->
+                </div>
+            </section>
+
+            <!-- ── SECTION 10: NEWSLETTER STRIP ─────────────────────────
+                 Email capture with Firestore backend.
+                 NexraHomeEngine.subscribeNewsletter() handles submission:
+                 1. Validates email format client-side
+                 2. Checks Firestore newsletters collection for duplicates
+                 3. Writes { email, subscribedAt, source: 'home' } to Firestore
+                 4. Shows success toast via NexraApp.showToast()
+                 5. Updates submit button state during loading
+                 ─────────────────────────────────────────────────────────── -->
+            <section class="nh-section nh-reveal" id="nh-newsletter-section" aria-labelledby="nh-newsletter-title">
+                <div class="nh-container">
+                    <div class="nh-newsletter" id="nh-newsletter-wrap">
+
+                        <!-- Decorative background element -->
+                        <div class="nh-nl-bg-orb" aria-hidden="true"></div>
+
+                        <div class="nh-eyebrow" style="margin: 0 auto 12px;">
+                            <i class="fa-solid fa-envelope-open-text" aria-hidden="true"></i>
+                            STAY AHEAD
+                        </div>
+                        <h2 class="nh-sec-title" id="nh-newsletter-title">
+                            Unlock <span class="nh-text-grad">Early Access</span>
+                        </h2>
+                        <p class="nh-sec-sub" style="max-width:460px; margin: 10px auto 0;">
+                            Subscribe for exclusive beta drops, flash sale alerts, and weekly free resources delivered
+                            to your inbox.
+                        </p>
+
+                        <!-- Newsletter form — submission handled by NexraHomeEngine.subscribeNewsletter() -->
+                        <form class="nh-nl-form" id="nh-nl-form"
+                            onsubmit="event.preventDefault(); NexraHomeEngine.subscribeNewsletter();" novalidate
+                            aria-label="Newsletter Subscription Form">
+                            <input class="nh-nl-input" id="nh-nl-email" type="email" placeholder="your@email.com"
+                                required autocomplete="email" aria-label="Email address for newsletter"
+                                aria-required="true">
+                            <button class="btn btn-primary" id="nh-nl-submit" type="submit"
+                                aria-label="Subscribe to newsletter">
+                                <i class="fa-solid fa-paper-plane" aria-hidden="true"></i>
+                                JOIN FREE
+                            </button>
+                        </form>
+
+                        <!-- Privacy note -->
+                        <p class="nh-nl-note">
+                            <i class="fa-solid fa-shield-halved" aria-hidden="true"></i>
+                            No spam. Unsubscribe anytime. We protect your privacy.
+                        </p>
+
+                    </div><!-- /.nh-newsletter -->
+                </div>
+            </section>
+
+        </div><!-- /.nh -->
+
+    </main><!-- /#nh-main -->
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — MOBILE BOTTOM DOCK
+         Populated by: /components/dock.html
+         Contains: .dock-ui with 5 navigation items
+         Visible only on mobile (<992px) — hidden on desktop via CSS
+         Active state managed by NexraComponents._setActiveNav()
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="dock-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         COMPONENT MOUNT — ENTERPRISE FOOTER
+         Populated by: /components/footer.html
+         Contains: .g-footer with 4-column grid, social links, legal links
+         Brand logo: .nx-brand-title auto-updated by NexraBrand
+         ════════════════════════════════════════════════════════════════ -->
+    <div id="footer-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         OFFLINE DETECTION OVERLAY
+         Shown by NexraHomeEngine.handleOffline() when navigator.onLine
+         becomes false. Hidden when connection restores.
+         CSS: .nh-offline-overlay in home.css
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="nh-offline-overlay" id="nh-offline-overlay" role="alertdialog" aria-labelledby="nh-offline-title"
+        aria-hidden="true">
+        <div class="nh-offline-card">
+            <div class="nh-offline-icon" aria-hidden="true">
+                <i class="fa-solid fa-wifi-slash"></i>
+            </div>
+            <h3 class="nh-offline-title" id="nh-offline-title">You're Offline</h3>
+            <p class="nh-offline-desc">
+                Please check your internet connection. Cached content may still be available.
+            </p>
+            <button class="btn btn-primary" onclick="NexraHomeEngine.retryConnection()" aria-label="Retry connection">
+                <i class="fa-solid fa-rotate-right" aria-hidden="true"></i>
+                RETRY
+            </button>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAINTENANCE MODE OVERLAY
+         Checked at page load by NexraHomeEngine.checkMaintenanceMode()
+         which reads Firestore settings/global.maintenanceMode (boolean).
+         If true, this overlay covers the entire page BEFORE any content
+         is shown. Admin can disable it live from Admin Panel.
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="nh-maintenance-overlay" id="nh-maintenance-overlay" role="alertdialog"
+        aria-labelledby="nh-maintenance-title" aria-hidden="true">
+        <div class="nh-maintenance-card">
+            <div class="nh-maintenance-icon" aria-hidden="true">
+                <i class="fa-solid fa-screwdriver-wrench"></i>
+            </div>
+            <!--
+              .nx-brand-logo auto-updated by NexraBrand in case
+              maintenance screen is visible during brand switch
+            -->
+            <img class="nx-brand-logo nh-maintenance-logo" src="" alt="Nexra Tech PK" loading="lazy">
+            <h2 class="nh-maintenance-title" id="nh-maintenance-title" style="font-family:'Space Grotesk';">
+                Under Maintenance
+            </h2>
+            <p class="nh-maintenance-desc" id="nh-maintenance-desc">
+                We're upgrading the ecosystem for you. We'll be back shortly.
+            </p>
+            <div class="nh-maintenance-eta" id="nh-maintenance-eta">
+                Estimated time: checking...
+            </div>
+            <div class="nh-maintenance-socials">
+                <a href="#" class="footer-social-btn" aria-label="Follow us on WhatsApp">
+                    <i class="fa-brands fa-whatsapp" aria-hidden="true"></i>
+                </a>
+                <a href="#" class="footer-social-btn" aria-label="Follow us on Telegram">
+                    <i class="fa-brands fa-telegram" aria-hidden="true"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         SCRIPTS — STRICT LOAD ORDER
+         1. Firebase SDKs      (loaded in <head> — already ready)
+         2. firebaseconfig.js  (loaded in <head> — window.db ready)
+         3. app.js             (must be FIRST body script: NexraApp needed
+                                by all subsequent scripts and components)
+         4. home.js            (page engine: NexraHomeEngine)
+         5. loader.js          (component injector: NexraComponents)
+         6. Inline init block  (calls NexraComponents.load() then engine)
+         ════════════════════════════════════════════════════════════════ -->
+
+    <!-- Global app engine — NexraApp (nav, cart, theme, toast) -->
+    <script src="/js/app.js"></script>
+
+    <!-- Home page engine — NexraHomeEngine (all dynamic section fills) -->
+    <script src="/js/home.js"></script>
+
+    <!-- Component injector — NexraComponents.load() -->
+    <script src="/components/loader.js"></script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         INLINE BOOT SCRIPT
+         Orchestrates the page initialization sequence:
+         1. Load all component HTML fragments in parallel
+         2. After all mount, initialize the home engine
+         3. Apply saved affiliate ref from URL ?ref= param
+         This is kept inline (not in app.js) because the boot order
+         is page-specific and must run AFTER loader.js is available.
+         ════════════════════════════════════════════════════════════════ -->
+    <script>
+        /**
+         * BOOT SEQUENCE — home.html
+         * Runs after DOM is ready and all scripts above are parsed.
+         */
+        (function bootHomePage() {
+
+            // ── 1. AFFILIATE REF TRACKING ──────────────────────────────
+            // If URL contains ?ref=username, save to sessionStorage.
+            // checkout.js reads this and awards Nexra Coins on purchase.
+            const urlParams = new URLSearchParams(window.location.search);
+            const ref = urlParams.get('ref');
+            if (ref) {
+                sessionStorage.setItem('nexra_ref', ref);
+                console.log('[Nexra Boot] Affiliate ref captured:', ref);
+            }
+
+            // ── 2. PROMO CODE AUTO-APPLY ───────────────────────────────
+            // If URL contains ?promo=code, save for checkout auto-apply.
+            const promo = urlParams.get('promo');
+            if (promo) {
+                sessionStorage.setItem('nexra_promo', promo);
+                console.log('[Nexra Boot] Promo code captured:', promo);
+            }
+
+            // ── 3. THEME PARAM OVERRIDE ─────────────────────────────────
+            // ?theme=dark or ?theme=light forces theme for share links.
+            const themeParam = urlParams.get('theme');
+            if (themeParam === 'dark' || themeParam === 'light') {
+                const body = document.body;
+                if (themeParam === 'dark') {
+                    body.setAttribute('data-theme', 'dark');
+                } else {
+                    body.removeAttribute('data-theme');
+                }
+                localStorage.setItem('nexra_theme', themeParam);
+            }
+
+            // ── 4. LOAD ALL COMPONENT FRAGMENTS ────────────────────────
+            // NexraComponents.load() fetches each file via fetch() and
+            // injects innerHTML into the mount point. Runs in parallel.
+            // .then() fires NexraHomeEngine.init() after ALL components
+            // are mounted so the engine can safely query injected DOM.
+            NexraComponents.load([
+                { file: '/components/header.html', mount: '#header-mount' },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount' },
+                { file: '/components/sidebar.html', mount: '#sidebar-mount' },
+                { file: '/components/dock.html', mount: '#dock-mount' },
+                { file: '/components/footer.html', mount: '#footer-mount' },
+            ]).then(function () {
+
+                // ── 5. INITIALIZE HOME ENGINE ───────────────────────────
+                // All sections are populated with Firebase data here.
+                NexraHomeEngine.init();
+
+            }).catch(function (err) {
+                console.error('[Nexra Boot] Component load failed:', err);
+                // Even if components fail, try to init home sections
+                if (window.NexraHomeEngine) NexraHomeEngine.init();
+            });
+
+        })();
+    </script>
+
+</body>
+
+</html>

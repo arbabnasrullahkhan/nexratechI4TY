@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — COMMUNITY CREATOR PORTAL (academy/creator-portal.html)
+  ============================================================================
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <!-- Strict Anti-Clickjacking Frame Buster -->
+    <style id="antiClickjack">body{display:none !important;}</style>
+    <script>if(self===top){document.getElementById('antiClickjack').remove();}else{top.location=self.location;}</script>
+    <title>Creator Portal | Nexra Tech PK</title>
+    <!-- Gated Gated Content Robots Directives -->
+    <meta name="robots" content="noindex, nofollow, noarchive, nosnippet">
+    <meta name="theme-color" content="#020202">
+    <link rel="icon" type="image/png" id="dynamic-favicon" href="">
+    <link rel="apple-touch-icon" id="dynamic-apple-icon" href="">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/creator.css">
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+<body data-theme="dark" class="cp-theme">
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="header-mount"></div>
+
+    <!-- Auth Guard Layer -->
+    <div id="cp-guard" class="cp-guard">
+        <i class="fa-solid fa-paintbrush fa-beat" style="font-size:48px; color:#ec4899; margin-bottom:20px;"></i>
+        <h2 class="tech-font" style="color:#fff;">Creator Verification</h2>
+        <p style="color:#a1a1aa;">Checking ecosystem credentials...</p>
+    </div>
+
+    <main id="cp-main" class="cp-container" style="display:none;" role="main">
+        
+        <div class="cp-hero">
+            <h1 class="tech-font">Submit Community Asset</h1>
+            <p>Contribute UI kits, templates, or code snippets to the Nexra ecosystem. Earn <strong style="color:#fbbf24;">+50 Nexra Coins</strong> upon Admin approval!</p>
+        </div>
+
+        <div class="cp-layout">
+            
+            <!-- Instructions Panel -->
+            <div class="cp-info-panel">
+                <h3><i class="fa-solid fa-clipboard-check" style="color:#ec4899;"></i> Submission Guidelines</h3>
+                <ul class="cp-guidelines">
+                    <li>Assets must be entirely your own original work.</li>
+                    <li>Ensure source files are clean and well-documented.</li>
+                    <li>Upload the actual asset to a secure cloud drive (e.g., Google Drive, Mega) and provide the download link.</li>
+                    <li>Cover images must be high resolution (1200x800 recommended).</li>
+                </ul>
+                <div class="cp-gamification">
+                    <i class="fa-solid fa-coins"></i>
+                    <div>
+                        <strong>Earn 50 Coins</strong>
+                        <p>Valid submissions are manually reviewed. Coins are deposited immediately upon approval.</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Submission Form -->
+            <form class="cp-form" id="cp-form" onsubmit="event.preventDefault(); NexraCreator.submitAsset();">
+                
+                <div class="cp-field">
+                    <label>Asset Title</label>
+                    <input type="text" id="cp-title" class="cp-input" required placeholder="e.g., Dark Mode SaaS UI Kit (Figma)">
+                </div>
+
+                <div class="cp-grid-2">
+                    <div class="cp-field">
+                        <label>Asset Category</label>
+                        <select id="cp-category" class="cp-input" required>
+                            <option value="ui_kit">UI Kit / Design System</option>
+                            <option value="code_snippet">Code Snippet / Script</option>
+                            <option value="template">Web Template (HTML/CSS)</option>
+                            <option value="preset">Presets / LUTs</option>
+                        </select>
+                    </div>
+                    <div class="cp-field">
+                        <label>External Download Link (Drive/Mega)</label>
+                        <input type="url" id="cp-link" class="cp-input" required placeholder="https://...">
+                    </div>
+                </div>
+
+                <div class="cp-field">
+                    <label>Description & Features</label>
+                    <textarea id="cp-desc" class="cp-input" rows="4" required placeholder="Describe the contents, compatibility, and how to use it..."></textarea>
+                </div>
+
+                <!-- Zero-Cost Base64 Cover Upload -->
+                <div class="cp-field">
+                    <label>Cover Image (Required)</label>
+                    <div class="cp-upload-area" id="cp-dropzone">
+                        <input type="file" id="cp-file" accept="image/*" required onchange="NexraCreator.handleImageUpload(event)" style="display:none;">
+                        <i class="fa-solid fa-image" style="font-size:32px; color:#ec4899; margin-bottom:12px;"></i>
+                        <span style="color:#fff; font-weight:700;">Click to upload cover image</span>
+                        <span style="font-size:12px; color:#71717a; margin-top:4px;">JPG, PNG (Auto-compressed to WebP)</span>
+                        <canvas id="cp-canvas" style="display:none;"></canvas>
+                    </div>
+                    
+                    <div id="cp-preview-container" style="display:none; position:relative; width:100%; aspect-ratio:16/9; border-radius:12px; overflow:hidden; border:1px solid rgba(255,255,255,0.1);">
+                        <img id="cp-img-preview" src="" style="width:100%; height:100%; object-fit:cover;">
+                        <button type="button" onclick="NexraCreator.clearImage()" class="cp-clear-img"><i class="fa-solid fa-trash"></i></button>
+                        <input type="hidden" id="cp-base64-payload">
+                    </div>
+                </div>
+
+                <button type="submit" class="cp-btn-submit" id="btn-submit-asset">
+                    Submit for Review <i class="fa-solid fa-arrow-right"></i>
+                </button>
+            </form>
+
+        </div>
+
+    </main>
+
+    <!-- Success Modal -->
+    <div class="cp-modal-overlay" id="cp-success-modal" style="display:none;">
+        <div class="cp-modal-card">
+            <i class="fa-solid fa-circle-check" style="color:#10b981; font-size:64px; margin-bottom:20px;"></i>
+            <h2 class="tech-font" style="color:#fff; margin-bottom:10px;">Submission Received!</h2>
+            <p style="color:#a1a1aa; font-size:14px; margin-bottom:24px;">Your asset has been placed in the Admin review queue. If approved, 50 Nexra Coins will be credited to your account.</p>
+            <button class="cp-btn-submit" onclick="window.location.reload()" style="width:100%;">Submit Another Asset</button>
+            <button onclick="window.location.href='/academy/creator-portal.html'" style="width:100%; margin-top:10px; background:transparent; border:1px solid rgba(255,255,255,0.1); color:#fff; padding:16px; border-radius:12px; cursor:pointer;">Return Home</button>
+        </div>
+    </div>
+
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/creator.js"></script>
+    <script>
+        (function(){
+            const t=localStorage.getItem('nexra_theme');
+            if(t==='dark')document.body.setAttribute('data-theme','dark');
+            NexraComponents.load([
+                {file:'/components/header.html',mount:'#header-mount'},
+                {file:'/components/dock.html',  mount:'#dock-mount'},
+                {file:'/components/footer.html',mount:'#footer-mount'}
+            ]).then(()=>NexraCreator.init()).catch(()=>NexraCreator.init());
+        })();
+    </script>
+</body>
+</html>

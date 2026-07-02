@@ -1,0 +1,1951 @@
+/* ==========================================================================
+   NEXRA TECH PK — HOME PAGE STYLES (home.css)
+   
+   SCOPE: All rules here use the .nh-* prefix and are ONLY loaded
+          on home.html. They extend (never override) global.css.
+   
+   DEPENDS ON (global.css custom properties used here):
+     --bg-base, --bg-surface, --bg-elevated
+     --glass-bg, --glass-border, --nav-blur
+     --text-100, --text-200, --text-300
+     --brand-main, --brand-glow
+     --shadow-soft, --shadow-float
+     --radius-sm, --radius-md, --radius-lg
+     --ease, --transition
+     --success, --warning, --danger
+   
+   SECTIONS:
+   01. NH NAMESPACE VARIABLES
+   02. NH UTILITY CLASSES
+   03. SKELETON LOADER ANIMATION
+   04. SCROLL REVEAL (.nh-reveal)
+   05. ANNOUNCEMENT STRIP
+   06. HERO SECTION
+   07. KINETIC TYPOGRAPHY
+   08. LIVE SEARCH BAR + DROPDOWN
+   09. CATEGORY PILLS SWIMLANE
+   10. PRODUCTS GRID + CARDS
+   11. B2B AGENCY BANNER
+   12. FREEBIES GRID + CARDS
+   13. BLOG INSIGHTS GRID + CARDS
+   14. TESTIMONIALS DUAL MARQUEE
+   15. FAQ ACCORDION
+   16. NEWSLETTER STRIP
+   17. OFFLINE OVERLAY
+   18. MAINTENANCE MODE OVERLAY
+   19. RESPONSIVE BREAKPOINTS SUMMARY
+   ========================================================================== */
+
+
+/* ==========================================================================
+   01. NH NAMESPACE VARIABLES
+   Scoped inside .nh so they don't bleed into global.css or other pages.
+   These bridge home.css to global.css tokens safely.
+   ========================================================================== */
+.nh {
+    /* Brand */
+    --nh-brand:      #FF4A17;
+    --nh-brand-dim:  rgba(255, 74, 23, 0.10);
+    --nh-brand-glow: rgba(255, 74, 23, 0.28);
+    --nh-brand-deep: rgba(255, 74, 23, 0.05);
+
+    /* Semantic colors */
+    --nh-gold:  #f59e0b;
+    --nh-green: #10b981;
+    --nh-blue:  #3b82f6;
+    --nh-red:   #ef4444;
+
+    /* Surfaces — bridge from global.css tokens with fallbacks */
+    --nh-base:  var(--bg-base,  #f8fafc);
+    --nh-surf:  var(--bg-surface, #ffffff);
+    --nh-elev:  var(--bg-elevated, #f1f5f9);
+
+    /* Typography */
+    --nh-t1: var(--text-100, #0f172a);
+    --nh-t2: var(--text-200, #475569);
+    --nh-t3: var(--text-300, #94a3b8);
+
+    /* Glass */
+    --nh-bdr:  var(--glass-border, rgba(0,0,0,0.06));
+    --nh-glass: var(--glass-bg, rgba(255,255,255,0.75));
+
+    /* Shadows */
+    --nh-soft:  var(--shadow-soft,  0 8px 24px -8px rgba(0,0,0,0.06));
+    --nh-flt:   var(--shadow-float, 0 20px 50px -12px rgba(0,0,0,0.12));
+
+    /* Border radii */
+    --nh-r-sm: 12px;
+    --nh-r-md: 20px;
+    --nh-r-lg: 28px;
+    --nh-r-xl: 40px;
+
+    /* Easing */
+    --nh-ease: cubic-bezier(0.16, 1, 0.3, 1);
+    --nh-ease-out: cubic-bezier(0.0, 0.0, 0.2, 1);
+    --nh-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+
+/* ==========================================================================
+   02. NH UTILITY CLASSES
+   ========================================================================== */
+
+/* Section layout wrappers */
+.nh-container {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+@media (min-width: 768px)  { .nh-container { padding: 0 32px; } }
+@media (min-width: 1200px) { .nh-container { padding: 0 48px; } }
+
+.nh-section    { padding: 72px 0; }
+.nh-section-sm { padding: 40px 0; }
+
+/* Section eyebrow badge */
+.nh-eyebrow {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--nh-brand);
+    background: var(--nh-brand-dim);
+    border: 1px solid rgba(255, 74, 23, 0.2);
+    padding: 5px 14px;
+    border-radius: 50px;
+    margin-bottom: 12px;
+}
+
+/* Section titles */
+.nh-sec-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(22px, 5vw, 38px);
+    font-weight: 800;
+    color: var(--nh-t1);
+    letter-spacing: -0.8px;
+    margin: 0 0 10px;
+    line-height: 1.15;
+}
+
+.nh-sec-sub {
+    font-size: clamp(14px, 2vw, 15px);
+    color: var(--nh-t2);
+    font-weight: 500;
+    line-height: 1.7;
+}
+
+.nh-head-row {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 16px;
+    margin-bottom: 30px;
+}
+
+/* Gradient text utility */
+.nh-text-grad {
+    background: linear-gradient(135deg, var(--nh-brand) 0%, #ff8c00 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+
+/* ==========================================================================
+   03. SKELETON LOADER ANIMATION
+   Used while Firebase data is loading. Replaced by real content on resolve.
+   ========================================================================== */
+@keyframes nhSkeleton {
+    0%   { background-position: -400px 0; }
+    100% { background-position: 400px 0; }
+}
+
+/* Base skeleton shimmer mixin */
+.nh-skeleton {
+    background: linear-gradient(
+        90deg,
+        var(--nh-elev) 25%,
+        var(--nh-surf) 50%,
+        var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+    border-radius: var(--nh-r-sm);
+}
+
+/* Product card skeleton */
+.nh-prod-skeleton {
+    border-radius: var(--nh-r-md);
+    overflow: hidden;
+    background: var(--nh-surf);
+    border: 1.5px solid var(--nh-bdr);
+    padding: 10px;
+}
+.nh-prod-skeleton__img {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 14px;
+    margin-bottom: 10px;
+    background: linear-gradient(
+        90deg, var(--nh-elev) 25%, var(--nh-surf) 50%, var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+}
+.nh-prod-skeleton__line {
+    height: 10px;
+    border-radius: 6px;
+    margin-bottom: 8px;
+    background: linear-gradient(
+        90deg, var(--nh-elev) 25%, var(--nh-surf) 50%, var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+}
+.nh-prod-skeleton__line--short { width: 60%; }
+
+/* Category pill skeleton */
+.nh-cat-skeleton {
+    flex: 0 0 auto;
+    width: 100px;
+    height: 40px;
+    border-radius: 50px;
+    background: linear-gradient(
+        90deg, var(--nh-elev) 25%, var(--nh-surf) 50%, var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+}
+
+/* Blog card skeleton */
+.nh-blog-skeleton {
+    border-radius: var(--nh-r-md);
+    overflow: hidden;
+    background: var(--nh-surf);
+    border: 1px solid var(--nh-bdr);
+}
+.nh-blog-skeleton__img {
+    width: 100%;
+    aspect-ratio: 16/9;
+    background: linear-gradient(
+        90deg, var(--nh-elev) 25%, var(--nh-surf) 50%, var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+}
+.nh-blog-skeleton__body { padding: 18px; }
+.nh-blog-skeleton__line {
+    height: 10px;
+    border-radius: 6px;
+    margin-bottom: 10px;
+    background: linear-gradient(
+        90deg, var(--nh-elev) 25%, var(--nh-surf) 50%, var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+}
+
+/* Freebie card skeleton */
+.nh-freebie-skeleton {
+    border-radius: var(--nh-r-md);
+    aspect-ratio: 4/3;
+    background: linear-gradient(
+        90deg, var(--nh-elev) 25%, var(--nh-surf) 50%, var(--nh-elev) 75%
+    );
+    background-size: 800px 100%;
+    animation: nhSkeleton 1.4s ease-in-out infinite;
+}
+
+/* Empty state block */
+.nh-empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--nh-t3);
+    grid-column: 1 / -1;
+}
+.nh-empty-state i {
+    font-size: 48px;
+    margin-bottom: 16px;
+    opacity: 0.3;
+    display: block;
+}
+.nh-empty-state h4 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    margin-bottom: 8px;
+    color: var(--nh-t2);
+}
+.nh-empty-state p { font-size: 13px; }
+
+
+/* ==========================================================================
+   04. SCROLL REVEAL (.nh-reveal)
+   Applied to each section. JS IntersectionObserver adds .nh-revealed class
+   when the element enters the viewport. The transition plays once.
+   ========================================================================== */
+.nh-reveal {
+    opacity: 0;
+    transform: translateY(32px);
+    transition: opacity 0.7s var(--nh-ease), transform 0.7s var(--nh-ease);
+}
+.nh-reveal.nh-revealed {
+    opacity: 1;
+    transform: translateY(0);
+}
+/* Stagger children for sections that use it */
+.nh-reveal.nh-stagger > * {
+    transition-delay: calc(var(--i, 0) * 0.08s);
+}
+
+
+/* ==========================================================================
+   05. ANNOUNCEMENT STRIP
+   Full-width gradient banner at the top of the page (above hero).
+   Uses the brand gradient and provides a dismiss button.
+   ========================================================================== */
+.nh-announce-strip {
+    background: linear-gradient(90deg, var(--nh-brand) 0%, #ff8a00 100%);
+    color: #fff;
+    padding: 12px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: center;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 100;
+    /* Prevent strip from pushing down when dismissed (slide up) */
+    overflow: hidden;
+    transition: max-height 0.4s var(--nh-ease), padding 0.4s var(--nh-ease), opacity 0.3s ease;
+    max-height: 60px;
+}
+.nh-announce-strip.dismissed {
+    max-height: 0;
+    padding-top: 0;
+    padding-bottom: 0;
+    opacity: 0;
+}
+
+.nh-announce-cta {
+    color: #fff !important;
+    text-decoration: underline;
+    font-weight: 800;
+    white-space: nowrap;
+    transition: opacity 0.2s;
+}
+.nh-announce-cta:hover { opacity: 0.8; }
+
+.nh-announce-close {
+    position: absolute;
+    right: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: rgba(255,255,255,0.2);
+    border: none;
+    color: #fff;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    cursor: pointer;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+    flex-shrink: 0;
+}
+.nh-announce-close:hover {
+    background: rgba(255,255,255,0.35);
+    transform: translateY(-50%) scale(1.1);
+}
+
+
+/* ==========================================================================
+   06. HERO SECTION
+   Full-viewport cinematic section with video background.
+   The video fills the entire background behind a gradient overlay.
+   Content sits on top via z-index stacking.
+   ========================================================================== */
+.nh-hero {
+    position: relative;
+    min-height: 95svh;  /* svh = small viewport height — handles mobile browser chrome */
+    min-height: 95vh;   /* Fallback for browsers without svh support */
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    background: var(--nh-base);
+    /* Pulls the hero under the floating island nav (nav height ~80px) */
+    margin-top: -80px;
+    padding-top: 120px;
+    padding-bottom: 80px;
+    text-align: center;
+    border-radius: 0 0 56px 56px;
+    z-index: 5;
+}
+
+/* Video background layer */
+.nh-hero__bg {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    background: #000;
+    overflow: hidden;
+}
+
+.nh-hero__video {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    /* Blurred + darkened for text legibility over video */
+    filter: blur(30px) brightness(0.6) saturate(0.8);
+    transform: scale(1.08); /* Compensate for blur edge artifact */
+    transition: opacity 1s ease;
+    opacity: 0;
+}
+.nh-hero__video.loaded { opacity: 1; }
+
+/* Gradient overlay — transparent → hero base color → page bg */
+.nh-hero__overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.05)  0%,
+        rgba(0,0,0,0.15)  40%,
+        rgba(0,0,0,0.02)  60%,
+        var(--nh-base)    100%
+    );
+}
+[data-theme="dark"] .nh-hero__overlay {
+    background: linear-gradient(
+        to bottom,
+        rgba(0,0,0,0.50) 0%,
+        rgba(0,0,0,0.20) 60%,
+        var(--nh-base)   100%
+    );
+}
+
+/* Subtle dot grid overlay (decorative) */
+.nh-hero__grid {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background-image: radial-gradient(circle, rgba(255,74,23,0.08) 1px, transparent 1px);
+    background-size: 40px 40px;
+    opacity: 0.6;
+}
+
+/* Hero content — sits on top of all bg layers */
+.nh-hero__content {
+    position: relative;
+    z-index: 5;
+    width: 100%;
+    max-width: 880px;
+    padding: 0 24px;
+}
+
+/* Hero scroll hint arrow */
+.nh-hero__scroll-hint {
+    position: absolute;
+    bottom: 28px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5;
+    color: rgba(255,255,255,0.5);
+    font-size: 18px;
+    animation: nhBounce 2s ease-in-out infinite;
+}
+[data-theme="dark"] .nh-hero__scroll-hint { color: rgba(255,255,255,0.4); }
+
+@keyframes nhBounce {
+    0%, 100% { transform: translateX(-50%) translateY(0); }
+    50%       { transform: translateX(-50%) translateY(8px); }
+}
+
+/* Hero CTA buttons */
+.nh-hero__ctas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 14px;
+    justify-content: center;
+    margin-bottom: 60px;
+}
+
+.nh-btn-hero-primary {
+    /* Inherits .btn .btn-primary from global.css */
+    padding: 16px 32px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+.nh-btn-hero-outline {
+    /* Custom ghost style for hero — white with blur bg */
+    background: rgba(255,255,255,0.12);
+    color: #fff !important;
+    border: 1px solid rgba(255,255,255,0.25);
+    padding: 16px 32px;
+    font-size: 13px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+}
+.nh-btn-hero-outline:hover {
+    background: rgba(255,255,255,0.22);
+    border-color: rgba(255,255,255,0.4);
+    transform: translateY(-3px);
+}
+[data-theme="dark"] .nh-btn-hero-outline {
+    color: #fff !important;
+}
+
+/* Trust statistics bar */
+.nh-trust {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    width: 100%;
+    max-width: 640px;
+    margin: 0 auto;
+}
+@media (min-width: 480px) { .nh-trust { grid-template-columns: repeat(4, 1fr); } }
+
+.nh-trust-card {
+    background: var(--nh-glass);
+    border: 1px solid var(--nh-bdr);
+    border-radius: 18px;
+    padding: 14px 10px;
+    text-align: center;
+    box-shadow: var(--nh-soft);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    transition: 0.3s var(--nh-ease);
+}
+.nh-trust-card:hover {
+    transform: translateY(-3px);
+    border-color: rgba(255,74,23,0.3);
+}
+
+.nh-trust-val {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(18px, 4vw, 26px);
+    font-weight: 900;
+    color: var(--nh-t1);
+    /* In hero context the text needs to be visible on dark bg */
+    color: #fff;
+    margin-bottom: 2px;
+}
+[data-theme="dark"] .nh-trust-val { color: #fff; }
+
+.nh-trust-val.nh-text-grad {
+    /* Override white color for the gradient stat */
+    -webkit-text-fill-color: transparent;
+    color: transparent;
+}
+
+.nh-trust-lbl {
+    font-size: 9px;
+    font-weight: 800;
+    color: rgba(255,255,255,0.65);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-top: 2px;
+}
+[data-theme="dark"] .nh-trust-lbl { color: rgba(255,255,255,0.55); }
+
+
+/* ==========================================================================
+   07. KINETIC TYPOGRAPHY (Hero rotating accent word)
+   The accent word changes on a timer managed by NexraHomeEngine.startKinetic()
+   New word fades in from bottom, old word fades out to top.
+   ========================================================================== */
+.nh-hero__headline {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(32px, 9vw, 64px);
+    font-weight: 900;
+    letter-spacing: -3px;
+    line-height: 1.05;
+    margin: 0 0 20px;
+    /* Light mode: dark text on light video bg (blurred) */
+    color: #fff;
+    text-shadow: 0 2px 30px rgba(0,0,0,0.4);
+}
+[data-theme="dark"] .nh-hero__headline { color: #fff; }
+
+.nh-hero__headline-static { color: #fff; }
+
+.nh-hero__headline-accent {
+    color: var(--nh-brand) !important;
+    -webkit-text-fill-color: var(--nh-brand) !important;
+    display: inline-block;
+    position: relative;
+}
+
+/* Kinetic wrapper — clips the rotating words */
+.nh-kinetic-wrap {
+    display: inline-block;
+    overflow: hidden;
+    line-height: 1.1;
+    vertical-align: bottom;
+    min-height: 1.1em;
+}
+
+/* Individual kinetic word */
+.nh-kinetic-word {
+    display: block;
+    transition: transform 0.5s var(--nh-ease), opacity 0.4s ease;
+    /* Default: not active — slide up and fade out */
+    transform: translateY(110%);
+    opacity: 0;
+}
+.nh-kinetic-word.active {
+    /* Active: slide into position and fade in */
+    transform: translateY(0);
+    opacity: 1;
+}
+.nh-kinetic-word.exit {
+    /* Exiting: slide up and fade out */
+    transform: translateY(-110%);
+    opacity: 0;
+}
+
+/* Hero description */
+.nh-hero__desc {
+    font-size: clamp(14px, 2.5vw, 18px);
+    color: rgba(255,255,255,0.88);
+    font-weight: 500;
+    line-height: 1.7;
+    max-width: 620px;
+    margin: 0 auto 38px;
+}
+[data-theme="dark"] .nh-hero__desc { color: rgba(255,255,255,0.80); }
+
+
+/* ==========================================================================
+   08. LIVE SEARCH BAR + DROPDOWN
+   Overlaps the bottom of the hero via negative margin-top.
+   Glassmorphism pill-shaped input with mic button and search button.
+   ========================================================================== */
+.nh-search-wrap {
+    position: relative;
+    z-index: 8;
+    margin-top: -30px;
+    padding: 0 20px;
+    margin-bottom: 0;
+}
+@media (min-width: 768px) { .nh-search-wrap { padding: 0 32px; } }
+
+.nh-search {
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--nh-surf);
+    border: 1.5px solid var(--nh-bdr);
+    border-radius: 60px;
+    padding: 8px 8px 8px 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 0 0 1px var(--nh-bdr);
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.nh-search:focus-within {
+    border-color: var(--nh-brand);
+    box-shadow: 0 20px 50px rgba(0,0,0,0.12), 0 0 0 3px var(--nh-brand-dim);
+}
+
+.nh-search-icon {
+    color: var(--nh-t3);
+    font-size: 16px;
+    flex-shrink: 0;
+}
+
+.nh-search input {
+    flex: 1;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 15px;
+    font-weight: 500;
+    color: var(--nh-t1);
+    min-height: 44px;
+    min-width: 0;
+    outline: none;
+}
+.nh-search input::placeholder { color: var(--nh-t3); font-weight: 400; }
+
+/* Voice search microphone button */
+.nh-search-voice-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: var(--nh-elev);
+    border: 1px solid var(--nh-bdr);
+    color: var(--nh-t3);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    transition: 0.25s;
+}
+.nh-search-voice-btn:hover {
+    background: var(--nh-brand-dim);
+    color: var(--nh-brand);
+    border-color: rgba(255,74,23,0.2);
+}
+/* Pulsing animation when listening */
+.nh-search-voice-btn.listening {
+    background: var(--nh-brand);
+    color: #fff;
+    border-color: var(--nh-brand);
+    animation: nhVoicePulse 1s ease-in-out infinite;
+}
+@keyframes nhVoicePulse {
+    0%, 100% { box-shadow: 0 0 0 0 var(--nh-brand-glow); }
+    50%       { box-shadow: 0 0 0 8px transparent; }
+}
+
+/* Search submit button */
+.nh-search-submit-btn {
+    /* Inherits .btn .btn-primary */
+    padding: 12px 22px !important;
+    font-size: 12px !important;
+    font-weight: 800 !important;
+    letter-spacing: 0.5px;
+    flex-shrink: 0;
+    white-space: nowrap;
+}
+.nh-search-btn-text { display: none; }
+@media (min-width: 500px) { .nh-search-btn-text { display: inline; } }
+
+/* Live search dropdown */
+.nh-search-dropdown {
+    position: absolute;
+    top: calc(100% + 10px);
+    left: 20px;
+    right: 20px;
+    max-width: 800px;
+    margin: 0 auto;
+    background: var(--nh-surf);
+    border: 1px solid var(--nh-bdr);
+    border-radius: var(--nh-r-md);
+    box-shadow: var(--nh-flt);
+    overflow: hidden;
+    z-index: 1000;
+}
+@media (min-width: 768px) { .nh-search-dropdown { left: calc((100% - 800px) / 2 + 32px); right: calc((100% - 800px) / 2 + 32px); max-width: 800px; left: 32px; right: 32px; } }
+
+.nh-search-result-item {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    padding: 13px 18px;
+    cursor: pointer;
+    transition: background 0.15s;
+    border-bottom: 1px solid var(--nh-bdr);
+}
+.nh-search-result-item:last-child { border-bottom: none; }
+.nh-search-result-item:hover { background: var(--nh-elev); }
+
+.nh-search-result-img {
+    width: 38px;
+    height: 38px;
+    border-radius: 10px;
+    object-fit: cover;
+    flex-shrink: 0;
+    background: var(--nh-elev);
+}
+.nh-search-result-info { flex: 1; min-width: 0; }
+.nh-search-result-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--nh-t1);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.nh-search-result-price {
+    font-size: 12px;
+    font-weight: 800;
+    color: var(--nh-brand);
+}
+.nh-search-no-results {
+    padding: 24px;
+    text-align: center;
+    color: var(--nh-t3);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+
+/* ==========================================================================
+   09. CATEGORY PILLS SWIMLANE
+   Horizontally scrollable pill row. No scrollbar shown.
+   ========================================================================== */
+.nh-cats {
+    display: flex;
+    gap: 10px;
+    overflow-x: auto;
+    padding: 32px 20px 10px;
+    scrollbar-width: none;          /* Firefox */
+    -ms-overflow-style: none;       /* IE */
+    -webkit-overflow-scrolling: touch;
+}
+.nh-cats::-webkit-scrollbar { display: none; }
+
+/* Left/right fade-off gradient to hint scrollability */
+.nh-cats-wrapper {
+    position: relative;
+}
+.nh-cats-wrapper::before,
+.nh-cats-wrapper::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 40px;
+    z-index: 2;
+    pointer-events: none;
+}
+.nh-cats-wrapper::before { left: 0; background: linear-gradient(90deg, var(--nh-base), transparent); }
+.nh-cats-wrapper::after  { right: 0; background: linear-gradient(-90deg, var(--nh-base), transparent); }
+
+/* Category pill button */
+.nh-cat {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: 9px;
+    background: var(--nh-surf);
+    border: 1.5px solid var(--nh-bdr);
+    padding: 10px 18px;
+    border-radius: 50px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--nh-t2);
+    cursor: pointer;
+    box-shadow: var(--nh-soft);
+    transition: 0.25s var(--nh-ease);
+    white-space: nowrap;
+    -webkit-tap-highlight-color: transparent;
+}
+.nh-cat:hover,
+.nh-cat.active {
+    border-color: var(--nh-brand);
+    color: var(--nh-brand);
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px var(--nh-brand-glow);
+}
+.nh-cat.active {
+    background: var(--nh-brand-dim);
+}
+
+/* Category icon badge inside pill */
+.nh-cat-icon {
+    width: 26px;
+    height: 26px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--nh-elev);
+    font-size: 12px;
+    transition: 0.25s;
+}
+.nh-cat:hover .nh-cat-icon,
+.nh-cat.active .nh-cat-icon {
+    background: rgba(255,74,23,0.15);
+}
+
+
+/* ==========================================================================
+   10. PRODUCTS GRID + CARDS
+   Responsive grid: 2 col mobile → 3 → 4 → 5 wide
+   Each .nh-prod card has: badge, image, meta (stars/sold), title, price,
+   add-to-cart + buy-now action buttons.
+   ========================================================================== */
+.nh-products-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 13px;
+}
+@media (min-width: 600px)  { .nh-products-grid { grid-template-columns: repeat(3, 1fr); } }
+@media (min-width: 900px)  { .nh-products-grid { grid-template-columns: repeat(4, 1fr); } }
+@media (min-width: 1200px) { .nh-products-grid { grid-template-columns: repeat(5, 1fr); } }
+
+/* Product card */
+.nh-prod {
+    background: var(--nh-surf);
+    border: 1.5px solid var(--nh-bdr);
+    border-radius: var(--nh-r-md);
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    cursor: pointer;
+    box-shadow: var(--nh-soft);
+    transition: transform 0.3s var(--nh-ease), box-shadow 0.3s ease, border-color 0.3s ease;
+    position: relative;
+    -webkit-tap-highlight-color: transparent;
+}
+.nh-prod:hover {
+    transform: translateY(-6px);
+    box-shadow: var(--nh-flt);
+    border-color: rgba(255,74,23,0.25);
+}
+
+/* Product image wrapper */
+.nh-prod-img-wrap {
+    width: 100%;
+    aspect-ratio: 1;
+    border-radius: 14px;
+    overflow: hidden;
+    background: var(--nh-elev);
+    margin-bottom: 10px;
+    position: relative;
+    flex-shrink: 0;
+}
+.nh-prod-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s var(--nh-ease);
+    /* Prevent right-click save of product images */
+    pointer-events: none;
+    -webkit-user-drag: none;
+    user-select: none;
+}
+.nh-prod:hover .nh-prod-img { transform: scale(1.07); }
+
+/* Product type/status badge (top-left of image) */
+.nh-prod-badge {
+    position: absolute;
+    top: 8px;
+    left: 8px;
+    background: var(--nh-brand);
+    color: #fff;
+    font-size: 8.5px;
+    font-weight: 800;
+    padding: 3px 9px;
+    border-radius: 6px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+/* Badge color variants */
+.nh-prod-badge.badge-new    { background: var(--nh-green); }
+.nh-prod-badge.badge-hot    { background: var(--nh-red); }
+.nh-prod-badge.badge-saas   { background: var(--nh-blue); }
+.nh-prod-badge.badge-vip    { background: #a855f7; }
+
+/* Wishlist heart button (top-right of image) */
+.nh-prod-wish-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.9);
+    border: none;
+    color: var(--nh-t3);
+    font-size: 12px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 2;
+    transition: 0.2s;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.12);
+}
+.nh-prod-wish-btn:hover,
+.nh-prod-wish-btn.wished {
+    background: #fef2f2;
+    color: #ef4444;
+}
+[data-theme="dark"] .nh-prod-wish-btn { background: rgba(0,0,0,0.6); }
+
+/* Product meta row (stars + sold count) */
+.nh-prod-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--nh-t3);
+    margin-bottom: 5px;
+}
+.nh-prod-meta .stars { color: var(--nh-gold); }
+
+/* Product title (2-line clamp) */
+.nh-prod-title {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--nh-t1);
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    margin-bottom: 10px;
+    min-height: 36px;
+    line-height: 1.4;
+    flex: 1;
+}
+
+/* Price display */
+.nh-prod-price {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 800;
+    color: var(--nh-t1);
+    margin-bottom: 4px;
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+}
+.nh-prod-price-old {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--nh-t3);
+    text-decoration: line-through;
+}
+
+/* Action buttons row */
+.nh-prod-actions {
+    display: flex;
+    gap: 7px;
+    margin-top: auto;
+}
+
+.nh-prod-cart-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 11px;
+    background: var(--nh-elev);
+    border: 1px solid var(--nh-bdr);
+    color: var(--nh-t1);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: 0.2s;
+    flex-shrink: 0;
+    font-size: 14px;
+}
+.nh-prod-cart-btn:hover {
+    background: var(--nh-brand);
+    color: #fff;
+    border-color: var(--nh-brand);
+    transform: scale(1.05);
+}
+
+.nh-prod-buy-btn {
+    flex: 1;
+    height: 40px;
+    border-radius: 11px;
+    background: var(--nh-t1);
+    color: var(--nh-base);
+    font-size: 11px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+    letter-spacing: 0.5px;
+    font-family: inherit;
+}
+.nh-prod-buy-btn:hover {
+    background: var(--nh-brand);
+    color: #fff;
+}
+
+
+/* ==========================================================================
+   11. INLINE GLOBAL SEARCH RESULTS
+   Replaces the former standalone search-results.html page.
+   Shown when user executes a full search from the home page search bar.
+   ========================================================================== */
+.nh-search-results {
+    padding: 40px 0 80px;
+}
+
+.sr-header {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.sr-tabs {
+    display: flex;
+    gap: 8px;
+    justify-content: center;
+    flex-wrap: wrap;
+    margin-bottom: 32px;
+}
+
+.sr-tab {
+    background: var(--nh-elev);
+    border: 1px solid var(--nh-bdr);
+    color: var(--nh-t2);
+    padding: 10px 22px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+}
+.sr-tab:hover {
+    border-color: var(--nh-brand);
+    color: var(--nh-t1);
+}
+.sr-tab.active {
+    background: var(--nh-brand);
+    border-color: var(--nh-brand);
+    color: #fff;
+}
+.sr-count {
+    background: rgba(255,255,255,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 10px;
+    margin-left: 6px;
+}
+.sr-tab.active .sr-count {
+    background: rgba(255,255,255,0.3);
+}
+
+.sr-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+}
+
+.sr-card {
+    background: var(--nh-elev);
+    border: 1px solid var(--nh-bdr);
+    border-radius: 20px;
+    overflow: hidden;
+    text-decoration: none;
+    color: inherit;
+    transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+    display: flex;
+    flex-direction: column;
+}
+.sr-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 16px 40px rgba(0,0,0,0.12);
+    border-color: var(--nh-brand);
+}
+.sr-card.skeleton {
+    min-height: 220px;
+    background: var(--nh-elev);
+    animation: nhPulse 1.8s infinite ease-in-out;
+}
+
+.sc-img {
+    width: 100%;
+    height: 180px;
+    object-fit: cover;
+    background: var(--nh-elev);
+}
+
+.sc-body {
+    padding: 18px 20px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+.sc-badge {
+    display: inline-flex;
+    align-self: flex-start;
+    padding: 4px 12px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}
+.sc-badge.b-prod { background: rgba(168,85,247,0.15); color: #a855f7; }
+.sc-badge.b-blog { background: rgba(59,130,246,0.15); color: #3b82f6; }
+.sc-badge.b-free { background: rgba(16,185,129,0.15); color: #10b981; }
+
+.sc-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--nh-t1);
+    line-height: 1.3;
+}
+
+.sc-desc {
+    font-size: 12px;
+    color: var(--nh-t3);
+    line-height: 1.6;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.sr-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--nh-t3);
+}
+.sr-empty i {
+    font-size: 56px;
+    margin-bottom: 20px;
+    opacity: 0.3;
+}
+.sr-empty h3 {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 20px;
+    font-weight: 800;
+    color: var(--nh-t1);
+    margin-bottom: 8px;
+}
+.sr-empty p {
+    font-size: 13px;
+    max-width: 360px;
+    line-height: 1.7;
+}
+
+
+
+/* ==========================================================================
+   12. FREEBIES GRID + CARDS
+   3-column grid of image-background cards with overlay text.
+   ========================================================================== */
+.nh-freebies-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+@media (min-width: 600px) { .nh-freebies-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px) { .nh-freebies-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* Freebie card */
+.nh-freebie {
+    position: relative;
+    border-radius: var(--nh-r-md);
+    overflow: hidden;
+    aspect-ratio: 4/3;
+    cursor: pointer;
+    background: var(--nh-elev);
+    border: 1.5px solid var(--nh-bdr);
+    transition: transform 0.3s var(--nh-ease), box-shadow 0.3s ease, border-color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.nh-freebie:hover {
+    transform: translateY(-5px);
+    box-shadow: var(--nh-flt);
+    border-color: rgba(255,74,23,0.3);
+}
+
+/* Freebie background image */
+.nh-freebie-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    z-index: 1;
+    transition: transform 0.4s var(--nh-ease);
+    pointer-events: none;
+}
+.nh-freebie:hover .nh-freebie-img { transform: scale(1.06); }
+
+/* Gradient overlay for text legibility */
+.nh-freebie-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    background: linear-gradient(180deg, transparent 20%, rgba(0,0,0,0.88) 100%);
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    padding: 20px;
+}
+
+/* Lock overlay for locked freebies */
+.nh-freebie-lock {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    z-index: 3;
+    background: rgba(0,0,0,0.35);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    backdrop-filter: blur(2px);
+}
+.nh-freebie-lock-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.15);
+    border: 2px solid rgba(255,255,255,0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-size: 18px;
+}
+
+.nh-freebie-cat {
+    background: rgba(255,74,23,0.92);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    padding: 3px 11px;
+    border-radius: 6px;
+    align-self: flex-start;
+    margin-bottom: 9px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.nh-freebie-title {
+    color: #fff;
+    font-weight: 700;
+    font-size: clamp(14px, 2vw, 16px);
+    line-height: 1.35;
+    margin-bottom: 5px;
+}
+
+.nh-freebie-sub {
+    color: rgba(255,255,255,0.65);
+    font-size: 11px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+
+/* ==========================================================================
+   13. BLOG INSIGHTS GRID + CARDS
+   ========================================================================== */
+.nh-blogs-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 16px;
+}
+@media (min-width: 640px) { .nh-blogs-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 960px) { .nh-blogs-grid { grid-template-columns: repeat(3, 1fr); } }
+
+/* Blog card */
+.nh-blog {
+    background: var(--nh-surf);
+    border: 1px solid var(--nh-bdr);
+    border-radius: var(--nh-r-md);
+    overflow: hidden;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    transition: transform 0.3s var(--nh-ease), box-shadow 0.3s ease, border-color 0.3s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+.nh-blog:hover {
+    transform: translateY(-6px);
+    border-color: rgba(255,74,23,0.25);
+    box-shadow: var(--nh-flt);
+}
+
+/* Blog cover image */
+.nh-blog-img-wrap {
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+    position: relative;
+    background: var(--nh-elev);
+}
+.nh-blog-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.4s var(--nh-ease);
+}
+.nh-blog:hover .nh-blog-img { transform: scale(1.05); }
+
+/* Reading time badge */
+.nh-blog-read-time {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    background: rgba(0,0,0,0.7);
+    color: rgba(255,255,255,0.9);
+    font-size: 9px;
+    font-weight: 700;
+    padding: 3px 9px;
+    border-radius: 6px;
+    letter-spacing: 0.5px;
+}
+
+/* Blog card body */
+.nh-blog-body {
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.nh-blog-cat {
+    font-size: 10px;
+    font-weight: 800;
+    color: var(--nh-brand);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 8px;
+}
+
+.nh-blog-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(14px, 2vw, 16px);
+    font-weight: 700;
+    color: var(--nh-t1);
+    line-height: 1.45;
+    flex: 1;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.nh-blog-meta {
+    font-size: 11px;
+    color: var(--nh-t3);
+    margin-top: 14px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.nh-blog-meta i { font-size: 10px; }
+
+
+/* ==========================================================================
+   14. TESTIMONIALS DUAL MARQUEE
+   Two rows: Row 1 scrolls left, Row 2 scrolls right (via CSS animation).
+   Mouse/touch hover pauses both rows via animation-play-state.
+   ========================================================================== */
+.nh-marquee {
+    margin-top: 38px;
+    position: relative;
+    overflow: hidden;
+    padding: 6px 0;
+}
+.nh-marquee:first-of-type { margin-top: 42px; }
+.nh-marquee + .nh-marquee { margin-top: 14px; }
+
+/* Fade-off edges */
+.nh-marquee::before,
+.nh-marquee::after {
+    content: '';
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 120px;
+    z-index: 2;
+    pointer-events: none;
+}
+.nh-marquee::before {
+    left: 0;
+    background: linear-gradient(90deg, var(--nh-base), transparent);
+}
+.nh-marquee::after {
+    right: 0;
+    background: linear-gradient(-90deg, var(--nh-base), transparent);
+}
+
+/* Marquee track — contains duplicated cards for seamless loop */
+.nh-marquee-track {
+    display: flex;
+    gap: 16px;
+    width: max-content;
+    animation: nhScrollFwd 48s linear infinite;
+}
+.nh-marquee-track--rev {
+    animation: nhScrollRev 52s linear infinite;
+}
+
+/* Pause on hover for both rows */
+.nh-marquee:hover .nh-marquee-track,
+.nh-marquee:hover .nh-marquee-track--rev {
+    animation-play-state: paused;
+}
+
+@keyframes nhScrollFwd {
+    from { transform: translateX(0); }
+    to   { transform: translateX(calc(-50% - 8px)); }
+}
+@keyframes nhScrollRev {
+    from { transform: translateX(calc(-50% - 8px)); }
+    to   { transform: translateX(0); }
+}
+
+/* Review card */
+.nh-review-card {
+    width: 300px;
+    background: var(--nh-surf);
+    border: 1px solid var(--nh-bdr);
+    border-radius: 18px;
+    padding: 20px;
+    flex-shrink: 0;
+    box-shadow: var(--nh-soft);
+    transition: border-color 0.25s;
+}
+.nh-review-card:hover { border-color: rgba(255,74,23,0.2); }
+
+.nh-review-stars {
+    color: var(--nh-gold);
+    font-size: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    gap: 3px;
+}
+
+.nh-review-text {
+    font-size: 13px;
+    color: var(--nh-t2);
+    line-height: 1.65;
+    margin-bottom: 16px;
+    font-style: italic;
+    display: -webkit-box;
+    -webkit-line-clamp: 4;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+.nh-review-author {
+    display: flex;
+    align-items: center;
+    gap: 11px;
+}
+
+.nh-review-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: var(--nh-elev);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    font-size: 15px;
+    color: var(--nh-brand);
+    flex-shrink: 0;
+    border: 2px solid rgba(255,74,23,0.2);
+    overflow: hidden;
+}
+.nh-review-avatar img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.nh-review-name {
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--nh-t1);
+}
+.nh-review-loc {
+    font-size: 10px;
+    color: var(--nh-t3);
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Verified badge on review */
+.nh-review-verified {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--nh-green);
+    background: rgba(16,185,129,0.1);
+    border: 1px solid rgba(16,185,129,0.2);
+    padding: 2px 8px;
+    border-radius: 10px;
+    margin-left: auto;
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================================
+   15. FAQ ACCORDION
+   Using native HTML <details>/<summary> — no JS needed for open/close.
+   CSS handles the styling of open/closed states.
+   ========================================================================== */
+.nh-faq-item {
+    background: var(--nh-surf);
+    border: 1px solid var(--nh-bdr);
+    border-radius: var(--nh-r-md);
+    margin-bottom: 10px;
+    overflow: hidden;
+    transition: border-color 0.25s, box-shadow 0.25s;
+}
+.nh-faq-item:hover {
+    border-color: rgba(255,74,23,0.25);
+}
+.nh-faq-item[open] {
+    border-color: rgba(255,74,23,0.3);
+    box-shadow: 0 4px 20px var(--nh-brand-glow);
+}
+
+/* Summary = clickable question row */
+.nh-faq-item summary {
+    padding: 20px 24px;
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 15px;
+    font-weight: 700;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    color: var(--nh-t1);
+    gap: 16px;
+    -webkit-tap-highlight-color: transparent;
+}
+.nh-faq-item summary::-webkit-details-marker { display: none; }
+
+/* + / − icon */
+.nh-faq-item summary::after {
+    content: '+';
+    color: var(--nh-brand);
+    font-size: 22px;
+    font-weight: 800;
+    flex-shrink: 0;
+    line-height: 1;
+    transition: transform 0.3s var(--nh-ease);
+}
+.nh-faq-item[open] summary::after {
+    content: '−';
+    transform: rotate(0deg);
+}
+
+/* Answer paragraph */
+.nh-faq-item p {
+    padding: 0 24px 22px;
+    color: var(--nh-t2);
+    font-size: 14px;
+    line-height: 1.85;
+}
+
+
+/* ==========================================================================
+   16. NEWSLETTER STRIP
+   Centered card with gradient bg, email input, and subscribe button.
+   ========================================================================== */
+.nh-newsletter {
+    background: linear-gradient(135deg, var(--nh-surf) 0%, var(--nh-elev) 100%);
+    border: 1px solid var(--nh-bdr);
+    border-radius: 36px;
+    padding: 64px 40px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+}
+
+/* Background decorative orb */
+.nh-nl-bg-orb {
+    position: absolute;
+    width: 300px;
+    height: 300px;
+    background: var(--nh-brand-dim);
+    border-radius: 50%;
+    top: -80px;
+    right: -80px;
+    pointer-events: none;
+    filter: blur(60px);
+}
+
+.nh-nl-form {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    max-width: 460px;
+    margin: 28px auto 0;
+    flex-wrap: wrap;
+}
+
+.nh-nl-input {
+    flex: 1;
+    min-width: 200px;
+    background: var(--nh-base);
+    border: 1.5px solid var(--nh-bdr);
+    padding: 14px 22px;
+    border-radius: 50px;
+    color: var(--nh-t1);
+    font-family: inherit;
+    font-size: 14px;
+    outline: none;
+    transition: border-color 0.25s, box-shadow 0.25s;
+}
+.nh-nl-input:focus {
+    border-color: var(--nh-brand);
+    box-shadow: 0 0 0 3px var(--nh-brand-dim);
+}
+.nh-nl-input::placeholder { color: var(--nh-t3); }
+
+/* Privacy note below form */
+.nh-nl-note {
+    font-size: 11px;
+    color: var(--nh-t3);
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    font-weight: 600;
+}
+.nh-nl-note i { font-size: 10px; color: var(--nh-green); }
+
+
+/* ==========================================================================
+   17. OFFLINE DETECTION OVERLAY
+   Shown when navigator.onLine === false.
+   Full-screen blur overlay with centered card.
+   ========================================================================== */
+.nh-offline-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99998;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease;
+    pointer-events: none;
+}
+.nh-offline-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+/* Also support aria-hidden toggling */
+.nh-offline-overlay:not([aria-hidden="true"]) {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.nh-offline-card {
+    background: var(--nh-surf);
+    border: 1px solid var(--nh-bdr);
+    border-radius: 28px;
+    padding: 48px 36px;
+    text-align: center;
+    max-width: 380px;
+    width: 100%;
+    box-shadow: var(--nh-flt);
+}
+
+.nh-offline-icon {
+    width: 72px;
+    height: 72px;
+    border-radius: 24px;
+    background: rgba(239,68,68,0.1);
+    border: 2px solid rgba(239,68,68,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 20px;
+    font-size: 28px;
+    color: var(--nh-red);
+}
+
+.nh-offline-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--nh-t1);
+    margin-bottom: 10px;
+}
+
+.nh-offline-desc {
+    font-size: 14px;
+    color: var(--nh-t2);
+    line-height: 1.7;
+    margin-bottom: 24px;
+}
+
+
+/* ==========================================================================
+   18. MAINTENANCE MODE OVERLAY
+   Checked at boot from Firestore settings/global.maintenanceMode.
+   Covers entire page before content is shown.
+   ========================================================================== */
+.nh-maintenance-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 99999;
+    background: var(--nh-base);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    flex-direction: column;
+    text-align: center;
+    /* Hidden by default */
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.5s ease;
+    pointer-events: none;
+}
+.nh-maintenance-overlay.active {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+.nh-maintenance-overlay:not([aria-hidden="true"]) {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+.nh-maintenance-card {
+    max-width: 420px;
+    width: 100%;
+}
+
+.nh-maintenance-icon {
+    width: 80px;
+    height: 80px;
+    border-radius: 28px;
+    background: var(--nh-brand-dim);
+    border: 2px solid rgba(255,74,23,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 24px;
+    font-size: 32px;
+    color: var(--nh-brand);
+    animation: nhWrenchSpin 4s ease-in-out infinite;
+}
+@keyframes nhWrenchSpin {
+    0%, 90%, 100% { transform: rotate(0deg); }
+    45%           { transform: rotate(-20deg); }
+    50%           { transform: rotate(20deg); }
+}
+
+.nh-maintenance-logo {
+    height: 32px;
+    margin: 0 auto 20px;
+}
+
+.nh-maintenance-title {
+    font-size: clamp(22px, 5vw, 30px);
+    font-weight: 900;
+    color: var(--nh-t1);
+    margin-bottom: 12px;
+    letter-spacing: -0.5px;
+}
+
+.nh-maintenance-desc {
+    font-size: 15px;
+    color: var(--nh-t2);
+    line-height: 1.7;
+    margin-bottom: 20px;
+}
+
+.nh-maintenance-eta {
+    display: inline-block;
+    background: var(--nh-elev);
+    border: 1px solid var(--nh-bdr);
+    padding: 8px 20px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--nh-t3);
+    margin-bottom: 24px;
+}
+
+.nh-maintenance-socials {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+}
+
+
+/* ==========================================================================
+   19. RESPONSIVE BREAKPOINTS SUMMARY
+   
+   Mobile-first approach:
+   Base styles (0px+)      → 2-col product grid, single-col blog/freebies,
+                              search bar compact, hero full-viewport
+   480px+                  → Trust stats 4-col
+   600px+                  → 3-col products, 2-col freebies
+   640px+                  → 2-col blogs
+   768px+                  → Wider container padding, larger search
+   960px+                  → 3-col freebies, 3-col blogs
+   992px+                  → Desktop nav visible, dock hidden
+   1200px+                 → 5-col products, larger container padding
+   1400px+                 → Max-width container reached
+   ========================================================================== */
+
+/* Utility: hide/show based on viewport */
+@media (max-width: 991px) {
+    .nh-desktop-only { display: none !important; }
+}
+@media (min-width: 992px) {
+    .nh-mobile-only { display: none !important; }
+}
+
+
+
+/* Newsletter — full-width input on mobile */
+@media (max-width: 479px) {
+    .nh-nl-form {
+        flex-direction: column;
+    }
+    .nh-nl-input {
+        width: 100%;
+        min-width: unset;
+    }
+    .nh-newsletter {
+        padding: 48px 24px;
+        border-radius: 24px;
+    }
+}
+
+/* Reduce section padding on mobile */
+@media (max-width: 479px) {
+    .nh-section    { padding: 48px 0; }
+    .nh-section-sm { padding: 24px 0; }
+    .nh-hero {
+        min-height: 100svh;
+        min-height: 100vh;
+        padding-bottom: 100px; /* Extra space for bottom dock */
+    }
+}

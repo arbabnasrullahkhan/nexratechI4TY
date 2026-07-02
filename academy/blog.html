@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — ACADEMY & BLOG (academy/blog.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Blog & Academy module.                              │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html                          │
+  │  #sidebar-mount  ← /components/sidebar.html                         │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Firestore Infinite Scroll & Pagination.                          │
+  │  - HTML5 Canvas Watermarking on Thumbnails.                         │
+  │  - Grid-to-List dynamic layout toggle.                              │
+  │  - Adsterra native ad injection algorithm.                          │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC SEO META TAGS
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="bl-page-title">Learning Academy & Tech Insights | Nexra Tech PK</title>
+    <meta name="description" id="bl-meta-desc" content="Explore cutting-edge tech insights, SaaS tutorials, digital marketing strategies, and design trends at the Nexra Tech PK Academy.">
+    <meta name="keywords" content="tech blog, saas tutorials, digital marketing, ui ux design, nexra academy">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" id="bl-canonical" href="https://nexratech.pk/academy/blog.html">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- Open Graph & Twitter Cards -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:url" id="bl-og-url" content="https://nexratech.pk/academy/blog.html">
+    <meta property="og:title" id="bl-og-title" content="Learning Academy & Tech Insights | Nexra Tech PK">
+    <meta property="og:description" id="bl-og-desc" content="Explore cutting-edge tech insights, SaaS tutorials, digital marketing strategies, and design trends at the Nexra Tech PK Academy.">
+    <meta property="og:image" content="https://nexratech.pk/assets/og-academy.jpg">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="bl-tw-title" content="Learning Academy & Tech Insights | Nexra Tech PK">
+    <meta name="twitter:description" id="bl-tw-desc" content="Explore cutting-edge tech insights, SaaS tutorials, digital marketing strategies, and design trends at the Nexra Tech PK Academy.">
+    <meta name="twitter:image" content="https://nexratech.pk/assets/og-academy.jpg">
+
+    <!-- JSON-LD Schema (Blog & ItemList) -->
+    <script type="application/ld+json" id="bl-ld-schema">
+    {
+      "@context": "https://schema.org",
+      "@type": "Blog",
+      "name": "Nexra Tech PK Academy",
+      "description": "Learning Academy & Tech Insights.",
+      "url": "https://nexratech.pk/academy/blog.html",
+      "publisher": {
+        "@type": "Organization",
+        "name": "Nexra Tech PK"
+      }
+    }
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/blog.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN ACADEMY LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="bl-main" class="bl-container" role="main">
+        
+        <!-- HEADER HERO (Carousel) -->
+        <header class="bl-hero">
+            <div class="bl-hero-badge"><i class="fa-solid fa-graduation-cap"></i> Nexra Academy</div>
+            <h1 class="bl-hero-title tech-font">Insights & Intelligence</h1>
+            <p class="bl-hero-desc">Discover the latest trends in SaaS, UI/UX Design, and Digital Marketing to accelerate your growth.</p>
+        </header>
+
+        <!-- FEATURED CAROUSEL SKELETON & MOUNT -->
+        <section class="bl-carousel-section" aria-label="Featured Articles">
+            <div class="bl-carousel-wrap" id="bl-carousel-wrap">
+                <!-- Skeletons -->
+                <div class="bl-carousel-skel">
+                    <div class="bl-skel-bg"></div>
+                    <div class="bl-skel-content">
+                        <div class="bl-skel-badge"></div>
+                        <div class="bl-skel-title"></div>
+                        <div class="bl-skel-desc"></div>
+                    </div>
+                </div>
+                <!-- Dynamic Content injected here -->
+            </div>
+            <!-- Carousel Controls -->
+            <div class="bl-carousel-nav" id="bl-carousel-nav" hidden>
+                <!-- Dots injected via JS -->
+            </div>
+        </section>
+
+        <!-- CONTROLS: SEARCH, CATEGORIES, LAYOUT TOGGLE -->
+        <div class="bl-controls-wrap">
+            
+            <!-- Voice-Enabled Search -->
+            <div class="bl-search-bar" id="bl-search-wrap">
+                <i class="fa-solid fa-magnifying-glass bl-search-icon" aria-hidden="true"></i>
+                <input type="text" id="bl-search-input" class="bl-search-input" placeholder="Search articles..." aria-label="Search articles" autocomplete="off" aria-haspopup="listbox">
+                <button class="bl-voice-btn" id="bl-voice-btn" onclick="NexraBlog.startVoiceSearch()" aria-label="Search by voice">
+                    <i class="fa-solid fa-microphone"></i>
+                    <span class="bl-voice-pulse"></span>
+                </button>
+                
+                <!-- Auto-suggest Dropdown -->
+                <div class="bl-search-dropdown" id="bl-search-dropdown" role="listbox" hidden>
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <!-- Categories & Toggle Wrap -->
+            <div class="bl-filters-right">
+                <!-- Scrollable Category Pills -->
+                <div class="bl-cats-wrap">
+                    <button class="bl-cats-scroll left" onclick="NexraBlog.scrollCats(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <div class="bl-cats-track" id="bl-cats-track" role="list">
+                        <!-- Skeletons by default -->
+                        <div class="bl-skeleton-pill"></div>
+                        <div class="bl-skeleton-pill"></div>
+                        <div class="bl-skeleton-pill"></div>
+                    </div>
+                    <button class="bl-cats-scroll right" onclick="NexraBlog.scrollCats(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+
+                <!-- Grid/List Toggle -->
+                <div class="bl-layout-toggle" aria-label="Toggle Layout">
+                    <button id="bl-btn-grid" class="active" onclick="NexraBlog.setLayout('grid')" aria-label="Grid View"><i class="fa-solid fa-border-all"></i></button>
+                    <button id="bl-btn-list" onclick="NexraBlog.setLayout('list')" aria-label="List View"><i class="fa-solid fa-list"></i></button>
+                </div>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             ARTICLE FEED (Grid/List View) & INFINITE SCROLL
+             ════════════════════════════════════════════════════════════════ -->
+        <section class="bl-feed-section" aria-label="Article Feed">
+            <!-- Feed Wrapper (class handles grid/list styling) -->
+            <div id="bl-feed-wrap" class="bl-view-grid">
+                
+                <!-- SKELETON LOADERS -->
+                <div class="bl-card-skeleton" aria-hidden="true">
+                    <div class="bl-skel-img"></div>
+                    <div class="bl-skel-body">
+                        <div class="bl-skel-line w30"></div>
+                        <div class="bl-skel-line w80 h2"></div>
+                        <div class="bl-skel-line w100"></div>
+                    </div>
+                </div>
+                <div class="bl-card-skeleton" aria-hidden="true">
+                    <div class="bl-skel-img"></div>
+                    <div class="bl-skel-body">
+                        <div class="bl-skel-line w30"></div>
+                        <div class="bl-skel-line w80 h2"></div>
+                        <div class="bl-skel-line w100"></div>
+                    </div>
+                </div>
+                <div class="bl-card-skeleton" aria-hidden="true">
+                    <div class="bl-skel-img"></div>
+                    <div class="bl-skel-body">
+                        <div class="bl-skel-line w30"></div>
+                        <div class="bl-skel-line w80 h2"></div>
+                        <div class="bl-skel-line w100"></div>
+                    </div>
+                </div>
+                <div class="bl-card-skeleton" aria-hidden="true">
+                    <div class="bl-skel-img"></div>
+                    <div class="bl-skel-body">
+                        <div class="bl-skel-line w30"></div>
+                        <div class="bl-skel-line w80 h2"></div>
+                        <div class="bl-skel-line w100"></div>
+                    </div>
+                </div>
+                <!-- Dynamic Content & Native Ads injected here -->
+            </div>
+
+            <!-- Empty / Error States -->
+            <div class="bl-empty-state" id="bl-empty-state" hidden>
+                <i class="fa-solid fa-newspaper" style="font-size: 48px; color: var(--text-300); margin-bottom: 16px;"></i>
+                <h3 class="tech-font">No Articles Found</h3>
+                <p id="bl-empty-desc">Try adjusting your search or category filter.</p>
+                <button class="btn btn-outline" onclick="NexraBlog.resetFilters()" style="margin-top:16px;">Clear Filters</button>
+            </div>
+
+            <!-- Intersection Observer Sentinel for Infinite Scroll -->
+            <div class="bl-scroll-sentinel" id="bl-scroll-sentinel">
+                <i class="fa-solid fa-circle-notch fa-spin"></i> Loading more insights...
+            </div>
+            
+            <div class="bl-end-message" id="bl-end-message" hidden>
+                You've reached the end! Stay tuned for more insights.
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/blog.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraBlogBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraBlog.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraBlog) NexraBlog.init();
+            });
+        })();
+    </script>
+</body>
+</html>

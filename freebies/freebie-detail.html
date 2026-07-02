@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — VIRAL FREEBIE DETAIL (freebies/freebie-detail.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Viral Freebie Detail module.                        │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html                          │
+  │  #sidebar-mount  ← /components/sidebar.html                         │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Viral Unlocking Engine (Share 3 times to unlock).                │
+  │  - HTML5 Canvas Watermarking.                                       │
+  │  - OpenRouter Triple-AI Assistant.                                  │
+  │  - Adsterra Monetization Mounts & Pop-unders.                       │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC SEO META TAGS (Injected by JS on load)
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="fd-page-title">Loading Resource... | Nexra Tech PK</title>
+    <meta name="description" id="fd-meta-desc" content="Loading premium freebie details...">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" id="fd-canonical" href="https://nexratech.pk/freebies/freebie-detail.html">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- Open Graph & Twitter Cards -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:url" id="fd-og-url" content="https://nexratech.pk/freebies/freebie-detail.html">
+    <meta property="og:title" id="fd-og-title" content="Loading Resource...">
+    <meta property="og:description" id="fd-og-desc" content="Loading premium freebie details...">
+    <meta property="og:image" id="fd-og-image" content="">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="fd-tw-title" content="Loading Resource...">
+    <meta name="twitter:description" id="fd-tw-desc" content="Loading premium freebie details...">
+    <meta name="twitter:image" id="fd-tw-image" content="">
+
+    <!-- JSON-LD Schema -->
+    <script type="application/ld+json" id="fd-ld-schema">{}</script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/freebie-detail.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN FREEBIE DETAIL LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="fd-main" class="fd-container" role="main">
+        
+        <!-- SKELETON LOADER (Visible during transit) -->
+        <div id="fd-skeleton-wrap" class="fd-skeleton-wrap">
+            <div class="fd-layout">
+                <div class="fd-media-col">
+                    <div class="fd-skeleton fd-skel-hero"></div>
+                </div>
+                <div class="fd-info-col">
+                    <div class="fd-skeleton fd-skel-badge"></div>
+                    <div class="fd-skeleton fd-skel-title"></div>
+                    <div class="fd-skeleton fd-skel-desc"></div>
+                    <div class="fd-skeleton fd-skel-desc" style="width: 80%;"></div>
+                    <div class="fd-skeleton fd-skel-action" style="margin-top: 32px;"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DYNAMIC CONTENT (Hidden until fetched) -->
+        <div id="fd-content-wrap" class="fd-content-wrap" hidden>
+            
+            <!-- Breadcrumbs -->
+            <nav class="fd-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/freebies/freebies.html">Community Vault</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span id="fd-val-cat">Category</span>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="active" id="fd-val-bc-title">Resource</span>
+            </nav>
+
+            <div class="fd-layout">
+                <!-- ── LEFT: MEDIA & WATERMARKING ── -->
+                <div class="fd-media-col">
+                    <div class="fd-media-box">
+                        <canvas id="fd-canvas" class="fd-canvas-watermark"></canvas>
+                        <div class="fd-img-overlay"></div>
+                        <div class="fd-stats-badges">
+                            <span class="fd-badge"><i class="fa-solid fa-heart" style="color:#ef4444;"></i> <span id="fd-val-likes">0</span></span>
+                            <span class="fd-badge"><i class="fa-solid fa-download" style="color:var(--brand-main);"></i> <span id="fd-val-downloads">0</span></span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ── RIGHT: CORE INFO & VIRAL UNLOCK ENGINE ── -->
+                <div class="fd-info-col">
+                    
+                    <div class="fd-meta-top">
+                        <span class="fd-badge-tag" id="fd-val-tag"><i class="fa-solid fa-gift"></i> 100% Free</span>
+                        <div class="fd-actions-top">
+                            <button class="fd-icon-btn" onclick="NexraFreebieDetail.toggleLike()" aria-label="Like"><i class="fa-regular fa-heart" id="fd-like-icon"></i></button>
+                        </div>
+                    </div>
+
+                    <h1 class="fd-title tech-font" id="fd-val-title">Resource Title</h1>
+                    <p class="fd-desc" id="fd-val-desc">Resource description goes here...</p>
+
+                    <!-- Adsterra Mount Point 1 (Native Banner) -->
+                    <div class="fd-ad-mount" id="fd-ad-top">
+                        <!-- Intentionally blank for script injection -->
+                        <div class="fd-ad-placeholder">Sponsored Resource</div>
+                    </div>
+
+                    <!-- VIRAL UNLOCKING ENGINE UI -->
+                    <div class="fd-unlock-engine" id="fd-unlock-engine">
+                        <div class="fd-unlock-header">
+                            <i class="fa-solid fa-lock" id="fd-unlock-icon"></i>
+                            <h3 class="tech-font" id="fd-unlock-title">Share to Unlock</h3>
+                        </div>
+                        
+                        <p class="fd-unlock-desc" id="fd-unlock-desc">Help us grow the community! Share this resource <strong>3 times</strong> with your friends to instantly unlock the premium download link.</p>
+                        
+                        <!-- Progress Bar -->
+                        <div class="fd-progress-wrap" id="fd-progress-wrap">
+                            <div class="fd-progress-bar">
+                                <div class="fd-progress-fill" id="fd-progress-fill" style="width: 0%;"></div>
+                            </div>
+                            <div class="fd-progress-text"><span id="fd-share-count">0</span> / 3 Shares Completed</div>
+                        </div>
+
+                        <!-- Share Actions -->
+                        <div class="fd-share-actions" id="fd-share-actions">
+                            <button class="fd-share-btn wa" onclick="NexraFreebieDetail.executeShare('wa')"><i class="fa-brands fa-whatsapp"></i> WhatsApp</button>
+                            <button class="fd-share-btn fb" onclick="NexraFreebieDetail.executeShare('fb')"><i class="fa-brands fa-facebook-f"></i> Facebook</button>
+                            <button class="fd-share-btn native" onclick="NexraFreebieDetail.executeShare('native')"><i class="fa-solid fa-share-nodes"></i> More</button>
+                            <button class="fd-share-btn link" onclick="NexraFreebieDetail.executeShare('link')" aria-label="Copy Link"><i class="fa-solid fa-link"></i></button>
+                        </div>
+
+                        <!-- Direct Download (Hidden until unlocked) -->
+                        <button class="fd-download-btn" id="fd-download-btn" onclick="NexraFreebieDetail.executeDownload()" hidden>
+                            <i class="fa-solid fa-cloud-arrow-down"></i> Download Now
+                        </button>
+                    </div>
+
+                    <div class="fd-features" id="fd-val-features">
+                        <!-- Dynamically injected features -->
+                    </div>
+                </div>
+            </div><!-- /.fd-layout -->
+
+            <!-- ── BOTTOM: RICH DOCUMENTATION (BLURRED IF LOCKED) ── -->
+            <div class="fd-doc-section">
+                
+                <!-- Frosted Glass Lock Overlay -->
+                <div class="fd-doc-overlay" id="fd-doc-overlay">
+                    <div class="fd-doc-lock-box">
+                        <i class="fa-solid fa-lock"></i>
+                        <h4 class="tech-font">Documentation Locked</h4>
+                        <p>Complete the share goal above to unlock full access to the documentation and source files.</p>
+                    </div>
+                </div>
+
+                <div class="fd-doc-content" id="fd-val-doc">
+                    <!-- Rich HTML documentation injected here -->
+                    <h2>Overview</h2>
+                    <p>Loading documentation...</p>
+                </div>
+            </div>
+
+            <!-- Adsterra Mount Point 2 (Footer Native) -->
+            <div class="fd-ad-mount" id="fd-ad-bottom" style="margin-top: 40px;">
+                <div class="fd-ad-placeholder">Sponsored Resource</div>
+            </div>
+
+        </div><!-- /.fd-content-wrap -->
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TRIPLE-AI ASSISTANT (OPENROUTER) FLOATING WIDGET
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="fd-ai-widget" id="fd-ai-widget">
+        <button class="fd-ai-trigger" id="fd-ai-trigger" onclick="NexraFreebieDetail.toggleAI()" aria-label="Ask AI Assistant">
+            <i class="fa-solid fa-robot"></i>
+        </button>
+        <div class="fd-ai-panel" id="fd-ai-panel">
+            <div class="fd-ai-header">
+                <div class="fd-ai-title"><i class="fa-solid fa-bolt"></i> Nexra AI (Gemma/Cohere)</div>
+                <button class="fd-ai-close" onclick="NexraFreebieDetail.toggleAI()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="fd-ai-chat" id="fd-ai-chat">
+                <div class="fd-ai-msg bot">Hi! I'm pre-loaded with knowledge about this freebie. What do you need help with?</div>
+            </div>
+            <div class="fd-ai-input-wrap">
+                <input type="text" id="fd-ai-input" placeholder="Ask about this resource..." onkeypress="if(event.key==='Enter') NexraFreebieDetail.sendAIMessage()">
+                <button onclick="NexraFreebieDetail.sendAIMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- AUTH INTERCEPT MODAL -->
+    <div class="fd-modal-overlay" id="fd-auth-modal" hidden>
+        <div class="fd-modal-box">
+            <i class="fa-solid fa-shield-halved fd-modal-icon"></i>
+            <h3 class="tech-font">Secure Your Vault</h3>
+            <p>Please log in or create a free account to unlock this asset. This ensures it is permanently saved to your digital vault.</p>
+            <div class="fd-modal-actions">
+                <button class="btn btn-outline" onclick="NexraFreebieDetail.closeAuthModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="window.location.href='/user/auth-gate.html'">Log In Now</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/freebie-detail.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraFreebieDetailBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraFreebieDetail.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraFreebieDetail) NexraFreebieDetail.init();
+            });
+        })();
+    </script>
+</body>
+</html>

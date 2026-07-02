@@ -1,0 +1,88 @@
+/* ==========================================================================
+   NEXRA TECH PK — POLICIES CSS (css/policies.css)
+   ========================================================================== */
+
+/* 1. HERO */
+.pl-container { padding: 90px 4% 100px; max-width: 900px; margin: 0 auto; min-height: 100vh; }
+.pl-hero { text-align: center; padding: 40px 0 32px; animation: plFade 0.5s both; }
+.pl-hero h1 { font-size: clamp(28px, 5vw, 44px); font-weight: 900; color: var(--text-100); margin-bottom: 10px; }
+.pl-hero p { font-size: 16px; color: var(--text-200); margin-bottom: 16px; }
+.pl-last-updated { display: inline-block; padding: 6px 16px; background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 50px; font-size: 12px; font-weight: 700; color: var(--text-300); }
+
+/* 2. TAB NAV */
+.pl-tab-nav {
+    display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none;
+    padding: 12px 0; margin-bottom: 24px; position: sticky; top: 68px; z-index: 20;
+    background: var(--bg-base); border-bottom: 1px solid var(--glass-border);
+}
+.pl-tab-nav::-webkit-scrollbar { display: none; }
+.pl-tab {
+    padding: 10px 20px; border-radius: 50px; border: 1px solid var(--glass-border);
+    background: var(--bg-surface); color: var(--text-200); font-size: 13px; font-weight: 700;
+    cursor: pointer; white-space: nowrap; transition: 0.3s; display: flex; align-items: center; gap: 7px;
+}
+.pl-tab i { font-size: 13px; }
+.pl-tab:hover { background: var(--bg-elevated); }
+.pl-tab.active { background: var(--brand-main); color: #fff; border-color: var(--brand-main); box-shadow: 0 4px 14px var(--brand-glow); }
+
+/* 3. CONTENT AREA */
+.pl-content-wrap { position: relative; background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 20px; padding: 32px; box-shadow: var(--shadow-soft); min-height: 400px; overflow: hidden; }
+
+.pl-watermark { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.025; pointer-events: none; z-index: 0; }
+
+.pl-skeleton { display: flex; flex-direction: column; gap: 10px; position: relative; z-index: 1; }
+
+/* 4. POLICY DOCUMENT TYPOGRAPHY */
+.pl-doc {
+    position: relative; z-index: 1;
+    animation: plFade 0.4s both;
+    line-height: 1.8;
+    color: var(--text-100);
+}
+.pl-doc h1, .pl-doc h2 { font-family: 'Space Grotesk', sans-serif; font-weight: 900; color: var(--text-100); margin: 28px 0 12px; line-height: 1.3; }
+.pl-doc h1 { font-size: 28px; padding-bottom: 12px; border-bottom: 2px solid var(--glass-border); }
+.pl-doc h2 { font-size: 20px; color: var(--brand-main); }
+.pl-doc h3 { font-size: 16px; font-weight: 800; margin: 20px 0 8px; }
+.pl-doc p { font-size: 15px; color: var(--text-200); margin-bottom: 14px; }
+.pl-doc ul, .pl-doc ol { margin: 12px 0 16px 24px; }
+.pl-doc li { font-size: 15px; color: var(--text-200); margin-bottom: 6px; line-height: 1.6; }
+.pl-doc strong { color: var(--text-100); }
+.pl-doc a { color: var(--brand-main); text-decoration: underline; }
+.pl-doc blockquote { border-left: 4px solid var(--brand-main); padding: 12px 20px; background: rgba(124,58,237,0.06); border-radius: 0 10px 10px 0; margin: 16px 0; font-style: italic; color: var(--text-200); }
+.pl-doc table { width: 100%; border-collapse: collapse; margin: 16px 0; }
+.pl-doc th, .pl-doc td { padding: 10px 14px; border: 1px solid var(--glass-border); font-size: 14px; }
+.pl-doc th { background: var(--bg-elevated); font-weight: 800; color: var(--text-100); }
+
+/* 5. EMPTY STATE */
+.pl-empty-state { text-align: center; padding: 60px 20px; }
+.pl-empty-state i { font-size: 60px; color: var(--text-300); margin-bottom: 16px; }
+.pl-empty-state h3 { font-size: 20px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.pl-empty-state p { color: var(--text-200); font-size: 14px; }
+
+/* 6. FAB PRINT BUTTON */
+.pl-fab-print {
+    position: fixed; bottom: 80px; right: 20px; width: 52px; height: 52px;
+    border-radius: 50%; background: var(--bg-surface); border: 1px solid var(--glass-border);
+    color: var(--text-200); font-size: 20px; cursor: pointer; display: flex;
+    align-items: center; justify-content: center; box-shadow: var(--shadow-float);
+    z-index: 9000; transition: 0.3s;
+}
+.pl-fab-print:hover { background: var(--brand-main); color: #fff; border-color: var(--brand-main); transform: scale(1.1); }
+@media (min-width: 768px) { .pl-fab-print { bottom: 40px; right: 40px; } }
+
+/* PRINT STYLESHEET */
+@media print {
+    #header-mount, #dock-mount, #footer-mount, #toast-container, .pl-tab-nav, .pl-fab-print { display: none !important; }
+    body { background: #fff !important; }
+    .pl-container { padding: 0 !important; max-width: 100% !important; }
+    .pl-hero, .pl-content-wrap { border: none !important; box-shadow: none !important; background: #fff !important; padding: 0 !important; }
+    .pl-doc h1, .pl-doc h2, .pl-doc h3 { color: #000 !important; }
+    .pl-doc p, .pl-doc li { color: #333 !important; }
+    @page { margin: 2cm; size: A4; }
+}
+
+/* ANIMATIONS & SKELETONS */
+@keyframes plFade { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.skeleton { position: relative; overflow: hidden; background: var(--bg-elevated); border-radius: 6px; pointer-events: none; }
+.skeleton::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: skelSweep 1.5s infinite; }
+@keyframes skelSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

@@ -1,0 +1,211 @@
+/* ==========================================================================
+   NEXRA TECH PK — PROFILE DASHBOARD CSS (css/profile.css)
+   Scope: All .pr-* selectors — loaded ONLY on user/profile-dashboard.html
+   ========================================================================== */
+
+/* 1. AUTH GUARD LOADER */
+.pr-auth-guard {
+    position: fixed; inset: 0; background: var(--bg-base); z-index: 99999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.5s var(--ease), visibility 0.5s;
+}
+.pr-guard-spinner { font-size: 48px; color: var(--brand-main); margin-bottom: 24px; }
+.pr-auth-guard p { color: var(--text-100); font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+
+/* 2. MAIN CONTAINER */
+.pr-container {
+    padding: 100px 4% 100px;
+    max-width: 1400px;
+    margin: 0 auto;
+    position: relative;
+    animation: prFadeIn 0.6s var(--ease);
+}
+@keyframes prFadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+/* 3. PROFILE HEADER */
+.pr-header {
+    position: relative; background: var(--bg-elevated); border: 1px solid var(--glass-border);
+    border-radius: 24px; overflow: hidden; margin-bottom: 40px; box-shadow: var(--shadow-soft);
+}
+.pr-header-bg {
+    height: 120px; background: linear-gradient(135deg, var(--brand-main), #8b5cf6);
+    opacity: 0.8;
+}
+.pr-header-content {
+    padding: 24px 32px 32px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 16px;
+    position: relative; margin-top: -60px;
+}
+@media (min-width: 768px) {
+    .pr-header-content { flex-direction: row; align-items: flex-end; text-align: left; }
+    .pr-user-info { flex: 1; margin-bottom: 8px; }
+    .pr-header-actions { margin-bottom: 8px; }
+}
+
+.pr-avatar-wrap { position: relative; width: 100px; height: 100px; }
+.pr-avatar { width: 100%; height: 100%; border-radius: 50%; object-fit: cover; border: 4px solid var(--bg-elevated); background: var(--bg-surface); }
+.pr-avatar-edit {
+    position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%;
+    background: var(--brand-main); color: #fff; border: 2px solid var(--bg-elevated);
+    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: 0.2s;
+}
+.pr-avatar-edit:hover { background: var(--brand-glow); transform: scale(1.1); }
+
+.pr-user-name { font-size: 28px; font-weight: 900; color: var(--text-100); margin-bottom: 8px; }
+.pr-user-meta { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center; }
+@media (min-width: 768px) { .pr-user-meta { justify-content: flex-start; } }
+.pr-user-email { font-size: 14px; color: var(--text-300); }
+
+/* VIP Badges */
+.pr-tier-badge {
+    padding: 4px 12px; border-radius: 20px; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px;
+}
+.pr-tier-badge.standard { background: rgba(100,116,139,0.1); color: var(--text-200); border: 1px solid rgba(100,116,139,0.2); }
+.pr-tier-badge.gold { background: rgba(234,179,8,0.1); color: #eab308; border: 1px solid rgba(234,179,8,0.2); box-shadow: 0 0 10px rgba(234,179,8,0.3); }
+.pr-tier-badge.diamond { background: rgba(59,130,246,0.1); color: var(--brand-main); border: 1px solid rgba(59,130,246,0.2); box-shadow: 0 0 10px rgba(59,130,246,0.4); animation: prGlow 2s infinite alternate; }
+
+@keyframes prGlow { from { box-shadow: 0 0 5px rgba(59,130,246,0.2); } to { box-shadow: 0 0 15px rgba(59,130,246,0.6); } }
+
+/* 4. LAYOUT & SIDEBAR TABS */
+.pr-layout { display: flex; flex-direction: column; gap: 40px; }
+@media (min-width: 1000px) {
+    .pr-layout { flex-direction: row; align-items: flex-start; }
+    .pr-sidebar { width: 280px; flex-shrink: 0; position: sticky; top: 100px; }
+    .pr-content-area { flex: 1; min-width: 0; }
+}
+
+.pr-nav-tabs {
+    display: flex; gap: 12px; overflow-x: auto; padding-bottom: 8px; scrollbar-width: none;
+}
+.pr-nav-tabs::-webkit-scrollbar { display: none; }
+@media (min-width: 1000px) {
+    .pr-nav-tabs { flex-direction: column; overflow-x: visible; padding-bottom: 0; }
+}
+
+.pr-tab-btn {
+    white-space: nowrap; padding: 16px 24px; border-radius: 16px; border: 1px solid var(--glass-border);
+    background: var(--bg-elevated); color: var(--text-200); font-size: 14px; font-weight: 700;
+    cursor: pointer; transition: 0.3s var(--ease); display: flex; align-items: center; gap: 12px; text-align: left;
+}
+.pr-tab-btn i { font-size: 18px; width: 20px; text-align: center; opacity: 0.7; transition: 0.3s; }
+.pr-tab-btn:hover { background: var(--bg-surface); color: var(--text-100); border-color: var(--brand-main); }
+.pr-tab-btn.active { background: var(--brand-main); color: #fff; border-color: var(--brand-main); box-shadow: 0 8px 24px rgba(59,130,246,0.3); }
+.pr-tab-btn.active i { opacity: 1; }
+
+/* 5. TAB CONTENT AREAS */
+.pr-tab-content { display: none; animation: prFadeUp 0.5s var(--ease); }
+.pr-tab-content.active { display: block; }
+@keyframes prFadeUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+.pr-tab-header { margin-bottom: 32px; border-bottom: 1px solid var(--glass-border); padding-bottom: 24px; }
+.pr-tab-header h2 { font-size: 24px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.pr-tab-header p { font-size: 14px; color: var(--text-300); line-height: 1.5; }
+
+/* 6. VAULT & WISHLIST GRID */
+.pr-vault-grid { display: grid; grid-template-columns: 1fr; gap: 24px; }
+@media (min-width: 700px) { .pr-vault-grid { grid-template-columns: repeat(2, 1fr); } }
+@media (min-width: 1200px) { .pr-vault-grid { grid-template-columns: repeat(3, 1fr); } }
+
+.pr-vault-card {
+    background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden;
+    display: flex; flex-direction: column; transition: 0.3s; box-shadow: var(--shadow-soft); text-decoration: none;
+}
+.pr-vault-card:hover { transform: translateY(-5px); border-color: var(--brand-main); box-shadow: 0 12px 32px rgba(0,0,0,0.2); }
+.pr-vault-img { width: 100%; padding-top: 56.25%; position: relative; background: var(--bg-surface); }
+.pr-vault-img img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.pr-vault-body { padding: 20px; display: flex; flex-direction: column; flex: 1; }
+.pr-vault-title { font-size: 16px; font-weight: 800; color: var(--text-100); margin-bottom: 16px; line-height: 1.4; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.pr-vault-actions { display: flex; gap: 8px; margin-top: auto; }
+.pr-vault-btn { flex: 1; height: 36px; border-radius: 8px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; justify-content: center; gap: 6px; }
+.pr-vault-btn.primary { background: var(--brand-main); color: #fff; }
+.pr-vault-btn.primary:hover { background: var(--brand-glow); }
+.pr-vault-btn.secondary { background: rgba(255,255,255,0.05); color: var(--text-200); border: 1px solid var(--glass-border); }
+.pr-vault-btn.secondary:hover { background: rgba(255,255,255,0.1); color: var(--text-100); }
+
+/* 7. ORDER HISTORY LIST & STEPPER */
+.pr-orders-list { display: flex; flex-direction: column; gap: 24px; }
+.pr-order-card { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 20px; padding: 24px; box-shadow: var(--shadow-soft); }
+.pr-order-head { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 24px; flex-wrap: wrap; gap: 12px; }
+.pr-order-id { font-size: 18px; font-weight: 800; color: var(--text-100); font-family: 'Space Grotesk', sans-serif; }
+.pr-order-date { font-size: 12px; color: var(--text-300); margin-top: 4px; }
+.pr-order-status { padding: 6px 12px; border-radius: 12px; font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; }
+.pr-order-status.pending { background: rgba(234,179,8,0.1); color: #eab308; }
+.pr-order-status.processing { background: rgba(59,130,246,0.1); color: var(--brand-main); }
+.pr-order-status.completed { background: rgba(16,185,129,0.1); color: var(--success); }
+
+/* Stepper */
+.pr-stepper { display: flex; justify-content: space-between; position: relative; margin: 32px 0 24px; }
+.pr-stepper::before { content: ''; position: absolute; top: 12px; left: 10%; right: 10%; height: 2px; background: var(--glass-border); z-index: 1; }
+.pr-step { display: flex; flex-direction: column; align-items: center; z-index: 2; gap: 8px; width: 33%; text-align: center; }
+.pr-step-icon { width: 26px; height: 26px; border-radius: 50%; background: var(--bg-surface); border: 2px solid var(--glass-border); display: flex; align-items: center; justify-content: center; font-size: 10px; color: var(--text-300); transition: 0.3s; }
+.pr-step-label { font-size: 11px; font-weight: 700; color: var(--text-300); text-transform: uppercase; }
+.pr-step.active .pr-step-icon { background: var(--brand-main); border-color: var(--brand-main); color: #fff; box-shadow: 0 0 10px rgba(59,130,246,0.5); }
+.pr-step.active .pr-step-label { color: var(--brand-main); }
+
+.pr-order-actions { border-top: 1px solid var(--glass-border); padding-top: 16px; display: flex; justify-content: flex-end; }
+
+/* 8. WALLET & AFFILIATES */
+.pr-wallet-stats { display: grid; grid-template-columns: 1fr; gap: 24px; margin-bottom: 32px; }
+@media (min-width: 600px) { .pr-wallet-stats { grid-template-columns: 1fr 1fr; } }
+.pr-stat-box { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 20px; padding: 24px; text-align: center; box-shadow: var(--shadow-soft); }
+.pr-stat-icon { font-size: 32px; color: var(--brand-main); margin-bottom: 16px; }
+.pr-stat-label { font-size: 13px; color: var(--text-300); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; }
+.pr-stat-value { font-size: 36px; font-weight: 900; color: var(--text-100); }
+
+.pr-affiliate-card { background: linear-gradient(135deg, rgba(59,130,246,0.05), rgba(139,92,246,0.05)); border: 1px solid var(--brand-main); border-radius: 20px; padding: 32px; text-align: center; }
+.pr-affiliate-card h3 { font-size: 20px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.pr-affiliate-card p { font-size: 14px; color: var(--text-200); margin-bottom: 24px; }
+.pr-ref-link-box { display: flex; gap: 8px; max-width: 500px; margin: 0 auto 24px; }
+.pr-ref-link-box input { flex: 1; height: 48px; border-radius: 12px; border: 1px solid var(--glass-border); background: var(--bg-surface); padding: 0 16px; font-size: 13px; color: var(--brand-main); font-family: monospace; outline: none; }
+.pr-ref-actions { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+.pr-ref-btn { height: 44px; padding: 0 24px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; color: #fff; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px; }
+.pr-ref-btn:hover { transform: translateY(-2px); }
+.pr-ref-btn.wa { background: #25D366; }
+.pr-ref-btn.qr { background: var(--bg-surface); color: var(--text-100); border: 1px solid var(--glass-border); }
+.pr-ref-btn.qr:hover { background: var(--bg-elevated); }
+
+/* 9. SUPPORT TICKETS */
+.pr-ticket-form-wrap { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 20px; padding: 32px; margin-bottom: 32px; animation: prFadeUp 0.3s var(--ease); }
+.pr-tickets-list { display: flex; flex-direction: column; gap: 16px; }
+.pr-ticket-card { background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 16px; padding: 20px; display: flex; justify-content: space-between; align-items: center; transition: 0.2s; cursor: pointer; }
+.pr-ticket-card:hover { border-color: var(--brand-main); }
+.pr-ticket-info h4 { font-size: 16px; font-weight: 700; color: var(--text-100); margin-bottom: 4px; }
+.pr-ticket-info p { font-size: 12px; color: var(--text-300); }
+.pr-ticket-status { font-size: 11px; font-weight: 800; text-transform: uppercase; padding: 4px 10px; border-radius: 12px; }
+.pr-ticket-status.open { background: rgba(59,130,246,0.1); color: var(--brand-main); }
+.pr-ticket-status.resolved { background: rgba(16,185,129,0.1); color: var(--success); }
+
+/* 10. SETTINGS */
+.pr-settings-card { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 20px; padding: 32px; margin-bottom: 24px; }
+.pr-settings-card h3 { font-size: 18px; font-weight: 800; color: var(--text-100); margin-bottom: 24px; padding-bottom: 12px; border-bottom: 1px solid var(--glass-border); }
+.pr-settings-card.danger-zone { border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.02); }
+
+.input-group { margin-bottom: 20px; text-align: left; }
+.input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-200); margin-bottom: 8px; }
+.input-group input, .input-group textarea { width: 100%; background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 12px; padding: 14px 16px; font-size: 15px; color: var(--text-100); outline: none; transition: 0.3s; }
+.input-group input:focus, .input-group textarea:focus { border-color: var(--brand-main); }
+.pr-form-actions { display: flex; gap: 12px; }
+
+/* 11. MODALS */
+.pr-modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px); z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px; animation: prFadeIn 0.3s; }
+.pr-modal-box { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 24px; padding: 32px; max-width: 400px; width: 100%; position: relative; box-shadow: 0 24px 48px rgba(0,0,0,0.5); }
+.pr-modal-close { position: absolute; top: 20px; right: 20px; background: none; border: none; color: var(--text-300); font-size: 20px; cursor: pointer; transition: 0.2s; }
+.pr-modal-close:hover { color: #ef4444; }
+.pr-modal-box h3 { font-size: 20px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.pr-modal-box p { font-size: 14px; color: var(--text-200); line-height: 1.5; margin-bottom: 24px; }
+.pr-qr-wrap { text-align: center; background: #fff; padding: 16px; border-radius: 16px; display: inline-block; width: 100%; }
+.pr-qr-wrap img { max-width: 200px; height: auto; margin: 0 auto; display: block; }
+.text-center { text-align: center; }
+
+/* 12. SKELETONS */
+.pr-skeleton-card { background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 20px; overflow: hidden; display: flex; flex-direction: column; }
+.pr-skeleton-card.row { flex-direction: row; padding: 24px; }
+.pr-skel-img { padding-top: 56.25%; background: var(--bg-surface); animation: prShimmer 1.5s infinite; }
+.pr-skel-body { padding: 20px; display: flex; flex-direction: column; gap: 12px; }
+.pr-skel-line { height: 16px; border-radius: 8px; background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%); background-size: 600px 100%; animation: prShimmer 1.5s infinite; }
+.pr-skel-line.w30 { width: 30%; } .pr-skel-line.w80 { width: 80%; } .pr-skel-line.w100 { width: 100%; }
+@keyframes prShimmer { 0% { background-position: -600px 0; } 100% { background-position: 600px 0; } }
+
+/* Empty States */
+.pr-empty-state { text-align: center; padding: 60px 20px; color: var(--text-300); }
+.pr-empty-state i { font-size: 48px; margin-bottom: 16px; opacity: 0.5; }
+.pr-empty-state h3 { font-size: 18px; font-weight: 700; color: var(--text-200); margin-bottom: 8px; }

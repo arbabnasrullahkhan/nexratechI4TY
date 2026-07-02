@@ -1,0 +1,45 @@
+<!-- ==========================================================================
+     NEXRA TECH PK — CART DRAWER (cart-drawer.html)
+     ========================================================================== -->
+
+<!-- Overlay -->
+<div class="cart-overlay" id="cart-overlay" onclick="NexraApp.closeCart()"></div>
+
+<!-- Cart Drawer -->
+<div class="cart-drawer" id="cart-drawer">
+
+    <!-- Header -->
+    <div class="cart-header">
+        <div class="cart-title">
+            <i class="fa-solid fa-bag-shopping"></i>
+            YOUR CART
+        </div>
+        <button class="icon-btn" onclick="NexraApp.closeCart()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Items -->
+    <div id="cart-items-container">
+        <div style="text-align:center; padding:50px 20px; color:var(--text-300);">
+            <i class="fa-solid fa-basket-shopping" style="font-size:48px; margin-bottom:16px; opacity:0.3;"></i>
+            <h4 style="font-family:'Space Grotesk'; font-size:16px; margin-bottom:8px;">Cart is Empty</h4>
+            <p style="font-size:12px;">Explore the marketplace to add items.</p>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="cart-footer">
+        <div class="cart-subtotal">
+            <span>SUBTOTAL</span>
+            <span class="cart-subtotal-val" id="cart-drawer-total">Rs. 0</span>
+        </div>
+        <button class="btn btn-primary" onclick="NexraApp.navTo('checkout')" style="width:100%; padding:18px;">
+            <i class="fa-solid fa-lock"></i> SECURE CHECKOUT
+        </button>
+        <button onclick="NexraApp.closeCart()" style="width:100%; background:none; border:none; color:var(--text-300); font-size:12px; font-weight:700; cursor:pointer; margin-top:12px; padding:4px;">
+            Continue Shopping
+        </button>
+    </div>
+
+</div>

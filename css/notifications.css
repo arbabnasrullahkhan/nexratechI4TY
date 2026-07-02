@@ -1,0 +1,109 @@
+/* ==========================================================================
+   NEXRA TECH PK — PERSONAL ALERTS CSS (css/notifications.css)
+   Scope: All .nt-* selectors
+   ========================================================================== */
+
+/* 1. PRE-AUTH GUARD */
+.nt-pre-guard {
+    position: fixed; inset: 0; background: var(--bg-base); z-index: 99999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.5s var(--ease), visibility 0.5s;
+}
+.nt-guard-icon { font-size: 56px; color: var(--brand-main); margin-bottom: 24px; filter: drop-shadow(0 0 16px var(--brand-glow)); }
+.nt-pre-guard p { color: var(--text-100); font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+
+/* 2. LAYOUT & HEADER */
+.nt-container { padding: 90px 4% 100px; max-width: 800px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
+
+.nt-header { display: flex; justify-content: space-between; align-items: flex-end; margin-bottom: 24px; animation: ntFadeIn 0.4s forwards; }
+.nt-header-title h1 { font-size: 28px; font-weight: 900; color: var(--text-100); margin-bottom: 4px; display: flex; align-items: center; gap: 10px; }
+.nt-header-title h1 i { color: var(--brand-main); }
+.nt-unread-badge { background: rgba(239, 68, 68, 0.1); color: var(--danger); font-size: 12px; font-weight: 800; padding: 4px 10px; border-radius: 50px; }
+
+.nt-mark-read-btn {
+    background: var(--bg-surface); border: 1px solid var(--glass-border); color: var(--text-200);
+    padding: 8px 16px; border-radius: 12px; font-size: 13px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: 0.3s;
+}
+.nt-mark-read-btn:hover { background: var(--bg-elevated); color: var(--brand-main); border-color: var(--brand-main); }
+.nt-mark-read-btn:disabled { opacity: 0.5; pointer-events: none; cursor: not-allowed; }
+
+/* 3. FILTER STRIP */
+.nt-filter-strip { margin-bottom: 24px; position: sticky; top: 70px; z-index: 10; background: var(--bg-base); padding: 10px 0; }
+.nt-filter-track { display: flex; gap: 12px; overflow-x: auto; scrollbar-width: none; scroll-behavior: smooth; }
+.nt-filter-track::-webkit-scrollbar { display: none; }
+
+.nt-filter-pill {
+    padding: 10px 20px; border-radius: 50px; border: 1px solid var(--glass-border);
+    background: var(--bg-surface); color: var(--text-200); font-weight: 700;
+    font-size: 13px; cursor: pointer; white-space: nowrap; transition: 0.3s;
+}
+.nt-filter-pill:hover { background: var(--bg-elevated); }
+.nt-filter-pill.active { background: var(--brand-main); color: #fff; border-color: var(--brand-main); box-shadow: 0 4px 14px var(--brand-glow); }
+
+/* 4. INBOX FEED & CARDS */
+.nt-inbox-feed { display: flex; flex-direction: column; gap: 16px; min-height: 400px; }
+
+.nt-alert-card {
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 20px; box-shadow: var(--shadow-soft);
+    display: flex; gap: 16px; position: relative; overflow: hidden;
+    transition: transform 0.3s var(--ease), opacity 0.3s; animation: ntSlideUp 0.4s both;
+    touch-action: pan-y left; /* for swipe */
+}
+.nt-alert-card.unread { background: var(--bg-elevated); border-color: rgba(139, 92, 246, 0.3); }
+.nt-alert-card.unread::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px;
+    background: var(--brand-main); box-shadow: 0 0 10px var(--brand-glow);
+}
+
+.nt-icon-box {
+    width: 48px; height: 48px; border-radius: 12px; background: rgba(255,255,255,0.05);
+    display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.nt-icon-box.promo { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+.nt-icon-box.order { color: #3b82f6; background: rgba(59, 130, 246, 0.1); }
+.nt-icon-box.security { color: #ef4444; background: rgba(239, 68, 68, 0.1); }
+.nt-icon-box.global { color: #8b5cf6; background: rgba(139, 92, 246, 0.1); }
+
+.nt-alert-content { flex: 1; min-width: 0; }
+.nt-alert-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+.nt-alert-title { font-size: 15px; font-weight: 800; color: var(--text-100); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; padding-right: 12px; }
+.nt-alert-time { font-size: 11px; color: var(--text-300); font-weight: 600; white-space: nowrap; }
+.nt-alert-body { font-size: 13px; color: var(--text-200); line-height: 1.5; margin-bottom: 12px; }
+
+/* 5. COUPON REVEAL MECHANIC */
+.nt-coupon-wrap {
+    display: inline-flex; align-items: center; gap: 8px; background: var(--bg-base);
+    border: 1px dashed var(--glass-border); padding: 8px 12px; border-radius: 12px;
+    position: relative; cursor: pointer; overflow: hidden;
+}
+.nt-coupon-code { font-family: monospace; font-size: 16px; font-weight: 900; color: var(--brand-main); letter-spacing: 2px; }
+.nt-coupon-blur {
+    position: absolute; inset: 0; background: var(--glass-bg); backdrop-filter: blur(6px);
+    display: flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800;
+    color: var(--text-100); transition: 0.3s; z-index: 2;
+}
+.nt-coupon-blur.revealed { opacity: 0; visibility: hidden; }
+
+/* Swipe to Delete Action Behind Card */
+.nt-swipe-bg {
+    position: absolute; top: 0; right: 0; bottom: 0; width: 100%;
+    background: var(--danger); display: flex; align-items: center; justify-content: flex-end;
+    padding-right: 24px; color: #fff; font-size: 24px; z-index: -1;
+}
+
+/* 6. EMPTY STATE */
+.nt-empty-state { text-align: center; padding: 60px 20px; color: var(--text-300); }
+.nt-empty-state i { font-size: 64px; margin-bottom: 20px; opacity: 0.3; }
+.nt-empty-state h3 { font-size: 20px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.nt-empty-state p { font-size: 14px; }
+
+/* 7. ANIMATIONS & SKELETONS */
+@keyframes ntFadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ntSlideUp { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+
+.skeleton { position: relative; overflow: hidden; background: var(--bg-surface); border-color: transparent !important; pointer-events: none; }
+.skeleton::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: skelSweep 1.5s infinite; }
+[data-theme="light"] .skeleton::before { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.03), transparent); }
+@keyframes skelSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

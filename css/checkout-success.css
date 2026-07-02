@@ -1,0 +1,233 @@
+/* ==========================================================================
+   NEXRA TECH PK — CHECKOUT SUCCESS CSS (css/checkout-success.css)
+   Scope: All .cs-* selectors — loaded ONLY on shop/checkout-success.html
+   ========================================================================== */
+
+.cs-confetti {
+    position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vh;
+    pointer-events: none; z-index: 9999;
+}
+
+.cs-container {
+    padding: 120px 4% 100px; /* Space for fixed header and mobile dock */
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+}
+
+/* ==========================================================================
+   1. HEADER BANNER
+   ========================================================================== */
+.cs-header-banner {
+    text-align: center;
+    margin-bottom: 48px;
+    animation: csSlideDown 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+@keyframes csSlideDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.cs-success-icon-wrap {
+    width: 80px; height: 80px;
+    background: rgba(16, 185, 129, 0.1);
+    border: 2px solid var(--success);
+    border-radius: 50%;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+    box-shadow: 0 0 40px rgba(16, 185, 129, 0.3);
+}
+.cs-check-icon {
+    font-size: 40px; color: var(--success);
+    animation: csPopIn 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s both;
+}
+@keyframes csPopIn {
+    from { transform: scale(0); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+.cs-main-title { font-size: clamp(32px, 5vw, 48px); font-weight: 900; color: var(--text-100); margin-bottom: 8px; }
+.cs-main-subtitle { font-size: 16px; color: var(--text-200); }
+
+/* ==========================================================================
+   2. TWO-COLUMN LAYOUT
+   ========================================================================== */
+.cs-layout {
+    display: flex; flex-direction: column; gap: 32px;
+}
+@media (min-width: 900px) {
+    .cs-layout { flex-direction: row; align-items: flex-start; gap: 40px; }
+    .cs-ticket-section { flex: 1.5; min-width: 0; }
+    .cs-retention-section { flex: 1; min-width: 0; max-width: 400px; }
+}
+
+/* ==========================================================================
+   3. DIGITAL TICKET / RECEIPT CARD (BOARDING PASS)
+   ========================================================================== */
+.cs-ticket {
+    background: var(--bg-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: 24px;
+    box-shadow: var(--shadow-float);
+    position: relative;
+    overflow: hidden;
+    animation: csFadeUp 0.5s var(--ease) 0.1s both;
+}
+@keyframes csFadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Header */
+.cs-ticket-header {
+    background: var(--brand-main);
+    color: #fff; padding: 24px 32px;
+    display: flex; justify-content: space-between; align-items: center;
+}
+.cs-ticket-logo { font-size: 20px; font-weight: 900; letter-spacing: 1px; }
+.cs-ticket-id { text-align: right; }
+.cs-ticket-id span { display: block; font-size: 10px; text-transform: uppercase; letter-spacing: 0.5px; opacity: 0.8; }
+.cs-ticket-id strong { font-size: 16px; font-family: monospace; letter-spacing: 1px; }
+
+/* Morphing Status Banner */
+.cs-ticket-status {
+    padding: 12px 32px; font-size: 13px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    text-transform: uppercase; letter-spacing: 1px;
+    transition: all 0.4s var(--ease);
+}
+.cs-ticket-status.pending { background: rgba(245, 158, 11, 0.15); color: #f59e0b; border-bottom: 1px solid rgba(245, 158, 11, 0.2); }
+.cs-ticket-status.approved { background: rgba(16, 185, 129, 0.15); color: var(--success); border-bottom: 1px solid rgba(16, 185, 129, 0.2); }
+
+/* Body */
+.cs-ticket-body { padding: 32px; }
+.cs-tb-row { display: flex; justify-content: space-between; margin-bottom: 24px; }
+.cs-tb-col { display: flex; flex-direction: column; gap: 4px; }
+.cs-tb-col.right { text-align: right; }
+.cs-tb-label { font-size: 11px; color: var(--text-300); text-transform: uppercase; font-weight: 700; }
+.cs-tb-val { font-size: 15px; font-weight: 600; color: var(--text-100); }
+
+.cs-ticket-divider { height: 1px; background: var(--glass-border); margin: 24px 0; }
+
+.cs-ticket-items { display: flex; flex-direction: column; gap: 12px; }
+.cs-item-row { display: flex; justify-content: space-between; align-items: center; font-size: 14px; }
+.cs-item-name { color: var(--text-100); font-weight: 600; }
+.cs-item-qty { color: var(--text-300); font-size: 12px; }
+.cs-item-price { color: var(--text-100); font-weight: 700; font-family: 'Space Grotesk', sans-serif; }
+
+.cs-ticket-totals { display: flex; flex-direction: column; gap: 12px; }
+.cs-tot-row { display: flex; justify-content: space-between; font-size: 14px; color: var(--text-200); }
+.cs-discount-row { color: var(--success); font-weight: 600; }
+.cs-total-row { font-size: 20px; font-weight: 900; color: var(--text-100); margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--glass-border); }
+
+/* Perforated Cutout (Boarding pass effect) */
+.cs-ticket-cutout {
+    position: relative; height: 32px; background: var(--bg-base);
+    display: flex; align-items: center;
+}
+.cs-hole {
+    width: 32px; height: 32px; border-radius: 50%; background: var(--bg-base);
+    position: absolute; top: 0;
+    box-shadow: inset 0 0 5px rgba(0,0,0,0.1);
+}
+.cs-hole.left { left: -16px; }
+.cs-hole.right { right: -16px; }
+.cs-perforation {
+    flex: 1; height: 2px; margin: 0 24px;
+    background-image: linear-gradient(to right, var(--glass-border) 50%, transparent 50%);
+    background-size: 16px 2px;
+}
+
+/* Footer (QR & Delivery info) */
+.cs-ticket-footer {
+    padding: 32px; background: var(--bg-elevated);
+    display: flex; gap: 24px; align-items: center;
+}
+@media (max-width: 599px) {
+    .cs-ticket-footer { flex-direction: column; text-align: center; }
+}
+.cs-qr-box {
+    width: 100px; height: 100px; flex-shrink: 0;
+    background: #fff; padding: 4px; border-radius: 8px;
+}
+.cs-qr-box img { width: 100%; height: 100%; object-fit: contain; }
+.cs-qr-skeleton { width: 100%; height: 100%; background: var(--glass-border); border-radius: 4px; animation: pdShimmer 1.5s infinite; }
+
+.cs-delivery-box { flex: 1; }
+.cs-delivery-box h4 { font-size: 16px; font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.cs-delivery-box p { font-size: 12px; color: var(--text-200); margin-bottom: 12px; line-height: 1.5; }
+.cs-delivery-action { margin-top: 12px; }
+
+/* Approved Delivery Reveal styling */
+.cs-reveal-box {
+    background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);
+    padding: 12px; border-radius: 8px; font-family: monospace; font-size: 14px; color: var(--text-100);
+    display: flex; justify-content: space-between; align-items: center;
+}
+.cs-reveal-btn {
+    background: var(--success); color: #fff; border: none; padding: 6px 12px; border-radius: 6px; cursor: pointer; font-weight: 700; font-size: 12px; transition: 0.2s;
+}
+.cs-reveal-btn:hover { background: #059669; }
+
+/* ==========================================================================
+   4. RETENTION & LOYALTY (RIGHT COL)
+   ========================================================================== */
+.cs-card {
+    background: var(--bg-elevated); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 24px; margin-bottom: 24px;
+    box-shadow: var(--shadow-soft);
+}
+
+/* Timer */
+.cs-timer-card { display: flex; gap: 20px; align-items: center; animation: csFadeUp 0.5s var(--ease) 0.2s both; }
+.cs-circular-timer { position: relative; width: 64px; height: 64px; flex-shrink: 0; }
+.cs-timer-svg { transform: rotate(-90deg); width: 100%; height: 100%; }
+.cs-timer-bg { fill: none; stroke: var(--glass-border); stroke-width: 4; }
+.cs-timer-progress { fill: none; stroke: var(--brand-main); stroke-width: 4; stroke-linecap: round; transition: stroke-dashoffset 1s linear; }
+.cs-timer-text { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 800; color: var(--text-100); }
+.cs-timer-info h3 { font-size: 15px; font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.cs-timer-info p { font-size: 12px; color: var(--text-200); margin-bottom: 12px; }
+
+/* Loyalty */
+.cs-loyalty-card { display: flex; gap: 16px; align-items: flex-start; animation: csFadeUp 0.5s var(--ease) 0.3s both; }
+.cs-loyalty-icon {
+    width: 40px; height: 40px; border-radius: 50%; background: rgba(245, 158, 11, 0.1);
+    color: #f59e0b; display: flex; align-items: center; justify-content: center; font-size: 20px; flex-shrink: 0;
+}
+.cs-loyalty-info h3 { font-size: 15px; font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.cs-loyalty-info p { font-size: 13px; color: var(--text-200); line-height: 1.5; }
+
+/* Affiliate */
+.cs-affiliate-card { animation: csFadeUp 0.5s var(--ease) 0.4s both; }
+.cs-affiliate-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; color: var(--text-100); }
+.cs-affiliate-header i { color: var(--brand-main); font-size: 20px; }
+.cs-affiliate-header h3 { font-size: 16px; font-weight: 800; }
+.cs-affiliate-card p { font-size: 13px; color: var(--text-200); margin-bottom: 16px; line-height: 1.5; }
+
+.cs-affiliate-input-wrap { display: flex; border: 1px dashed var(--glass-border); border-radius: 12px; overflow: hidden; }
+.cs-affiliate-input-wrap input {
+    flex: 1; border: none; background: rgba(0,0,0,0.1); padding: 0 16px; font-size: 12px; color: var(--text-200); outline: none;
+}
+.cs-affiliate-input-wrap button {
+    background: var(--brand-main); color: #fff; border: none; padding: 12px 20px; font-weight: 700; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 8px;
+}
+.cs-affiliate-input-wrap button:hover { background: var(--brand-glow); }
+
+/* Support */
+.cs-support-links { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+.cs-support-links a {
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    height: 48px; border-radius: 12px; background: var(--bg-elevated); border: 1px solid var(--glass-border);
+    color: var(--text-200); font-size: 13px; font-weight: 700; text-decoration: none; transition: 0.2s;
+}
+.cs-support-links a:hover { border-color: var(--brand-main); color: var(--brand-main); }
+.cs-support-links a i.fa-whatsapp { color: #25D366; font-size: 18px; }
+
+/* Skeletons */
+.cs-skeleton-row {
+    height: 16px; background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%);
+    background-size: 600px 100%; animation: pdShimmer 1.5s infinite; border-radius: 4px; width: 100%;
+}
+@keyframes pdShimmer { 0% { background-position: -600px 0; } 100% { background-position: 600px 0; } }

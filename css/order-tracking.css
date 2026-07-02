@@ -1,0 +1,138 @@
+/* ==========================================================================
+   NEXRA TECH PK — ORDER TRACKING CSS (css/order-tracking.css)
+   Scope: All .trk-* selectors
+   ========================================================================== */
+
+/* 1. LAYOUT & HERO */
+.trk-container { padding: 90px 4% 120px; max-width: 1100px; margin: 0 auto; min-height: 100vh; overflow-x: hidden; }
+
+.trk-skeleton-wrap { display: flex; flex-direction: column; }
+
+.trk-hero {
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 24px; display: flex; flex-direction: column; gap: 16px;
+    box-shadow: var(--shadow-soft); margin-bottom: 30px; position: relative; overflow: hidden;
+}
+@media (min-width: 768px) { .trk-hero { flex-direction: row; justify-content: space-between; align-items: center; padding: 32px; } }
+
+.trk-hero::before {
+    content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 6px;
+    background: var(--brand-main); box-shadow: 0 0 15px var(--brand-glow);
+}
+
+.trk-hero-info h1 { font-size: 24px; font-weight: 900; color: var(--text-100); margin-bottom: 4px; }
+.trk-hero-info h1 span { color: var(--brand-main); font-family: monospace; letter-spacing: 1px; }
+.trk-hero-info p { font-size: 14px; color: var(--text-300); font-weight: 600; }
+
+.trk-hero-status {
+    background: rgba(139, 92, 246, 0.1); color: var(--brand-main); border: 1px solid rgba(139, 92, 246, 0.3);
+    padding: 8px 16px; border-radius: 50px; font-size: 13px; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 1px; align-self: flex-start;
+}
+.trk-hero-status.success { background: rgba(16, 185, 129, 0.1); color: var(--success); border-color: rgba(16, 185, 129, 0.3); }
+
+/* 2. DUAL GRID (Stepper + Summary) */
+.trk-grid { display: grid; grid-template-columns: 1fr; gap: 30px; }
+@media (min-width: 992px) { .trk-grid { grid-template-columns: 1fr 400px; align-items: start; } }
+
+.trk-stepper-card, .trk-summary-card {
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 24px; box-shadow: var(--shadow-soft);
+}
+@media (min-width: 768px) { .trk-stepper-card, .trk-summary-card { padding: 32px; } }
+
+.trk-section-title { font-size: 18px; font-weight: 800; color: var(--text-100); margin-bottom: 24px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid var(--glass-border); padding-bottom: 12px; }
+.trk-section-title i { color: var(--brand-main); }
+
+/* 3. VERTICAL PROGRESS STEPPER */
+.trk-stepper { display: flex; flex-direction: column; position: relative; margin-bottom: 30px; }
+.trk-stepper::before {
+    content: ''; position: absolute; left: 19px; top: 10px; bottom: 30px; width: 2px;
+    background: var(--glass-border); z-index: 1;
+}
+
+.trk-step { display: flex; gap: 20px; position: relative; z-index: 2; padding-bottom: 30px; opacity: 0.5; transition: 0.4s var(--ease); }
+.trk-step:last-child { padding-bottom: 0; }
+.trk-step::before {
+    /* Line fill for active states */
+    content: ''; position: absolute; left: 19px; top: 30px; height: calc(100% - 10px); width: 2px;
+    background: linear-gradient(180deg, var(--success), transparent); z-index: 2;
+    transform: scaleY(0); transform-origin: top; transition: transform 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+.trk-step:last-child::before { display: none; }
+
+.trk-step-icon {
+    width: 40px; height: 40px; border-radius: 50%; background: var(--bg-base);
+    border: 2px solid var(--glass-border); display: flex; align-items: center; justify-content: center;
+    font-size: 14px; color: var(--text-300); flex-shrink: 0; transition: 0.4s; position: relative; z-index: 3;
+}
+.trk-step-content { padding-top: 8px; }
+.trk-step-content h3 { font-size: 15px; font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.trk-step-content p { font-size: 13px; color: var(--text-200); line-height: 1.4; }
+
+/* Stepper States */
+.trk-step.active { opacity: 1; }
+.trk-step.active .trk-step-icon { border-color: var(--brand-main); color: var(--brand-main); background: rgba(139, 92, 246, 0.1); box-shadow: 0 0 15px var(--brand-glow); }
+
+.trk-step.completed { opacity: 1; }
+.trk-step.completed .trk-step-icon { border-color: var(--success); background: var(--success); color: #fff; box-shadow: 0 0 15px rgba(16,185,129,0.4); }
+.trk-step.completed::before { transform: scaleY(1); }
+
+/* Vault Redirect Action Box */
+.trk-action-box { margin-top: 20px; padding-top: 20px; border-top: 1px dashed var(--glass-border); animation: trkSlideUp 0.5s forwards; }
+.trk-btn-action { width: 100%; padding: 14px; font-size: 15px; font-weight: 800; border-radius: 12px; transition: 0.3s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+.trk-btn-action:hover { transform: translateY(-2px); box-shadow: 0 8px 24px var(--brand-glow); }
+
+/* 4. ORDER SUMMARY CARD */
+.trk-items-list { display: flex; flex-direction: column; gap: 16px; margin-bottom: 24px; max-height: 300px; overflow-y: auto; padding-right: 8px; scrollbar-width: thin; scrollbar-color: var(--glass-border) transparent; }
+.trk-items-list::-webkit-scrollbar { width: 4px; }
+.trk-items-list::-webkit-scrollbar-thumb { background: var(--glass-border); border-radius: 4px; }
+
+.trk-item-row { display: flex; gap: 12px; align-items: center; }
+.trk-item-img { width: 48px; height: 48px; border-radius: 8px; object-fit: cover; background: var(--bg-elevated); border: 1px solid var(--glass-border); flex-shrink: 0; }
+.trk-item-info { flex: 1; min-width: 0; }
+.trk-item-title { font-size: 13px; font-weight: 700; color: var(--text-100); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 4px; }
+.trk-item-meta { font-size: 11px; color: var(--text-300); font-weight: 600; }
+.trk-item-price { font-size: 13px; font-weight: 800; color: var(--text-100); }
+
+.trk-math { border-top: 1px dashed var(--glass-border); padding-top: 16px; display: flex; flex-direction: column; gap: 8px; }
+.trk-math-row { display: flex; justify-content: space-between; font-size: 13px; font-weight: 700; color: var(--text-200); }
+.trk-math-total { font-size: 16px; color: var(--text-100); margin-top: 8px; padding-top: 8px; border-top: 1px solid var(--glass-border); }
+.trk-total-val { font-size: 18px; font-weight: 900; color: var(--brand-main); }
+
+/* 5. FLOATING LIVE SUPPORT (FAB) */
+.trk-fab-support {
+    position: fixed; bottom: 80px; right: 20px; background: var(--bg-surface); color: var(--text-100);
+    padding: 12px 20px; border-radius: 50px; display: flex; align-items: center; gap: 8px;
+    font-size: 14px; font-weight: 800; box-shadow: var(--shadow-float); border: 1px solid var(--glass-border);
+    z-index: 9000; text-decoration: none; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    animation: trkSlideUp 0.5s backwards; animation-delay: 0.5s;
+}
+@media (min-width: 768px) { .trk-fab-support { bottom: 40px; right: 40px; padding: 14px 24px; font-size: 15px; } }
+.trk-fab-support:hover { transform: translateY(-4px); border-color: var(--brand-main); color: var(--brand-main); }
+.trk-fab-support i { font-size: 18px; color: var(--brand-main); }
+
+/* 6. ERROR & UNAUTHORIZED STATE */
+.trk-error-state {
+    text-align: center; padding: 60px 20px; background: var(--bg-surface);
+    border-radius: 24px; border: 1px dashed var(--danger); box-shadow: var(--shadow-soft);
+}
+.trk-error-state i { font-size: 64px; color: var(--danger); margin-bottom: 20px; opacity: 0.8; }
+.trk-error-state h2 { font-size: 24px; font-weight: 900; color: var(--text-100); margin-bottom: 12px; }
+.trk-error-state p { color: var(--text-200); font-size: 15px; max-width: 500px; margin: 0 auto; line-height: 1.5; }
+
+.trk-btn-outline {
+    display: inline-block; padding: 12px 24px; border-radius: 12px;
+    border: 1px solid var(--brand-main); color: var(--brand-main); font-weight: 700;
+    transition: 0.3s; text-decoration: none; cursor: pointer;
+}
+.trk-btn-outline:hover { background: rgba(139, 92, 246, 0.1); }
+
+/* ANIMATIONS & SKELETONS */
+@keyframes trkFadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes trkSlideUp { from { opacity: 0; transform: translateY(30px); } to { opacity: 1; transform: translateY(0); } }
+
+.skeleton { position: relative; overflow: hidden; background: var(--bg-surface); border-color: transparent !important; pointer-events: none; }
+.skeleton::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: skelSweep 1.5s infinite; }
+[data-theme="light"] .skeleton::before { background: linear-gradient(90deg, transparent, rgba(0,0,0,0.03), transparent); }
+@keyframes skelSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

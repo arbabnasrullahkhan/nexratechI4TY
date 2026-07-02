@@ -1,0 +1,297 @@
+/* ==========================================================================
+   NEXRA TECH PK — FREEBIE DETAIL CSS (css/freebie-detail.css)
+   Scope: All .fd-* selectors — loaded ONLY on freebies/freebie-detail.html
+   ========================================================================== */
+
+.fd-container {
+    padding: 100px 4% 100px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+}
+
+/* ==========================================================================
+   1. BREADCRUMBS
+   ========================================================================== */
+.fd-breadcrumbs {
+    display: flex; align-items: center; gap: 8px; flex-wrap: wrap;
+    font-size: 13px; color: var(--text-300); margin-bottom: 32px;
+}
+.fd-breadcrumbs a { color: var(--text-200); text-decoration: none; transition: 0.2s; }
+.fd-breadcrumbs a:hover { color: var(--brand-main); }
+.fd-breadcrumbs i { font-size: 10px; opacity: 0.5; }
+.fd-breadcrumbs .active { color: var(--text-100); font-weight: 600; }
+
+/* ==========================================================================
+   2. TWO-COLUMN LAYOUT
+   ========================================================================== */
+.fd-layout {
+    display: flex; flex-direction: column; gap: 40px; margin-bottom: 60px;
+}
+@media (min-width: 900px) {
+    .fd-layout { flex-direction: row; align-items: flex-start; }
+    .fd-media-col { flex: 1.2; min-width: 0; position: sticky; top: 100px; }
+    .fd-info-col { flex: 1; min-width: 0; }
+}
+
+/* ==========================================================================
+   3. MEDIA & WATERMARKING
+   ========================================================================== */
+.fd-media-box {
+    position: relative; border-radius: 24px; overflow: hidden;
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    box-shadow: var(--shadow-float); padding-top: 66.66%; /* 3:2 ratio */
+}
+.fd-canvas-watermark {
+    position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+}
+.fd-img-overlay {
+    position: absolute; inset: 0;
+    background: linear-gradient(to top, rgba(0,0,0,0.6) 0%, transparent 40%);
+    pointer-events: none;
+}
+.fd-stats-badges {
+    position: absolute; bottom: 16px; right: 16px;
+    display: flex; gap: 12px; z-index: 2;
+}
+.fd-badge {
+    background: rgba(0,0,0,0.5); backdrop-filter: blur(8px);
+    padding: 6px 12px; border-radius: 20px; font-size: 12px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1);
+}
+
+/* ==========================================================================
+   4. INFO COLUMN & METADATA
+   ========================================================================== */
+.fd-meta-top {
+    display: flex; justify-content: space-between; align-items: center; margin-bottom: 24px;
+}
+.fd-badge-tag {
+    background: rgba(16, 185, 129, 0.1); border: 1px solid rgba(16, 185, 129, 0.2);
+    color: var(--success); padding: 6px 16px; border-radius: 20px;
+    font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px;
+    display: flex; align-items: center; gap: 6px;
+}
+.fd-icon-btn {
+    width: 44px; height: 44px; border-radius: 50%; border: 1px solid var(--glass-border);
+    background: var(--bg-surface); color: var(--text-200); font-size: 18px;
+    cursor: pointer; transition: 0.3s var(--ease); display: flex; align-items: center; justify-content: center;
+}
+.fd-icon-btn:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; border-color: #ef4444; }
+.fd-icon-btn.liked { background: #ef4444; color: #fff; border-color: #ef4444; animation: frPop 0.3s var(--ease); }
+
+@keyframes frPop {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+    100% { transform: scale(1); }
+}
+
+.fd-title { font-size: clamp(28px, 4vw, 40px); font-weight: 900; color: var(--text-100); margin-bottom: 16px; line-height: 1.2; }
+.fd-desc { font-size: 16px; color: var(--text-200); line-height: 1.6; margin-bottom: 32px; }
+
+/* Features List */
+.fd-features {
+    display: flex; flex-direction: column; gap: 12px; margin-bottom: 32px;
+}
+.fd-feature-item {
+    display: flex; align-items: center; gap: 12px; font-size: 14px; color: var(--text-100);
+}
+.fd-feature-item i { color: var(--success); font-size: 16px; }
+
+/* ==========================================================================
+   5. VIRAL UNLOCKING ENGINE (SHARE-TO-UNLOCK)
+   ========================================================================== */
+.fd-unlock-engine {
+    background: var(--bg-elevated); border: 2px solid var(--glass-border);
+    border-radius: 24px; padding: 32px; margin-bottom: 32px;
+    box-shadow: var(--shadow-soft); transition: 0.5s var(--ease);
+    position: relative; overflow: hidden;
+}
+.fd-unlock-engine.unlocked {
+    border-color: var(--success); background: rgba(16, 185, 129, 0.05);
+}
+
+.fd-unlock-header {
+    display: flex; align-items: center; gap: 12px; margin-bottom: 16px; color: var(--text-100);
+}
+.fd-unlock-header i { font-size: 24px; color: var(--brand-main); transition: 0.3s; }
+.fd-unlock-engine.unlocked .fd-unlock-header i { color: var(--success); }
+.fd-unlock-header h3 { font-size: 20px; font-weight: 800; }
+
+.fd-unlock-desc { font-size: 14px; color: var(--text-200); margin-bottom: 24px; line-height: 1.5; }
+
+/* Progress Bar */
+.fd-progress-wrap { margin-bottom: 24px; }
+.fd-progress-bar {
+    height: 8px; background: var(--bg-surface); border-radius: 4px; overflow: hidden; margin-bottom: 8px;
+}
+.fd-progress-fill {
+    height: 100%; background: var(--brand-main); border-radius: 4px;
+    transition: width 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    box-shadow: 0 0 10px rgba(59, 130, 246, 0.5);
+}
+.fd-progress-text { font-size: 12px; font-weight: 700; color: var(--text-300); text-align: right; text-transform: uppercase; }
+
+/* Share Actions */
+.fd-share-actions {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 12px;
+}
+.fd-share-btn {
+    height: 48px; border-radius: 12px; border: none; font-size: 14px; font-weight: 700; color: #fff;
+    display: flex; align-items: center; justify-content: center; gap: 8px; cursor: pointer;
+    transition: 0.2s;
+}
+.fd-share-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0,0,0,0.2); }
+.fd-share-btn.wa { background: #25D366; }
+.fd-share-btn.fb { background: #1877F2; }
+.fd-share-btn.native { background: var(--bg-surface); color: var(--text-100); border: 1px solid var(--glass-border); }
+.fd-share-btn.native:hover { background: var(--bg-elevated); }
+.fd-share-btn.link { background: rgba(255,255,255,0.1); color: var(--text-200); grid-column: span 2; }
+.fd-share-btn.link:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+@media (min-width: 500px) {
+    .fd-share-actions { grid-template-columns: 1fr 1fr 1fr auto; }
+    .fd-share-btn.link { grid-column: auto; width: 48px; }
+}
+
+/* Download Button (Unlocked State) */
+.fd-download-btn {
+    width: 100%; height: 56px; border-radius: 16px; background: var(--success); color: #fff;
+    border: none; font-size: 16px; font-weight: 800; cursor: pointer;
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    box-shadow: 0 8px 24px rgba(16, 185, 129, 0.4); transition: 0.3s;
+    animation: fdFadeUp 0.5s var(--ease);
+}
+.fd-download-btn:hover { transform: translateY(-3px); box-shadow: 0 12px 32px rgba(16, 185, 129, 0.6); background: #059669; }
+
+@keyframes fdFadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ==========================================================================
+   6. DOCUMENTATION SECTION (FROSTED GLASS LOCK)
+   ========================================================================== */
+.fd-doc-section {
+    position: relative; background: var(--bg-elevated); border: 1px solid var(--glass-border);
+    border-radius: 24px; padding: 40px; box-shadow: var(--shadow-soft);
+}
+.fd-doc-content {
+    font-size: 15px; color: var(--text-200); line-height: 1.8;
+}
+.fd-doc-content h2, .fd-doc-content h3 { color: var(--text-100); margin: 32px 0 16px; font-weight: 800; }
+.fd-doc-content h2:first-child { margin-top: 0; }
+.fd-doc-content p { margin-bottom: 16px; }
+.fd-doc-content ul { padding-left: 20px; margin-bottom: 24px; }
+.fd-doc-content li { margin-bottom: 8px; }
+
+/* The Blur Overlay */
+.fd-doc-overlay {
+    position: absolute; inset: 0; z-index: 10;
+    backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+    background: rgba(var(--bg-elevated-rgb), 0.6);
+    display: flex; align-items: center; justify-content: center;
+    border-radius: 24px; transition: opacity 0.5s var(--ease);
+}
+.fd-doc-lock-box {
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    padding: 32px; border-radius: 20px; text-align: center; max-width: 350px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+}
+.fd-doc-lock-box i { font-size: 40px; color: var(--brand-main); margin-bottom: 16px; }
+.fd-doc-lock-box h4 { font-size: 18px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.fd-doc-lock-box p { font-size: 13px; color: var(--text-200); line-height: 1.5; }
+
+/* ==========================================================================
+   7. TRIPLE-AI ASSISTANT WIDGET
+   ========================================================================== */
+.fd-ai-widget {
+    position: fixed; bottom: 24px; right: 24px; z-index: 999;
+}
+@media (max-width: 899px) { .fd-ai-widget { bottom: 90px; right: 16px; } } /* Above mobile dock */
+
+.fd-ai-trigger {
+    width: 60px; height: 60px; border-radius: 50%; border: none;
+    background: linear-gradient(135deg, var(--brand-main), #8b5cf6);
+    color: #fff; font-size: 24px; cursor: pointer; box-shadow: 0 8px 24px rgba(59, 130, 246, 0.4);
+    transition: 0.3s; display: flex; align-items: center; justify-content: center;
+}
+.fd-ai-trigger:hover { transform: scale(1.1); }
+
+.fd-ai-panel {
+    position: absolute; bottom: 80px; right: 0; width: 350px; height: 450px;
+    background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 24px;
+    box-shadow: 0 24px 48px rgba(0,0,0,0.5); display: flex; flex-direction: column;
+    overflow: hidden; opacity: 0; pointer-events: none; transform: translateY(20px) scale(0.95);
+    transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); transform-origin: bottom right;
+}
+.fd-ai-panel.active { opacity: 1; pointer-events: auto; transform: translateY(0) scale(1); }
+@media (max-width: 500px) {
+    .fd-ai-panel { position: fixed; inset: 0; width: 100%; height: 100%; border-radius: 0; bottom: 0; }
+}
+
+.fd-ai-header {
+    padding: 16px 20px; background: rgba(59, 130, 246, 0.1); border-bottom: 1px solid var(--glass-border);
+    display: flex; justify-content: space-between; align-items: center; color: var(--text-100);
+}
+.fd-ai-title { font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+.fd-ai-title i { color: #f59e0b; }
+.fd-ai-close { background: none; border: none; color: var(--text-200); cursor: pointer; font-size: 18px; }
+.fd-ai-close:hover { color: #ef4444; }
+
+.fd-ai-chat {
+    flex: 1; padding: 16px; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+}
+.fd-ai-msg {
+    max-width: 85%; padding: 12px 16px; border-radius: 16px; font-size: 13px; line-height: 1.5;
+}
+.fd-ai-msg.bot { background: var(--bg-surface); border: 1px solid var(--glass-border); color: var(--text-100); border-bottom-left-radius: 4px; align-self: flex-start; }
+.fd-ai-msg.user { background: var(--brand-main); color: #fff; border-bottom-right-radius: 4px; align-self: flex-end; }
+
+.fd-ai-input-wrap {
+    padding: 16px; border-top: 1px solid var(--glass-border); display: flex; gap: 12px; background: var(--bg-elevated);
+}
+.fd-ai-input-wrap input {
+    flex: 1; height: 44px; border-radius: 22px; border: 1px solid var(--glass-border); background: var(--bg-surface);
+    padding: 0 16px; font-size: 13px; color: var(--text-100); outline: none;
+}
+.fd-ai-input-wrap input:focus { border-color: var(--brand-main); }
+.fd-ai-input-wrap button {
+    width: 44px; height: 44px; border-radius: 50%; border: none; background: var(--brand-main); color: #fff;
+    cursor: pointer; display: flex; align-items: center; justify-content: center;
+}
+.fd-ai-input-wrap button:hover { background: var(--brand-glow); }
+
+/* ==========================================================================
+   8. SKELETON LOADERS
+   ========================================================================== */
+.fd-skeleton-wrap { position: absolute; inset: 0; padding: 100px 4% 100px; z-index: 100; background: var(--bg-base); }
+.fd-skeleton { background: linear-gradient(90deg, var(--bg-elevated) 25%, var(--bg-surface) 50%, var(--bg-elevated) 75%); background-size: 600px 100%; animation: pdShimmer 1.5s infinite; border-radius: 12px; margin-bottom: 16px; }
+.fd-skel-hero { height: 400px; border-radius: 24px; }
+.fd-skel-badge { width: 100px; height: 32px; border-radius: 16px; }
+.fd-skel-title { height: 48px; width: 80%; }
+.fd-skel-desc { height: 20px; width: 100%; }
+.fd-skel-action { height: 200px; border-radius: 24px; }
+
+/* ==========================================================================
+   9. AUTH INTERCEPT MODAL
+   ========================================================================== */
+.fd-modal-overlay {
+    position: fixed; inset: 0; background: rgba(0,0,0,0.8); backdrop-filter: blur(8px);
+    z-index: 9999; display: flex; align-items: center; justify-content: center; padding: 20px;
+}
+.fd-modal-box {
+    background: var(--bg-elevated); border: 1px solid var(--glass-border); border-radius: 24px;
+    padding: 32px; max-width: 400px; text-align: center; box-shadow: 0 24px 48px rgba(0,0,0,0.5);
+}
+.fd-modal-icon { font-size: 48px; color: var(--brand-main); margin-bottom: 16px; }
+.fd-modal-box h3 { font-size: 20px; font-weight: 800; color: var(--text-100); margin-bottom: 12px; }
+.fd-modal-box p { font-size: 14px; color: var(--text-200); line-height: 1.5; margin-bottom: 24px; }
+.fd-modal-actions { display: flex; gap: 12px; justify-content: center; }
+
+/* Ad Placeholder */
+.fd-ad-mount {
+    width: 100%; min-height: 90px; background: rgba(0,0,0,0.05); border: 1px dashed var(--glass-border);
+    border-radius: 12px; display: flex; align-items: center; justify-content: center; margin-bottom: 32px;
+}
+.fd-ad-placeholder { font-size: 11px; color: var(--text-300); text-transform: uppercase; letter-spacing: 1px; }

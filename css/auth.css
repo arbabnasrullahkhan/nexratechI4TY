@@ -1,0 +1,175 @@
+/* ==========================================================================
+   NEXRA TECH PK — AUTH GATEWAY CSS (css/auth.css)
+   Scope: All .ag-* selectors — loaded ONLY on user/auth-gate.html
+   ========================================================================== */
+
+/* 1. PRE-AUTH GUARD LOADER */
+.ag-pre-guard {
+    position: fixed; inset: 0; background: var(--bg-base); z-index: 99999;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    transition: opacity 0.5s var(--ease), visibility 0.5s;
+}
+.ag-guard-spinner { font-size: 48px; color: var(--brand-main); margin-bottom: 24px; }
+.ag-pre-guard p { color: var(--text-100); font-size: 18px; font-weight: 700; letter-spacing: 1px; }
+
+/* 2. MAIN CONTAINER & WRAPPER */
+.ag-container {
+    padding: 100px 4% 100px;
+    max-width: 1200px;
+    margin: 0 auto;
+    position: relative;
+    min-height: calc(100vh - 200px);
+    display: flex; align-items: center; justify-content: center;
+}
+
+.ag-wrapper {
+    width: 100%;
+    background: var(--bg-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: 32px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: var(--shadow-float);
+    animation: agFadeUp 0.6s var(--ease) forwards;
+}
+@keyframes agFadeUp { from { opacity: 0; transform: translateY(40px); } to { opacity: 1; transform: translateY(0); } }
+
+@media (min-width: 900px) {
+    .ag-wrapper { flex-direction: row; min-height: 650px; }
+}
+
+/* 3. BRANDING PANEL (Left Side Desktop) */
+.ag-branding-panel {
+    position: relative; padding: 40px;
+    background: linear-gradient(135deg, var(--brand-main), #8b5cf6);
+    color: #fff; overflow: hidden; display: flex; flex-direction: column;
+    justify-content: center;
+}
+@media (min-width: 900px) {
+    .ag-branding-panel { width: 45%; padding: 60px; }
+}
+.ag-branding-content { position: relative; z-index: 10; }
+.ag-branding-content h1 { font-size: clamp(32px, 4vw, 48px); font-weight: 900; margin-bottom: 16px; line-height: 1.1; }
+.ag-branding-content p { font-size: 16px; line-height: 1.6; opacity: 0.9; margin-bottom: 40px; }
+
+.ag-branding-stats { display: flex; flex-direction: column; gap: 16px; }
+.ag-stat { display: flex; align-items: center; gap: 12px; font-size: 14px; font-weight: 700; background: rgba(255,255,255,0.1); padding: 12px 20px; border-radius: 16px; border: 1px solid rgba(255,255,255,0.2); backdrop-filter: blur(10px); }
+.ag-stat i { font-size: 18px; color: #fff; }
+
+.ag-blob { position: absolute; filter: blur(60px); opacity: 0.5; border-radius: 50%; z-index: 1; }
+.ag-blob-1 { width: 300px; height: 300px; background: #fff; top: -100px; right: -100px; animation: agFloat 10s infinite alternate; }
+.ag-blob-2 { width: 400px; height: 400px; background: #8b5cf6; bottom: -150px; left: -150px; animation: agFloat 12s infinite alternate-reverse; }
+@keyframes agFloat { 0% { transform: translate(0, 0) scale(1); } 100% { transform: translate(30px, 30px) scale(1.1); } }
+
+/* 4. FORMS PANEL (Card Flipper Logic) */
+.ag-forms-panel {
+    flex: 1; padding: 40px 24px; position: relative;
+    background: var(--bg-surface); display: flex; align-items: center; justify-content: center;
+    perspective: 1500px; /* Crucial for 3D flip */
+}
+@media (min-width: 900px) { .ag-forms-panel { padding: 60px; } }
+
+.ag-card-container {
+    width: 100%; max-width: 420px; position: relative;
+    transform-style: preserve-3d;
+    transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Base Card Face */
+.ag-card-face {
+    width: 100%;
+    backface-visibility: hidden;
+    position: absolute; top: 0; left: 0;
+    opacity: 0; visibility: hidden; pointer-events: none;
+    transition: 0.4s;
+}
+.ag-card-face.active {
+    position: relative; opacity: 1; visibility: visible; pointer-events: auto;
+}
+
+/* 3D Transformations based on view state applied to container via JS class */
+/* When container has class 'show-login' -> rotateY(0) */
+/* When container has class 'show-register' -> rotateY(180deg) */
+/* When container has class 'show-forgot' -> slide or rotateX */
+.ag-card-login { transform: rotateY(0deg); }
+.ag-card-register { transform: rotateY(180deg); }
+.ag-card-forgot { transform: translateY(20px) scale(0.95); } /* Slides in from bottom instead of 3D flip for variety */
+
+/* Container states */
+.ag-card-container.state-login { transform: rotateY(0deg); }
+.ag-card-container.state-register { transform: rotateY(-180deg); }
+.ag-card-container.state-forgot .ag-card-login { opacity: 0; pointer-events: none; }
+.ag-card-container.state-forgot .ag-card-forgot { opacity: 1; visibility: visible; pointer-events: auto; transform: translateY(0) scale(1); }
+
+/* 5. FORM TYPOGRAPHY & ELEMENTS */
+.ag-form-header { margin-bottom: 32px; text-align: center; }
+.ag-form-header h2 { font-size: 28px; font-weight: 800; color: var(--text-100); margin-bottom: 8px; }
+.ag-form-header p { font-size: 14px; color: var(--text-300); }
+
+/* SSO Button */
+.ag-sso-btn {
+    width: 100%; height: 50px; border-radius: 16px; border: 1px solid var(--glass-border);
+    background: var(--bg-elevated); color: var(--text-100); font-family: inherit; font-size: 14px; font-weight: 700;
+    cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 12px;
+    transition: 0.3s; box-shadow: var(--shadow-soft); margin-bottom: 24px;
+}
+.ag-sso-btn:hover { background: var(--bg-surface); border-color: var(--brand-main); transform: translateY(-2px); }
+.ag-sso-btn img { width: 20px; height: 20px; }
+
+/* Divider */
+.ag-divider {
+    position: relative; text-align: center; margin: 24px 0;
+}
+.ag-divider::before {
+    content: ''; position: absolute; top: 50%; left: 0; right: 0;
+    height: 1px; background: var(--glass-border); z-index: 1;
+}
+.ag-divider span {
+    position: relative; z-index: 2; background: var(--bg-surface);
+    padding: 0 16px; font-size: 11px; font-weight: 800; color: var(--text-300);
+    text-transform: uppercase; letter-spacing: 1px;
+}
+
+/* Input Groups */
+.ag-input-group { margin-bottom: 20px; position: relative; }
+.ag-label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.ag-input-group label { display: block; font-size: 13px; font-weight: 700; color: var(--text-200); margin-bottom: 8px; }
+.ag-label-row label { margin-bottom: 0; }
+
+.ag-input-wrapper { position: relative; display: flex; align-items: center; }
+.ag-input-wrapper i { position: absolute; left: 16px; color: var(--text-300); font-size: 16px; transition: 0.3s; }
+.ag-input-wrapper input {
+    width: 100%; height: 50px; border-radius: 16px; border: 1px solid var(--glass-border);
+    background: var(--bg-elevated); padding: 0 44px; font-size: 15px; color: var(--text-100);
+    outline: none; transition: 0.3s; font-family: inherit;
+}
+.ag-input-wrapper input:focus { border-color: var(--brand-main); background: var(--bg-surface); box-shadow: 0 0 0 4px var(--brand-glow); }
+.ag-input-wrapper input:focus + i { color: var(--brand-main); }
+
+/* Toggle Password Eye */
+.ag-eye-btn {
+    position: absolute; right: 16px; background: none; border: none;
+    color: var(--text-300); cursor: pointer; font-size: 16px; transition: 0.2s; padding: 4px;
+}
+.ag-eye-btn:hover { color: var(--text-100); }
+
+/* Validation & Errors */
+.ag-error-msg { display: none; color: var(--danger); font-size: 12px; margin-top: 6px; font-weight: 600; }
+.ag-input-wrapper.error input { border-color: var(--danger); }
+.ag-input-wrapper.error ~ .ag-error-msg { display: block; animation: agShake 0.4s; }
+@keyframes agShake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+
+/* Password Strength */
+.ag-strength-meter { height: 4px; background: var(--bg-elevated); border-radius: 2px; margin-top: 8px; overflow: hidden; }
+.ag-strength-bar { height: 100%; width: 0%; transition: 0.3s ease-out; border-radius: 2px; }
+.ag-strength-text { font-size: 11px; color: var(--text-300); font-weight: 600; margin-top: 4px; display: block; text-align: right; }
+
+/* Submit Buttons */
+.ag-submit-btn { width: 100%; height: 50px; border-radius: 16px; font-size: 15px; margin-top: 8px; }
+.ag-submit-btn:disabled { opacity: 0.7; cursor: not-allowed; }
+
+/* Links */
+.ag-switch-row { text-align: center; margin-top: 32px; font-size: 14px; color: var(--text-200); }
+.ag-link { color: var(--brand-main); font-weight: 700; text-decoration: none; transition: 0.2s; }
+.ag-link:hover { text-decoration: underline; color: var(--text-100); }

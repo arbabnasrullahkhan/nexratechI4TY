@@ -1,0 +1,330 @@
+/* css/auth-gate.css */
+body {
+    background: #020202;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    overflow-x: hidden;
+    position: relative;
+}
+
+/* Guard Spinner */
+.ag-guard {
+    position: fixed;
+    inset: 0;
+    background: var(--bg-base);
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    transition: opacity 0.4s ease;
+}
+.ag-guard-icon {
+    font-size: 64px;
+    color: var(--brand-main);
+    filter: drop-shadow(0 0 20px var(--brand-glow));
+}
+.ag-guard p {
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--text-100);
+}
+
+/* Background Orbs */
+.ag-bg-orb {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    z-index: -1;
+    opacity: 0.5;
+    animation: orbFloat 20s infinite alternate cubic-bezier(0.4, 0, 0.2, 1);
+}
+.orb-1 {
+    width: 400px;
+    height: 400px;
+    background: rgba(124, 58, 237, 0.3);
+    top: -100px;
+    left: -100px;
+}
+.orb-2 {
+    width: 300px;
+    height: 300px;
+    background: rgba(59, 130, 246, 0.2);
+    bottom: -50px;
+    right: -50px;
+    animation-delay: -10s;
+}
+@keyframes orbFloat {
+    0% { transform: translate(0, 0) scale(1); }
+    100% { transform: translate(100px, 100px) scale(1.2); }
+}
+
+/* Container */
+.ag-container {
+    width: 100%;
+    max-width: 440px;
+    margin: auto;
+    padding: 40px 20px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    z-index: 1;
+}
+
+/* Header */
+.ag-brand-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 40px;
+    animation: agFadeDown 0.6s cubic-bezier(0.175, 0.885, 0.32, 1.275) both;
+}
+.ag-brand-logo {
+    width: 44px;
+    height: 44px;
+    border-radius: 12px;
+}
+.ag-brand-text {
+    font-size: 24px;
+    font-weight: 900;
+    color: var(--text-100);
+    letter-spacing: -0.5px;
+}
+
+/* 2D Flipper Setup (Replaces broken 3D) */
+.ag-3d-wrapper {
+    width: 100%;
+    position: relative;
+}
+.ag-card-flipper {
+    width: 100%;
+    position: relative;
+}
+.ag-card-face {
+    width: 100%;
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: 28px;
+    padding: 36px 32px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    box-shadow: 0 20px 40px rgba(0,0,0,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(10px);
+    transition: opacity 0.4s ease, transform 0.4s ease, visibility 0.4s;
+    z-index: 1;
+}
+@media (max-width: 480px) {
+    .ag-card-face { padding: 32px 24px; }
+}
+
+/* Face states applied to flipper via JS */
+.ag-card-flipper:not(.show-register):not(.show-forgot) .ag-face-front,
+.ag-card-flipper.show-register .ag-face-back,
+.ag-card-flipper.show-forgot .ag-face-right {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+    z-index: 2;
+    position: relative; /* Active face drives the height */
+}
+
+/* Typography */
+.ag-title {
+    font-size: 26px;
+    font-weight: 900;
+    color: var(--text-100);
+    margin-bottom: 8px;
+    text-align: center;
+}
+.ag-sub {
+    font-size: 14px;
+    color: var(--text-300);
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+/* Google Button */
+.ag-btn-google {
+    width: 100%;
+    padding: 12px;
+    border-radius: 14px;
+    background: var(--bg-base);
+    border: 1px solid var(--glass-border);
+    color: var(--text-100);
+    font-size: 15px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    cursor: pointer;
+    transition: 0.3s;
+}
+.ag-btn-google img {
+    width: 20px;
+    height: 20px;
+}
+.ag-btn-google:hover {
+    background: rgba(255,255,255,0.05);
+    border-color: rgba(255,255,255,0.2);
+}
+
+/* Divider */
+.ag-divider {
+    display: flex;
+    align-items: center;
+    text-align: center;
+    margin: 24px 0;
+}
+.ag-divider::before, .ag-divider::after {
+    content: '';
+    flex: 1;
+    border-bottom: 1px solid var(--glass-border);
+}
+.ag-divider span {
+    padding: 0 10px;
+    color: var(--text-300);
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+
+/* Forms */
+.ag-field {
+    position: relative;
+    margin-bottom: 16px;
+}
+.ag-field-icon {
+    position: absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-300);
+    font-size: 14px;
+}
+.ag-input {
+    width: 100%;
+    padding: 14px 16px 14px 44px;
+    border-radius: 14px;
+    background: rgba(0,0,0,0.2);
+    border: 1px solid var(--glass-border);
+    color: var(--text-100);
+    font-size: 15px;
+    transition: 0.3s;
+}
+.ag-input:focus {
+    outline: none;
+    border-color: var(--brand-main);
+    box-shadow: 0 0 0 4px rgba(124, 58, 237, 0.15);
+    background: var(--bg-base);
+}
+.ag-pwd-toggle {
+    position: absolute;
+    right: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: transparent;
+    border: none;
+    color: var(--text-300);
+    cursor: pointer;
+    font-size: 14px;
+    padding: 4px;
+}
+
+/* Forgot link */
+.ag-forgot-link {
+    text-align: right;
+    margin-bottom: 24px;
+}
+.ag-forgot-link button {
+    background: transparent;
+    border: none;
+    color: var(--brand-main);
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+.ag-forgot-link button:hover { text-decoration: underline; }
+
+/* Primary Button */
+.ag-btn-primary {
+    width: 100%;
+    padding: 15px;
+    border-radius: 14px;
+    background: linear-gradient(135deg, var(--brand-main), #8b5cf6);
+    color: #fff;
+    font-size: 16px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    box-shadow: 0 8px 20px var(--brand-glow);
+    transition: 0.3s;
+}
+.ag-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 12px 25px var(--brand-glow);
+}
+.ag-btn-primary:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Footer Link */
+.ag-footer-link {
+    text-align: center;
+    margin-top: 28px;
+    font-size: 14px;
+    color: var(--text-200);
+}
+.ag-footer-link button {
+    background: transparent;
+    border: none;
+    color: var(--brand-main);
+    font-weight: 800;
+    font-size: 14px;
+    cursor: pointer;
+    padding: 0;
+    margin-left: 4px;
+}
+.ag-footer-link button:hover { text-decoration: underline; }
+
+/* Password Strength */
+.ag-strength-meter {
+    margin-top: -6px;
+    margin-bottom: 20px;
+}
+.ag-strength-bar {
+    height: 4px;
+    background: var(--glass-border);
+    border-radius: 2px;
+    overflow: hidden;
+    margin-bottom: 6px;
+}
+.ag-strength-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--danger);
+    transition: 0.3s ease;
+}
+.ag-strength-text {
+    font-size: 11px;
+    font-weight: 700;
+    color: var(--text-300);
+    text-align: right;
+}
+
+/* Animations */
+@keyframes agFadeDown {
+    from { opacity: 0; transform: translateY(-20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — COMMUNITY FREEBIES VAULT (freebies/freebies.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Freebies module.                                    │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS (populated by NexraComponents.load()):      │
+  │  #header-mount   ← /components/header.html                          │
+  │  #sidebar-mount  ← /components/sidebar.html                         │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Strict mathematically calculated CSS grid rhythm.                │
+  │  - Firebase pure ecosystem (No Supabase/Storage).                   │
+  │  - Voice-enabled search with real-time auto-suggest.                │
+  │  - Share-to-Unlock local + Firestore progression system.            │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC SEO META TAGS
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="fr-page-title">Free Digital Assets & Tools | Nexra Tech PK</title>
+    <meta name="description" id="fr-meta-desc" content="Download premium digital assets, templates, SaaS tools, and resources entirely for free at Nexra Tech PK.">
+    <meta name="keywords" content="free templates, free digital assets, free saas tools, freebies, nexra tech">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         CANONICAL URL
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="canonical" id="fr-canonical" href="https://nexratech.pk/freebies/freebies.html">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         THEME COLOR
+         ════════════════════════════════════════════════════════════════ -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         OPEN GRAPH & TWITTER CARDS
+         ════════════════════════════════════════════════════════════════ -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:url" id="fr-og-url" content="https://nexratech.pk/freebies/freebies.html">
+    <meta property="og:title" id="fr-og-title" content="Free Digital Assets & Tools | Nexra Tech PK">
+    <meta property="og:description" id="fr-og-desc" content="Download premium digital assets, templates, SaaS tools, and resources entirely for free at Nexra Tech PK.">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="fr-tw-title" content="Free Digital Assets & Tools | Nexra Tech PK">
+    <meta name="twitter:description" id="fr-tw-desc" content="Download premium digital assets, templates, SaaS tools, and resources entirely for free at Nexra Tech PK.">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         JSON-LD SCHEMA
+         ════════════════════════════════════════════════════════════════ -->
+    <script type="application/ld+json" id="fr-ld-schema">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebPage",
+      "name": "Free Digital Assets | Nexra Tech PK",
+      "description": "Premium digital resources available for free.",
+      "url": "https://nexratech.pk/freebies/freebies.html"
+    }
+    </script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/freebies.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN FREEBIES VAULT LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="fr-main" class="fr-container" role="main">
+        
+        <!-- HEADER HERO -->
+        <header class="fr-hero">
+            <div class="fr-hero-badge"><i class="fa-solid fa-gift"></i> Community Vault</div>
+            <h1 class="fr-hero-title tech-font">Premium Freebies</h1>
+            <p class="fr-hero-desc">Discover our hand-crafted digital assets, SaaS templates, and enterprise tools. <br>Completely free, forever. <span>Share to unlock premium files.</span></p>
+        </header>
+
+        <!-- SEARCH & FILTER BAR -->
+        <div class="fr-controls-wrap">
+            <!-- Voice-Enabled Search -->
+            <div class="fr-search-bar" id="fr-search-wrap">
+                <i class="fa-solid fa-magnifying-glass fr-search-icon" aria-hidden="true"></i>
+                <input type="text" id="fr-search-input" class="fr-search-input" placeholder="Search freebies..." aria-label="Search freebies" autocomplete="off" aria-haspopup="listbox">
+                <button class="fr-voice-btn" id="fr-voice-btn" onclick="NexraFreebies.startVoiceSearch()" aria-label="Search by voice">
+                    <i class="fa-solid fa-microphone"></i>
+                    <span class="fr-voice-pulse"></span>
+                </button>
+                
+                <!-- Auto-suggest Dropdown -->
+                <div class="fr-search-dropdown" id="fr-search-dropdown" role="listbox" hidden>
+                    <!-- Injected by JS -->
+                </div>
+            </div>
+
+            <!-- Scrollable Category Pills -->
+            <div class="fr-cats-wrap">
+                <button class="fr-cats-scroll left" onclick="NexraFreebies.scrollCats(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                <div class="fr-cats-track" id="fr-cats-track" role="list">
+                    <!-- Skeletons by default -->
+                    <div class="fr-skeleton-pill"></div>
+                    <div class="fr-skeleton-pill"></div>
+                    <div class="fr-skeleton-pill"></div>
+                </div>
+                <button class="fr-cats-scroll right" onclick="NexraFreebies.scrollCats(1)"><i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </div>
+
+        <!-- ════════════════════════════════════════════════════════════════
+             COMPLEX GRID RHYTHM SECTION
+             Row 1: 2 cols | Row 2: 1 col | Row 3: 3 cols | Row 4: 2 cols | Row 5: 2 cols
+             ════════════════════════════════════════════════════════════════ -->
+        <section class="fr-grid-section">
+            <div class="fr-grid" id="fr-grid">
+                <!-- SKELETON LOADERS (Matching exact grid rhythm) -->
+                <div class="fr-card-skeleton" aria-hidden="true"></div> <!-- R1 C1 -->
+                <div class="fr-card-skeleton" aria-hidden="true"></div> <!-- R1 C2 -->
+                <div class="fr-card-skeleton full-width" aria-hidden="true"></div> <!-- R2 -->
+                <div class="fr-card-skeleton third-width" aria-hidden="true"></div> <!-- R3 C1 -->
+                <div class="fr-card-skeleton third-width" aria-hidden="true"></div> <!-- R3 C2 -->
+                <div class="fr-card-skeleton third-width" aria-hidden="true"></div> <!-- R3 C3 -->
+                <div class="fr-card-skeleton" aria-hidden="true"></div> <!-- R4 C1 -->
+                <div class="fr-card-skeleton" aria-hidden="true"></div> <!-- R4 C2 -->
+            </div>
+
+            <!-- Empty / Error States -->
+            <div class="fr-empty-state" id="fr-empty-state" hidden>
+                <i class="fa-solid fa-box-open" style="font-size: 48px; color: var(--text-300); margin-bottom: 16px;"></i>
+                <h3 class="tech-font">No Freebies Found</h3>
+                <p id="fr-empty-desc">Try adjusting your search or category filter.</p>
+                <button class="btn btn-outline" onclick="NexraFreebies.resetFilters()" style="margin-top:16px;">Clear Filters</button>
+            </div>
+
+            <div class="fr-load-more" id="fr-load-more-wrap" hidden>
+                <button class="btn btn-outline" id="fr-load-more-btn" onclick="NexraFreebies.loadMore()">
+                    <span>Load More Resources</span>
+                    <i class="fa-solid fa-chevron-down"></i>
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/freebies.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraFreebiesBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraFreebies.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraFreebies) NexraFreebies.init();
+            });
+        })();
+    </script>
+</body>
+</html>

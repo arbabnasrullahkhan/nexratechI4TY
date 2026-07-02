@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+<!--
+  ============================================================================
+  NEXRA TECH PK — BLOG DETAIL (academy/blog-detail.html)
+  ============================================================================
+  ARCHITECTURE OVERVIEW:
+  ┌─────────────────────────────────────────────────────────────────────┐
+  │  SELF-CONTAINED Blog Detail module.                                 │
+  │  Global UI shell elements fetched at runtime from /components/.     │
+  │                                                                      │
+  │  COMPONENT MOUNT POINTS:                                             │
+  │  #header-mount   ← /components/header.html                          │
+  │  #sidebar-mount  ← /components/sidebar.html                         │
+  │  #dock-mount     ← /components/dock.html                            │
+  │  #cart-mount     ← /components/cart-drawer.html                     │
+  │  #footer-mount   ← /components/footer.html                          │
+  │                                                                      │
+  │  SPECIFICS:                                                          │
+  │  - Sticky Reading Progress Bar.                                     │
+  │  - Dynamic Table of Contents (ToC).                                 │
+  │  - Nested Commenting Engine (Firestore).                            │
+  │  - Triple-AI Assistant (Pre-fed context).                           │
+  │  - Adsterra Paragraph Injection.                                    │
+  └─────────────────────────────────────────────────────────────────────┘
+-->
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, user-scalable=yes, viewport-fit=cover">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         DYNAMIC SEO META TAGS (Injected by JS on load)
+         ════════════════════════════════════════════════════════════════ -->
+    <title id="bd-page-title">Loading Article... | Nexra Tech PK</title>
+    <meta name="description" id="bd-meta-desc" content="Loading tech insights...">
+    <meta name="robots" content="index, follow, max-image-preview:large">
+
+    <!-- Canonical URL -->
+    <link rel="canonical" id="bd-canonical" href="https://nexratech.pk/academy/blog-detail.html">
+
+    <!-- Theme Color -->
+    <meta name="theme-color" id="meta-theme-color" content="#f8fafc" media="(prefers-color-scheme: light)">
+    <meta name="theme-color" content="#020202" media="(prefers-color-scheme: dark)">
+
+    <!-- Open Graph & Twitter Cards -->
+    <meta property="og:type" content="article">
+    <meta property="og:site_name" content="Nexra Tech PK">
+    <meta property="og:url" id="bd-og-url" content="https://nexratech.pk/academy/blog-detail.html">
+    <meta property="og:title" id="bd-og-title" content="Loading Article...">
+    <meta property="og:description" id="bd-og-desc" content="Loading tech insights...">
+    <meta property="og:image" id="bd-og-image" content="">
+    
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" id="bd-tw-title" content="Loading Article...">
+    <meta name="twitter:description" id="bd-tw-desc" content="Loading tech insights...">
+    <meta name="twitter:image" id="bd-tw-image" content="">
+
+    <!-- JSON-LD Schema (TechArticle & BreadcrumbList) -->
+    <script type="application/ld+json" id="bd-ld-schema-article">{}</script>
+    <script type="application/ld+json" id="bd-ld-schema-breadcrumbs">{}</script>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         PRECONNECT & FONTS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="preconnect" href="https://firestore.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:ital,wght@0,300;0,400;0,500;0,600;0,700;0,800;1,400&family=Space+Grotesk:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         STYLESHEETS
+         ════════════════════════════════════════════════════════════════ -->
+    <link rel="stylesheet" href="/css/global.css">
+    <link rel="stylesheet" href="/css/blog-detail.css">
+
+    <!-- ════════════════════════════════════════════════════════════════
+         FIREBASE SDK & CONFIG
+         ════════════════════════════════════════════════════════════════ -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="/firebaseconfig.js"></script>
+</head>
+
+<body>
+    <!-- READING PROGRESS BAR -->
+    <div class="bd-progress-container">
+        <div class="bd-progress-bar" id="bd-progress-bar"></div>
+    </div>
+
+    <!-- TOAST & MOUNT POINTS -->
+    <div id="toast-container" aria-live="polite"></div>
+    <div id="cart-mount"></div>
+    <div id="sidebar-mount"></div>
+    <div id="header-mount"></div>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         MAIN ARTICLE LAYOUT
+         ════════════════════════════════════════════════════════════════ -->
+    <main id="bd-main" class="bd-container" role="main">
+        
+        <!-- SKELETON LOADER -->
+        <div id="bd-skeleton-wrap" class="bd-skeleton-wrap">
+            <div class="bd-skel-hero"></div>
+            <div class="bd-layout">
+                <div class="bd-skel-main">
+                    <div class="bd-skel-line w30"></div>
+                    <div class="bd-skel-line w80 h2"></div>
+                    <div class="bd-skel-line w100"></div>
+                    <div class="bd-skel-line w100"></div>
+                    <div class="bd-skel-line w80"></div>
+                </div>
+                <div class="bd-skel-side">
+                    <div class="bd-skel-line w100 h3"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- DYNAMIC CONTENT (Hidden until fetched) -->
+        <div id="bd-content-wrap" class="bd-content-wrap" hidden>
+            
+            <!-- Breadcrumbs -->
+            <nav class="bd-breadcrumbs" aria-label="Breadcrumb">
+                <a href="/academy/blog.html">Academy</a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <a href="#" id="bd-val-cat-link"><span id="bd-val-cat">Category</span></a>
+                <i class="fa-solid fa-chevron-right"></i>
+                <span class="active" id="bd-val-bc-title">Article</span>
+            </nav>
+
+            <!-- Hero Section -->
+            <header class="bd-article-header">
+                <div class="bd-meta-top">
+                    <span class="bd-badge-cat" id="bd-val-badge-cat">Category</span>
+                    <span class="bd-meta-item"><i class="fa-regular fa-clock"></i> <span id="bd-val-readtime">5 min read</span></span>
+                    <span class="bd-meta-item"><i class="fa-regular fa-eye"></i> <span id="bd-val-views">0</span> Views</span>
+                </div>
+                
+                <h1 class="bd-title tech-font" id="bd-val-title">Article Title</h1>
+                <p class="bd-excerpt" id="bd-val-excerpt">Article excerpt...</p>
+
+                <div class="bd-author-row">
+                    <img src="/assets/avatar-placeholder.png" alt="Author" class="bd-author-img" id="bd-val-author-img">
+                    <div class="bd-author-info">
+                        <div class="bd-author-name" id="bd-val-author-name">Nexra Editorial</div>
+                        <div class="bd-author-date" id="bd-val-date">Jan 01, 2026</div>
+                    </div>
+                </div>
+            </header>
+
+            <!-- Hero Image with Canvas Watermark -->
+            <div class="bd-hero-media">
+                <canvas id="bd-canvas-hero" class="bd-canvas-watermark"></canvas>
+            </div>
+
+            <div class="bd-layout">
+                
+                <!-- ── LEFT: FLOATING SOCIAL ISLAND ── -->
+                <aside class="bd-social-island">
+                    <div class="bd-social-sticky">
+                        <button class="bd-social-btn" onclick="NexraBlogDetail.toggleLike()" aria-label="Like" title="Like">
+                            <i class="fa-regular fa-heart" id="bd-like-icon"></i>
+                            <span id="bd-val-likes-island">0</span>
+                        </button>
+                        <hr class="bd-social-div">
+                        <button class="bd-social-btn share-wa" onclick="NexraBlogDetail.executeShare('wa')" aria-label="Share on WhatsApp"><i class="fa-brands fa-whatsapp"></i></button>
+                        <button class="bd-social-btn share-fb" onclick="NexraBlogDetail.executeShare('fb')" aria-label="Share on Facebook"><i class="fa-brands fa-facebook-f"></i></button>
+                        <button class="bd-social-btn share-tg" onclick="NexraBlogDetail.executeShare('tg')" aria-label="Share on Telegram"><i class="fa-brands fa-telegram"></i></button>
+                        <button class="bd-social-btn share-native" onclick="NexraBlogDetail.executeShare('native')" aria-label="More Options"><i class="fa-solid fa-share-nodes"></i></button>
+                    </div>
+                </aside>
+
+                <!-- ── CENTER: RICH CONTENT ── -->
+                <article class="bd-rich-content" id="bd-rich-content">
+                    <!-- HTML Content injected here via DOMParser + Sanitization. Ads dynamically inserted. -->
+                </article>
+
+                <!-- ── RIGHT: TABLE OF CONTENTS (ToC) ── -->
+                <aside class="bd-toc-col">
+                    <div class="bd-toc-sticky" id="bd-toc-container">
+                        <h4 class="tech-font"><i class="fa-solid fa-list-ul"></i> Table of Contents</h4>
+                        <nav class="bd-toc-list" id="bd-toc-list">
+                            <!-- Dynamically generated from h2/h3 -->
+                        </nav>
+                        
+                        <!-- Adsterra Sidebar Ad -->
+                        <div class="bd-ad-sidebar" id="bd-ad-sidebar">
+                            <div class="bd-ad-placeholder">Sponsored</div>
+                        </div>
+                    </div>
+                </aside>
+            </div><!-- /.bd-layout -->
+
+            <!-- Bottom Ad -->
+            <div class="bd-ad-bottom" id="bd-ad-bottom">
+                <div class="bd-ad-placeholder">Sponsored Insight</div>
+            </div>
+
+            <!-- ════════════════════════════════════════════════════════════════
+                 AUTHOR BIO & SHARE BOTTOM
+                 ════════════════════════════════════════════════════════════════ -->
+            <div class="bd-author-box">
+                <img src="/assets/avatar-placeholder.png" alt="Author" class="bd-author-box-img" id="bd-val-author-box-img">
+                <div class="bd-author-box-info">
+                    <h4 class="tech-font" id="bd-val-author-box-name">Nexra Editorial</h4>
+                    <p id="bd-val-author-bio">Senior Architect at Nexra Tech PK specializing in scalable SaaS ecosystems and high-conversion UI/UX.</p>
+                </div>
+            </div>
+
+            <!-- ════════════════════════════════════════════════════════════════
+                 RELATED INSIGHTS
+                 ════════════════════════════════════════════════════════════════ -->
+            <section class="bd-related-section">
+                <h3 class="bd-section-title tech-font">Related Insights</h3>
+                <div class="bd-related-grid" id="bd-related-grid">
+                    <!-- Dynamic Related Cards -->
+                </div>
+            </section>
+
+            <!-- ════════════════════════════════════════════════════════════════
+                 NESTED COMMENTS SYSTEM
+                 ════════════════════════════════════════════════════════════════ -->
+            <section class="bd-comments-section" id="comments">
+                <h3 class="bd-section-title tech-font">Discussion (<span id="bd-val-comment-count">0</span>)</h3>
+                
+                <!-- Comment Input Box -->
+                <div class="bd-comment-form">
+                    <div id="bd-comment-auth-gate" class="bd-comment-auth-gate" hidden>
+                        <i class="fa-solid fa-lock"></i> Please <a href="/user/auth-gate.html">Log In</a> to join the conversation.
+                    </div>
+                    <div id="bd-comment-input-wrap">
+                        <textarea id="bd-comment-textarea" class="bd-comment-textarea" placeholder="Share your thoughts..."></textarea>
+                        <div class="bd-comment-actions">
+                            <button class="btn btn-primary" onclick="NexraBlogDetail.postComment()">Post Comment</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Comments Feed -->
+                <div class="bd-comments-feed" id="bd-comments-feed">
+                    <!-- Dynamically injected nested comments -->
+                    <div class="bd-comments-loading" id="bd-comments-loading"><i class="fa-solid fa-circle-notch fa-spin"></i> Loading discussion...</div>
+                </div>
+            </section>
+
+        </div><!-- /.bd-content-wrap -->
+    </main>
+
+    <!-- ════════════════════════════════════════════════════════════════
+         TRIPLE-AI ASSISTANT (OPENROUTER) FLOATING WIDGET
+         ════════════════════════════════════════════════════════════════ -->
+    <div class="bd-ai-widget" id="bd-ai-widget">
+        <button class="bd-ai-trigger" id="bd-ai-trigger" onclick="NexraBlogDetail.toggleAI()" aria-label="Ask AI Assistant">
+            <i class="fa-solid fa-robot"></i>
+        </button>
+        <div class="bd-ai-panel" id="bd-ai-panel">
+            <div class="bd-ai-header">
+                <div class="bd-ai-title"><i class="fa-solid fa-bolt"></i> Nexra AI (Gemma/Cohere)</div>
+                <button class="bd-ai-close" onclick="NexraBlogDetail.toggleAI()"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="bd-ai-chat" id="bd-ai-chat">
+                <div class="bd-ai-msg bot">Hi! I've read this entire article. I can summarize it or answer any questions you have in English or Urdu!</div>
+            </div>
+            <div class="bd-ai-input-wrap">
+                <input type="text" id="bd-ai-input" placeholder="Ask about this article..." onkeypress="if(event.key==='Enter') NexraBlogDetail.sendAIMessage()">
+                <button onclick="NexraBlogDetail.sendAIMessage()"><i class="fa-solid fa-paper-plane"></i></button>
+            </div>
+        </div>
+    </div>
+
+    <!-- MOUNTS -->
+    <div id="dock-mount"></div>
+    <div id="footer-mount"></div>
+
+    <!-- SCRIPTS -->
+    <script src="/js/app.js"></script>
+    <script src="/components/loader.js"></script>
+    <script src="/js/blog-detail.js"></script>
+
+    <!-- BOOT -->
+    <script>
+        (function NexraBlogDetailBoot() {
+            'use strict';
+            const savedTheme = localStorage.getItem('nexra_theme');
+            if (savedTheme === 'dark') document.body.setAttribute('data-theme', 'dark');
+
+            NexraComponents.load([
+                { file: '/components/header.html',      mount: '#header-mount'  },
+                { file: '/components/sidebar.html',     mount: '#sidebar-mount' },
+                { file: '/components/cart-drawer.html', mount: '#cart-mount'    },
+                { file: '/components/dock.html',        mount: '#dock-mount'    },
+                { file: '/components/footer.html',      mount: '#footer-mount'  },
+            ]).then(function () {
+                NexraBlogDetail.init();
+            }).catch(function (err) {
+                console.error('Boot failed:', err);
+                if (window.NexraBlogDetail) NexraBlogDetail.init();
+            });
+        })();
+    </script>
+</body>
+</html>

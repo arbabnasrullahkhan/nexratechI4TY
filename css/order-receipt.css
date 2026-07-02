@@ -1,0 +1,133 @@
+/* ==========================================================================
+   NEXRA TECH PK — ORDER RECEIPT CSS (css/order-receipt.css)
+   Scope: All .rc-* selectors
+   ========================================================================== */
+
+/* 1. LAYOUT */
+.rc-container { padding: 90px 4% 140px; max-width: 900px; margin: 0 auto; min-height: 100vh; }
+.rc-skeleton { display: flex; flex-direction: column; gap: 16px; }
+
+/* 2. INVOICE DOCUMENT */
+.rc-invoice {
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    border-radius: 24px; overflow: hidden; box-shadow: var(--shadow-soft);
+    animation: rcFadeIn 0.5s forwards;
+}
+
+/* Header */
+.rc-inv-header { display: flex; justify-content: space-between; align-items: flex-start; padding: 32px; flex-wrap: wrap; gap: 24px; }
+.rc-brand { display: flex; align-items: center; gap: 14px; }
+.rc-brand-logo { height: 44px; width: auto; }
+.rc-brand-name { font-size: 18px; font-weight: 900; color: var(--text-100); font-family: 'Space Grotesk', sans-serif; }
+.rc-brand-tagline { font-size: 12px; color: var(--text-300); font-weight: 600; margin-top: 2px; }
+
+.rc-inv-meta { text-align: right; }
+.rc-meta-row { display: flex; justify-content: flex-end; gap: 12px; align-items: center; margin-bottom: 8px; font-size: 13px; }
+.rc-meta-row span:first-child { color: var(--text-300); font-weight: 600; }
+.rc-meta-row strong { color: var(--text-100); font-weight: 800; }
+.rc-mono { font-family: 'Space Grotesk', monospace; letter-spacing: 0.5px; }
+
+.rc-status-pill {
+    background: rgba(16,185,129,0.1); color: var(--success); border: 1px solid rgba(16,185,129,0.3);
+    padding: 4px 12px; border-radius: 50px; font-size: 12px; font-weight: 800;
+}
+
+.rc-divider { height: 1px; background: var(--glass-border); margin: 0 32px; }
+
+/* Billing Grid */
+.rc-billing-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 24px 32px; }
+.rc-billing-title { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-300); margin-bottom: 8px; }
+.rc-billing-val { font-size: 15px; font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.rc-billing-sub { font-size: 13px; color: var(--text-300); }
+.rc-text-right { text-align: right; }
+
+/* Itemized Table */
+.rc-table-wrap { overflow-x: auto; padding: 0 32px; margin-bottom: 0; }
+.rc-table { width: 100%; border-collapse: collapse; font-size: 14px; }
+.rc-table th { padding: 10px 12px; text-align: left; font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; color: var(--text-300); border-bottom: 2px solid var(--glass-border); white-space: nowrap; }
+.rc-table th:not(.rc-th-item) { text-align: right; }
+.rc-table td { padding: 14px 12px; color: var(--text-100); border-bottom: 1px solid var(--glass-border); font-size: 13px; font-weight: 600; vertical-align: middle; }
+.rc-table td:not(.rc-td-item) { text-align: right; }
+.rc-table tr:last-child td { border-bottom: none; }
+.rc-td-item-name { font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.rc-td-item-key { font-family: monospace; font-size: 12px; color: var(--success); padding: 3px 6px; background: rgba(16,185,129,0.08); border-radius: 4px; display: inline-block; margin-top: 4px; }
+
+/* Math Breakdown */
+.rc-totals-block { display: flex; justify-content: flex-end; padding: 24px 32px; border-top: 1px solid var(--glass-border); }
+.rc-totals-inner { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 10px; }
+.rc-total-row { display: flex; justify-content: space-between; font-size: 14px; font-weight: 700; color: var(--text-200); }
+.rc-total-row i { margin-right: 6px; }
+.rc-grand-total { border-top: 2px solid var(--glass-border); padding-top: 12px; margin-top: 4px; font-size: 18px; font-weight: 900; color: var(--text-100); }
+.rc-grand-val { color: var(--brand-main); font-size: 20px; }
+.rc-usd-note { font-size: 11px; color: var(--text-300); text-align: right; font-style: italic; margin-top: -4px; }
+
+/* Invoice Footer */
+.rc-inv-footer { padding: 20px 32px 28px; border-top: 1px dashed var(--glass-border); text-align: center; }
+.rc-inv-footer p { font-size: 12px; color: var(--text-300); line-height: 1.6; }
+
+/* 3. FLOATING ACTION ISLAND */
+.rc-action-island {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    border-radius: 20px; padding: 10px 16px; display: flex; align-items: center; gap: 4px;
+    box-shadow: 0 20px 50px rgba(0,0,0,0.25); z-index: 9000;
+    transition: opacity 0.4s, transform 0.4s; white-space: nowrap;
+}
+@media (min-width: 768px) { .rc-action-island { bottom: 40px; } }
+
+.rc-island-btn {
+    padding: 10px 16px; border-radius: 12px; border: none; background: transparent;
+    color: var(--text-200); font-size: 13px; font-weight: 700; cursor: pointer;
+    display: flex; align-items: center; gap: 8px; transition: 0.3s; text-decoration: none;
+}
+.rc-island-btn:hover { background: var(--bg-elevated); color: var(--text-100); }
+.rc-btn-download { color: var(--brand-main); }
+.rc-btn-download:hover { background: rgba(124,58,237,0.1); }
+.rc-btn-report { color: var(--danger); }
+.rc-btn-report:hover { background: rgba(239,68,68,0.1); }
+.rc-island-sep { width: 1px; height: 28px; background: var(--glass-border); margin: 0 4px; }
+
+/* 4. ERROR STATE */
+.rc-error-state { text-align: center; padding: 80px 20px; }
+.rc-error-state i { font-size: 80px; color: var(--danger); margin-bottom: 20px; opacity: 0.7; }
+.rc-error-state h2 { font-size: 24px; font-weight: 900; color: var(--text-100); margin-bottom: 12px; }
+.rc-error-state p { color: var(--text-200); font-size: 15px; }
+
+/* ============================================================
+   @MEDIA PRINT — CLEAN A4 PDF INVOICE
+   ============================================================ */
+@media print {
+    /* Hide all non-invoice elements */
+    #header-mount, #dock-mount, #footer-mount, #toast-container,
+    .rc-action-island { display: none !important; }
+
+    /* Reset body for print */
+    body { background: #fff !important; color: #000 !important; }
+    .rc-container { padding: 0 !important; max-width: 100% !important; }
+    
+    /* Strip glassmorphism from invoice */
+    .rc-invoice {
+        border: none !important; border-radius: 0 !important;
+        box-shadow: none !important; background: #fff !important;
+    }
+    
+    /* Force print-safe typography */
+    .rc-brand-name, .rc-billing-val, .rc-td-item-name, .rc-grand-total { color: #000 !important; }
+    .rc-divider, .rc-table th, .rc-table td, .rc-totals-inner, .rc-inv-footer, .rc-billing-grid { border-color: #dee2e6 !important; }
+    .rc-meta-row strong, .rc-table td { color: #111 !important; }
+    .rc-brand-tagline, .rc-billing-sub, .rc-total-row, .rc-inv-footer p { color: #555 !important; }
+    
+    /* Status pill override */
+    .rc-status-pill { background: none !important; border: 1px solid #28a745 !important; color: #28a745 !important; }
+    .rc-grand-val { color: #4f46e5 !important; }
+    .rc-td-item-key { background: #f0fdf4 !important; color: #15803d !important; }
+
+    /* A4 page config */
+    @page { margin: 2cm; size: A4; }
+}
+
+/* ANIMATIONS & SKELETONS */
+@keyframes rcFadeIn { from { opacity: 0; transform: translateY(15px); } to { opacity: 1; transform: translateY(0); } }
+.skeleton { position: relative; overflow: hidden; background: var(--bg-surface); border-radius: 16px; pointer-events: none; }
+.skeleton::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: skelSweep 1.5s infinite; }
+@keyframes skelSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

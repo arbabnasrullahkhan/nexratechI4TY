@@ -1,0 +1,46 @@
+<!-- ==========================================================================
+     NEXRA TECH PK — HEADER COMPONENT (header.html)
+     Injected into #header-mount on every page.
+     Branding images use .nx-brand-logo / .nx-brand-title classes
+     so NexraBrand.refreshDOMAssets() updates them automatically.
+     ========================================================================== -->
+
+<div class="header-wrap">
+    <nav class="island-nav">
+
+        <!-- LOGO & TITLE -->
+        <div class="nav-logo-sec" onclick="NexraApp.navTo('home')">
+            <div class="nav-logo-icon">
+                <img class="nx-brand-logo" src="" alt="Nexra Logo">
+            </div>
+            <img class="nx-brand-title nav-title-img" src="" alt="Nexra">
+        </div>
+
+        <!-- DESKTOP NAVIGATION LINKS -->
+        <div class="nav-desktop-links">
+            <div class="d-nav-item" data-page="home"     onclick="NexraApp.navTo('home')">Home</div>
+            <div class="d-nav-item" data-page="shop"     onclick="NexraApp.navTo('shop')">Marketplace</div>
+            <div class="d-nav-item" data-page="freebies" onclick="NexraApp.navTo('freebies')">Free Vault</div>
+            <div class="d-nav-item" data-page="blog"     onclick="NexraApp.navTo('blog')">Insights</div>
+            <div class="d-nav-item" data-page="profile"  onclick="NexraApp.navTo('profile')">Profile</div>
+        </div>
+
+        <!-- ACTION BUTTONS -->
+        <div class="nav-actions">
+            <!-- Cart -->
+            <button class="icon-btn" onclick="NexraApp.toggleCart()" aria-label="Cart">
+                <i class="fa-solid fa-bag-shopping"></i>
+                <span class="cart-count-badge">0</span>
+            </button>
+            <!-- Dark Mode / Theme Picker (Long Press) -->
+            <button class="icon-btn" id="nx-theme-toggle-btn" aria-label="Toggle Theme">
+                <i class="fa-solid fa-moon theme-icon"></i>
+            </button>
+            <!-- Sidebar Toggle (Now visible on Desktop too) -->
+            <button class="icon-btn" onclick="NexraApp.toggleSidebar()" aria-label="Menu">
+                <i class="fa-solid fa-bars-staggered"></i>
+            </button>
+        </div>
+
+    </nav>
+</div>

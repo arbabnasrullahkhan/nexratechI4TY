@@ -1,0 +1,112 @@
+/* ==========================================================================
+   NEXRA TECH PK — ABOUT PAGE CSS (css/about.css)
+   ========================================================================== */
+
+/* 1. CINEMATIC HERO */
+.ab-hero {
+    min-height: 100vh; position: relative; display: flex; align-items: center; justify-content: center;
+    overflow: hidden; padding: 100px 8% 80px;
+    background: radial-gradient(ellipse at 60% 50%, rgba(124,58,237,0.15) 0%, transparent 60%),
+                radial-gradient(ellipse at 20% 80%, rgba(59,130,246,0.08) 0%, transparent 50%),
+                var(--bg-base);
+}
+.ab-watermark-canvas { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0.03; pointer-events: none; }
+
+/* Floating particle dots */
+.ab-hero::before {
+    content: ''; position: absolute; inset: 0;
+    background-image: radial-gradient(circle, rgba(124,58,237,0.15) 1px, transparent 1px);
+    background-size: 40px 40px; pointer-events: none;
+}
+
+.ab-hero-content { position: relative; z-index: 2; text-align: center; max-width: 720px; animation: abFadeUp 0.8s both; }
+.ab-hero-badge {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 20px;
+    background: rgba(124,58,237,0.1); border: 1px solid rgba(124,58,237,0.3);
+    border-radius: 50px; font-size: 13px; font-weight: 800; color: var(--brand-main);
+    margin-bottom: 24px; letter-spacing: 0.5px;
+}
+.ab-hero-title { font-size: clamp(32px, 6vw, 64px); font-weight: 900; color: var(--text-100); line-height: 1.1; margin-bottom: 20px; letter-spacing: -1px; }
+.ab-hero-sub { font-size: 18px; color: var(--text-200); line-height: 1.7; margin-bottom: 40px; }
+
+.ab-hero-ctas { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+.ab-btn-primary {
+    padding: 14px 28px; border-radius: 14px; background: linear-gradient(135deg, var(--brand-main), #8b5cf6);
+    color: #fff; font-size: 15px; font-weight: 800; text-decoration: none; display: inline-flex;
+    align-items: center; gap: 8px; box-shadow: 0 6px 20px var(--brand-glow); transition: 0.3s;
+}
+.ab-btn-primary:hover { transform: translateY(-3px); box-shadow: 0 12px 28px var(--brand-glow); }
+.ab-btn-primary.ab-btn-sm { padding: 10px 18px; font-size: 13px; }
+
+.ab-btn-ghost {
+    padding: 14px 28px; border-radius: 14px; border: 1px solid var(--glass-border);
+    background: var(--bg-surface); color: var(--text-100); font-size: 15px; font-weight: 700;
+    text-decoration: none; display: inline-flex; align-items: center; gap: 8px; transition: 0.3s;
+}
+.ab-btn-ghost:hover { border-color: var(--brand-main); color: var(--brand-main); }
+
+.ab-hero-scroll-hint { position: absolute; bottom: 32px; left: 50%; transform: translateX(-50%); color: var(--text-300); font-size: 20px; }
+
+/* 2. SECTIONS */
+.ab-section { padding: 80px 0; }
+.ab-container { max-width: 1100px; margin: 0 auto; padding: 0 6%; }
+.ab-section-label { font-size: 12px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; color: var(--brand-main); margin-bottom: 12px; }
+.ab-section-title { font-size: clamp(24px, 4vw, 40px); font-weight: 900; color: var(--text-100); margin-bottom: 24px; line-height: 1.2; }
+
+/* 3. MISSION */
+.ab-mission { background: var(--bg-surface); }
+.ab-mission-body { font-size: 18px; color: var(--text-200); line-height: 1.8; max-width: 700px; }
+
+/* 4. STATS GRID */
+.ab-stats-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; }
+@media (min-width: 768px) { .ab-stats-grid { grid-template-columns: repeat(4, 1fr); } }
+
+.ab-stat-card {
+    background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 20px; padding: 28px 20px;
+    text-align: center; box-shadow: var(--shadow-soft); transition: 0.3s;
+}
+.ab-stat-card:hover { transform: translateY(-4px); border-color: var(--brand-main); }
+.ab-stat-icon { font-size: 28px; color: var(--brand-main); margin-bottom: 12px; }
+.ab-stat-number { font-size: 32px; font-weight: 900; color: var(--text-100); font-family: 'Space Grotesk', sans-serif; margin-bottom: 6px; }
+.ab-stat-label { font-size: 13px; color: var(--text-300); font-weight: 700; }
+
+/* 5. TIMELINE */
+.ab-timeline { position: relative; padding-left: 24px; display: flex; flex-direction: column; gap: 0; }
+.ab-timeline::before { content: ''; position: absolute; left: 6px; top: 0; bottom: 0; width: 2px; background: var(--glass-border); }
+
+.ab-timeline-item { position: relative; padding: 0 0 36px 28px; animation: abFadeUp 0.5s both; }
+.ab-timeline-item::before { content: ''; position: absolute; left: -4px; top: 4px; width: 16px; height: 16px; border-radius: 50%; border: 3px solid var(--brand-main); background: var(--bg-base); box-shadow: 0 0 12px var(--brand-glow); }
+.ab-tl-year { font-size: 12px; font-weight: 800; color: var(--brand-main); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 4px; }
+.ab-tl-title { font-size: 17px; font-weight: 900; color: var(--text-100); margin-bottom: 6px; }
+.ab-tl-desc { font-size: 14px; color: var(--text-200); line-height: 1.6; }
+
+/* 6. TEAM GRID */
+.ab-team-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+
+.ab-team-card {
+    background: var(--bg-surface); border: 1px solid var(--glass-border); border-radius: 20px;
+    overflow: hidden; text-align: center; transition: 0.3s; box-shadow: var(--shadow-soft);
+}
+.ab-team-card:hover { transform: translateY(-5px); border-color: var(--brand-main); }
+.ab-team-avatar { width: 80px; height: 80px; border-radius: 50%; object-fit: cover; border: 3px solid var(--glass-border); margin: 24px auto 14px; display: block; background: var(--bg-elevated); }
+.ab-team-name { font-size: 15px; font-weight: 800; color: var(--text-100); margin-bottom: 4px; }
+.ab-team-role { font-size: 12px; color: var(--text-300); font-weight: 700; margin-bottom: 16px; }
+
+/* 7. STICKY B2B CTA */
+.ab-sticky-cta {
+    position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+    background: var(--bg-surface); border: 1px solid var(--glass-border);
+    border-radius: 50px; padding: 10px 10px 10px 20px;
+    display: flex; align-items: center; gap: 14px; box-shadow: var(--shadow-float);
+    z-index: 9000; white-space: nowrap; animation: abSlideUp 0.5s both; animation-delay: 2s;
+}
+@media (min-width: 768px) { .ab-sticky-cta { bottom: 40px; } }
+.ab-sticky-cta span { font-size: 14px; font-weight: 800; color: var(--text-100); display: flex; align-items: center; gap: 8px; }
+.ab-sticky-cta i { color: var(--brand-main); }
+
+/* ANIMATIONS & SKELETONS */
+@keyframes abFadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes abSlideUp { from { opacity: 0; transform: translateX(-50%) translateY(20px); } to { opacity: 1; transform: translateX(-50%) translateY(0); } }
+.skeleton { position: relative; overflow: hidden; background: var(--bg-surface); border-radius: 16px; pointer-events: none; }
+.skeleton::before { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.05), transparent); animation: skelSweep 1.5s infinite; }
+@keyframes skelSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

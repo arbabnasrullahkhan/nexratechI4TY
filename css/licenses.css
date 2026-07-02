@@ -1,0 +1,56 @@
+/* css/licenses.css */
+body.lic-theme { background-color: #020617; color: #94a3b8; font-family: 'Space Grotesk', sans-serif; }
+.fira-font { font-family: 'Fira Code', monospace; }
+
+/* Auth Guard */
+.lic-guard { position: fixed; inset: 0; background: #020617; z-index: 9999; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.5s; }
+.lic-guard-icon { width: 80px; height: 80px; border-radius: 50%; background: rgba(59, 130, 246, 0.1); display: flex; align-items: center; justify-content: center; font-size: 32px; color: #3b82f6; border: 1px solid rgba(59, 130, 246, 0.3); box-shadow: 0 0 20px rgba(59, 130, 246, 0.2); }
+
+/* Layout */
+.lic-container { max-width: 1000px; margin: 0 auto; padding: 100px 4% 120px; display: flex; flex-direction: column; gap: 30px; min-height: 100vh;}
+
+.lic-header { border-bottom: 1px solid rgba(59, 130, 246, 0.2); padding-bottom: 20px; }
+.lic-header h1 { font-size: 28px; color: #fff; margin-bottom: 8px; }
+.lic-header p { font-size: 15px; color: #64748b; }
+
+/* Grid & Cards */
+.lic-grid { display: flex; flex-direction: column; gap: 20px; }
+
+.lic-card { background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(59, 130, 246, 0.2); border-radius: 16px; overflow: hidden; display: flex; flex-direction: column; transition: 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+.lic-card:hover { border-color: rgba(59, 130, 246, 0.5); box-shadow: 0 10px 30px rgba(0,0,0,0.5); transform: translateY(-2px); }
+
+.lc-top { padding: 20px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 16px; background: rgba(0,0,0,0.2); }
+.lc-title-wrap { display: flex; flex-direction: column; gap: 6px; }
+.lc-title { font-size: 18px; font-weight: 800; color: #fff; }
+.lc-key { font-size: 14px; color: #3b82f6; background: rgba(59, 130, 246, 0.1); padding: 4px 10px; border-radius: 6px; display: inline-block; letter-spacing: 1px; }
+
+.lc-status { font-size: 11px; font-weight: 800; text-transform: uppercase; letter-spacing: 1px; padding: 4px 12px; border-radius: 50px; }
+.status-active { background: rgba(16, 185, 129, 0.1); color: #10b981; border: 1px solid rgba(16, 185, 129, 0.3); }
+.status-expired { background: rgba(239, 68, 68, 0.1); color: #ef4444; border: 1px solid rgba(239, 68, 68, 0.3); }
+
+.lc-dates { display: flex; gap: 24px; padding: 16px 24px; border-bottom: 1px solid rgba(255,255,255,0.05); flex-wrap: wrap; }
+.lc-date-box { display: flex; flex-direction: column; gap: 4px; }
+.lc-date-lbl { font-size: 11px; font-weight: 800; color: #64748b; text-transform: uppercase; letter-spacing: 0.5px; }
+.lc-date-val { font-size: 14px; color: #cbd5e1; }
+
+.lc-devices { padding: 20px 24px; display: flex; flex-direction: column; gap: 12px; }
+.lc-dev-header { font-size: 13px; font-weight: 800; color: #fff; display: flex; align-items: center; gap: 8px; }
+
+.dev-list { display: flex; flex-direction: column; gap: 10px; }
+.dev-item { background: rgba(255,255,255,0.02); border: 1px solid rgba(255,255,255,0.05); border-radius: 8px; padding: 12px 16px; display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; }
+.dev-info { display: flex; align-items: center; gap: 12px; }
+.dev-icon { font-size: 20px; color: #94a3b8; }
+.dev-meta { display: flex; flex-direction: column; }
+.dev-name { font-size: 14px; font-weight: 700; color: #fff; }
+.dev-ip { font-size: 12px; color: #64748b; font-family: monospace; }
+
+.btn-revoke { background: transparent; border: 1px solid rgba(239, 68, 68, 0.3); color: #ef4444; padding: 8px 16px; border-radius: 6px; font-size: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; font-family: inherit; }
+.btn-revoke:hover { background: rgba(239, 68, 68, 0.1); border-color: #ef4444; }
+
+/* Empty & Loading */
+.lic-empty { text-align: center; padding: 60px 20px; background: rgba(15, 23, 42, 0.3); border-radius: 16px; border: 1px dashed rgba(59, 130, 246, 0.2); }
+.lic-empty i { font-size: 40px; color: #3b82f6; margin-bottom: 16px; opacity: 0.5; }
+
+.skeleton { height: 250px; background: rgba(255,255,255,0.03); position: relative; pointer-events: none; }
+.skeleton::after { content: ''; position: absolute; inset: 0; background: linear-gradient(90deg, transparent, rgba(255,255,255,0.02), transparent); animation: skelSweep 1.5s infinite; }
+@keyframes skelSweep { 0% { transform: translateX(-100%); } 100% { transform: translateX(100%); } }

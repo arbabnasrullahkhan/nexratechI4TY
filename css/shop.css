@@ -1,0 +1,1653 @@
+/* ==========================================================================
+   NEXRA TECH PK — SHOP PAGE (css/shop.css)
+   Scope: All .sp-* selectors — loaded ONLY on shop/shop.html
+   Depends on: /css/global.css for :root tokens, .btn, .icon-btn, .tech-font
+   ==========================================================================
+   SECTION INDEX:
+   01. Shop-Specific Design Tokens
+   02. Skeleton / Shimmer Loader
+   03. Promo Banner Carousel
+   04. Shop Header & Toolbar
+   05. Voice Search Bar
+   06. Category Swimlane
+   07. Active Filter Chips Row
+   08. Two-Column Layout (Sidebar + Grid)
+   09. Desktop Filter Sidebar
+   10. Filter Controls (sort, checkboxes, price)
+   11. Product Grid & List Views
+   12. Product Card (all states: default, hover, sale, new, trending)
+   13. Product Card — Badges, Watermark, Rating, Pricing
+   14. Product Card — Wishlist & Action Buttons
+   15. Empty State & Error State
+   16. Load More Button
+   17. Trust Strip Section
+   18. Mobile Filter Bottom Sheet
+   19. USD Rate Box
+   20. Search Dropdown
+   21. Responsive — 480px, 640px, 768px, 1024px, 1280px, 1440px+
+   ========================================================================== */
+
+/* ==========================================================================
+   01. SHOP-SPECIFIC DESIGN TOKENS
+   ========================================================================== */
+.sp {
+    /* Extends global :root tokens with page-specific values */
+    --sp-sidebar-w:   280px;
+    --sp-gap:         20px;
+    --sp-card-radius: 20px;
+    --sp-badge-h:     22px;
+    --sp-img-ratio:   62%;    /* 16:10 product image aspect ratio */
+    --sp-anim:        cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Global body padding compensation for fixed header */
+body {
+    padding-top: 0;
+}
+
+/* ==========================================================================
+   02. SKELETON / SHIMMER LOADER
+   ========================================================================== */
+@keyframes spShimmer {
+    0%   { background-position: -600px 0; }
+    100% { background-position: 600px 0; }
+}
+
+.sp-skeleton-pulse {
+    background: linear-gradient(
+        90deg,
+        var(--bg-elevated) 25%,
+        var(--bg-surface)  50%,
+        var(--bg-elevated) 75%
+    );
+    background-size: 600px 100%;
+    animation: spShimmer 1.6s ease-in-out infinite;
+    border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   03. PROMO BANNER CAROUSEL
+   ========================================================================== */
+.sp-banner-section {
+    width: 100%;
+    overflow: hidden;
+    margin-bottom: 8px;
+    /* Overlaps slightly below any top padding */
+}
+
+.sp-banner-track {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 16px 4% 8px;
+}
+.sp-banner-track::-webkit-scrollbar { display: none; }
+
+/* Individual banner card */
+.sp-banner-card {
+    flex-shrink: 0;
+    width: min(88vw, 740px);
+    height: 140px;
+    border-radius: var(--radius-md);
+    overflow: hidden;
+    position: relative;
+    scroll-snap-align: start;
+    cursor: pointer;
+    transition: transform 0.35s var(--sp-anim), box-shadow 0.35s ease;
+    box-shadow: var(--shadow-soft);
+}
+.sp-banner-card:hover {
+    transform: scale(1.015);
+    box-shadow: var(--shadow-float);
+}
+
+.sp-banner-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+    transition: transform 0.5s ease;
+}
+.sp-banner-card:hover .sp-banner-img {
+    transform: scale(1.04);
+}
+
+.sp-banner-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(90deg, rgba(0,0,0,0.72) 0%, rgba(0,0,0,0.1) 60%, transparent 100%);
+    display: flex;
+    align-items: center;
+    padding: 0 28px;
+}
+
+.sp-banner-content { flex: 1; max-width: 280px; }
+
+.sp-banner-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    background: var(--brand-main);
+    color: #fff;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    padding: 4px 10px;
+    border-radius: 50px;
+    margin-bottom: 8px;
+}
+
+.sp-banner-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: clamp(16px, 3vw, 22px);
+    font-weight: 800;
+    color: #fff;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.3px;
+}
+
+.sp-banner-cta {
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    background: #fff;
+    color: var(--bg-base);
+    padding: 9px 18px;
+    border-radius: 50px;
+    font-size: 11px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: 0.25s var(--sp-anim);
+}
+.sp-banner-cta:hover {
+    background: var(--brand-main);
+    color: #fff;
+    transform: translateX(3px);
+}
+
+/* Skeleton banners */
+.sp-banner-skeleton {
+    flex-shrink: 0;
+    width: min(88vw, 740px);
+    height: 140px;
+    border-radius: var(--radius-md);
+}
+
+/* ==========================================================================
+   04. SHOP HEADER & TOOLBAR
+   ========================================================================== */
+.sp-shop-header {
+    padding: 24px 4% 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sp-page-title {
+    font-size: clamp(24px, 5vw, 36px);
+    font-weight: 900;
+    color: var(--text-100);
+    letter-spacing: -1px;
+    line-height: 1.1;
+}
+
+.sp-page-subtitle {
+    font-size: 13px;
+    color: var(--text-200);
+    font-weight: 500;
+    margin-top: 6px;
+    line-height: 1.5;
+}
+
+/* Toolbar row: result count + view toggle + mobile filter btn */
+.sp-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.sp-result-info {
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-300);
+    letter-spacing: 0.3px;
+    min-height: 20px;
+}
+
+.sp-toolbar-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+/* Grid / List view toggle buttons */
+.sp-view-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    border: 1px solid var(--glass-border);
+    background: var(--bg-surface);
+    color: var(--text-300);
+    font-size: 14px;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sp-view-btn:hover,
+.sp-view-btn.active {
+    background: var(--brand-main);
+    color: #fff;
+    border-color: var(--brand-main);
+}
+
+/* Mobile filter button (hidden on desktop) */
+.sp-mobile-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 50px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--bg-surface);
+    color: var(--text-100);
+    font-size: 12px;
+    font-weight: 700;
+    font-family: inherit;
+    cursor: pointer;
+    position: relative;
+    transition: var(--transition);
+}
+.sp-mobile-filter-btn:hover {
+    border-color: var(--brand-main);
+    color: var(--brand-main);
+}
+
+/* Red dot indicator when filters are active */
+.sp-filter-active-dot {
+    width: 7px;
+    height: 7px;
+    background: var(--brand-main);
+    border-radius: 50%;
+    box-shadow: 0 0 6px var(--brand-main);
+    animation: spDotPulse 2s ease-in-out infinite;
+}
+@keyframes spDotPulse {
+    0%, 100% { transform: scale(1); opacity: 1; }
+    50%       { transform: scale(1.3); opacity: 0.7; }
+}
+
+/* ==========================================================================
+   05. VOICE SEARCH BAR
+   ========================================================================== */
+.sp-search-wrap {
+    padding: 0 4% 16px;
+    position: relative;
+}
+
+.sp-search-bar {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    background: var(--bg-surface);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 50px;
+    padding: 8px 8px 8px 20px;
+    box-shadow: var(--shadow-soft);
+    transition: border-color 0.25s ease, box-shadow 0.25s ease;
+    position: relative;
+}
+.sp-search-bar:focus-within {
+    border-color: var(--brand-main);
+    box-shadow: 0 0 0 4px rgba(255, 74, 23, 0.08), var(--shadow-soft);
+}
+
+/* Magnifying glass icon */
+.sp-search-icon {
+    color: var(--text-300);
+    font-size: 15px;
+    flex-shrink: 0;
+    transition: color 0.2s;
+}
+.sp-search-bar:focus-within .sp-search-icon {
+    color: var(--brand-main);
+}
+
+/* Input */
+.sp-search-input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    outline: none;
+    color: var(--text-100);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 14px;
+    font-weight: 500;
+    min-width: 0;
+    caret-color: var(--brand-main);
+}
+.sp-search-input::placeholder { color: var(--text-300); }
+
+/* Voice button */
+.sp-voice-btn {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--bg-elevated);
+    color: var(--text-200);
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.25s var(--sp-anim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sp-voice-btn:hover,
+.sp-voice-btn.listening {
+    background: var(--brand-main);
+    color: #fff;
+    border-color: var(--brand-main);
+    box-shadow: 0 0 16px rgba(255, 74, 23, 0.45);
+}
+.sp-voice-btn.listening {
+    animation: spVoicePulse 1s ease-in-out infinite;
+}
+@keyframes spVoicePulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(255, 74, 23, 0.5); }
+    50%       { box-shadow: 0 0 0 8px rgba(255, 74, 23, 0); }
+}
+
+/* Submit button */
+.sp-search-submit {
+    flex-shrink: 0;
+    height: 42px;
+    padding: 0 20px;
+    border-radius: 50px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 0.3px;
+    gap: 7px;
+}
+
+.sp-search-btn-text {
+    display: none;
+}
+
+/* Search autocomplete dropdown */
+.sp-search-dropdown {
+    position: absolute;
+    top: calc(100% + 8px);
+    left: 0;
+    right: 0;
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-float);
+    z-index: 5000;
+    overflow: hidden;
+    animation: spDropIn 0.2s var(--sp-anim) both;
+    max-height: 320px;
+    overflow-y: auto;
+}
+@keyframes spDropIn {
+    0%   { opacity: 0; transform: translateY(-8px) scale(0.98); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.sp-suggest-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 18px;
+    cursor: pointer;
+    transition: background 0.15s ease;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--text-100);
+    border-bottom: 1px solid var(--glass-border);
+}
+.sp-suggest-item:last-child { border-bottom: none; }
+.sp-suggest-item:hover { background: var(--bg-elevated); }
+
+.sp-suggest-img {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    object-fit: cover;
+    background: var(--bg-elevated);
+    flex-shrink: 0;
+}
+
+.sp-suggest-info { flex: 1; min-width: 0; }
+.sp-suggest-title {
+    font-weight: 700;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.sp-suggest-price {
+    font-size: 11px;
+    color: var(--brand-main);
+    font-weight: 800;
+    margin-top: 2px;
+}
+
+.sp-suggest-no-results {
+    padding: 16px 18px;
+    text-align: center;
+    color: var(--text-300);
+    font-size: 13px;
+    font-weight: 600;
+}
+
+/* ==========================================================================
+   06. CATEGORY SWIMLANE
+   ========================================================================== */
+.sp-cats-wrap {
+    position: relative;
+    padding: 0 4%;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.sp-cats-track {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    padding: 4px 0;
+    flex: 1;
+}
+.sp-cats-track::-webkit-scrollbar { display: none; }
+
+/* Category pill */
+.sp-cat-pill {
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 38px;
+    padding: 0 18px;
+    border-radius: 50px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--bg-surface);
+    color: var(--text-200);
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: 0.25s var(--sp-anim);
+    white-space: nowrap;
+    user-select: none;
+    -webkit-user-select: none;
+}
+.sp-cat-pill i { font-size: 11px; }
+.sp-cat-pill:hover {
+    border-color: var(--brand-main);
+    color: var(--brand-main);
+    background: var(--bg-elevated);
+    transform: translateY(-1px);
+}
+.sp-cat-pill.active {
+    background: var(--brand-main);
+    border-color: var(--brand-main);
+    color: #fff;
+    box-shadow: 0 6px 16px var(--brand-glow);
+}
+
+/* Skeleton pills */
+.sp-cat-skeleton {
+    flex-shrink: 0;
+    width: 90px;
+    height: 38px;
+    border-radius: 50px;
+}
+
+/* Arrow scroll buttons (shown on desktop) */
+.sp-cats-arrow {
+    flex-shrink: 0;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--bg-surface);
+    color: var(--text-200);
+    font-size: 13px;
+    cursor: pointer;
+    transition: 0.25s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: var(--shadow-soft);
+}
+.sp-cats-arrow:hover {
+    background: var(--brand-main);
+    color: #fff;
+    border-color: var(--brand-main);
+}
+
+/* ==========================================================================
+   07. ACTIVE FILTER CHIPS ROW
+   ========================================================================== */
+.sp-active-filters {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 0 4% 14px;
+    flex-wrap: wrap;
+}
+
+.sp-active-filters-label {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-300);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.sp-chip-row {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+    flex: 1;
+}
+
+/* Individual dismissible chip */
+.sp-filter-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    padding: 0 12px;
+    border-radius: 50px;
+    background: rgba(255, 74, 23, 0.1);
+    border: 1px solid rgba(255, 74, 23, 0.25);
+    color: var(--brand-main);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: 0.2s ease;
+    font-family: inherit;
+}
+.sp-filter-chip:hover {
+    background: var(--brand-main);
+    color: #fff;
+    border-color: var(--brand-main);
+}
+.sp-filter-chip i { font-size: 9px; }
+
+.sp-clear-all-btn {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-300);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    white-space: nowrap;
+    transition: color 0.2s;
+}
+.sp-clear-all-btn:hover { color: var(--brand-main); }
+
+/* ==========================================================================
+   08. TWO-COLUMN LAYOUT
+   ========================================================================== */
+.sp-layout {
+    display: flex;
+    gap: var(--sp-gap);
+    padding: 0 4%;
+    align-items: flex-start;
+    width: 100%;
+}
+
+/* Sidebar hidden on mobile by default */
+.sp-sidebar {
+    display: none;
+}
+
+/* Grid takes full width on mobile */
+.sp-grid-wrap {
+    flex: 1;
+    min-width: 0;
+}
+
+/* ==========================================================================
+   09. DESKTOP FILTER SIDEBAR
+   ========================================================================== */
+@media (min-width: 1024px) {
+    .sp-sidebar {
+        display: flex;
+        flex-direction: column;
+        gap: 0;
+        width: var(--sp-sidebar-w);
+        flex-shrink: 0;
+        position: sticky;
+        top: 86px;   /* below the floating header */
+        max-height: calc(100vh - 106px);
+        overflow-y: auto;
+        overflow-x: hidden;
+        scrollbar-width: thin;
+        background: var(--bg-surface);
+        border: 1px solid var(--glass-border);
+        border-radius: var(--radius-md);
+        box-shadow: var(--shadow-soft);
+        padding-bottom: 16px;
+    }
+    .sp-sidebar::-webkit-scrollbar { width: 3px; }
+    .sp-sidebar::-webkit-scrollbar-thumb { background: var(--bg-elevated); border-radius: 10px; }
+
+    /* Mobile filter button hidden on desktop */
+    .sp-mobile-filter-btn { display: none; }
+
+    /* Search submit shows text on desktop */
+    .sp-search-btn-text { display: inline; }
+
+    /* Cats arrows visible on desktop */
+    .sp-cats-arrow { display: flex; }
+}
+
+/* ==========================================================================
+   10. FILTER CONTROLS
+   ========================================================================== */
+
+/* Sidebar header */
+.sp-sidebar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid var(--glass-border);
+    position: sticky;
+    top: 0;
+    background: var(--bg-surface);
+    z-index: 2;
+}
+
+.sp-sidebar-title {
+    font-size: 14px;
+    font-weight: 800;
+    color: var(--text-100);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.sp-sidebar-title i { color: var(--brand-main); }
+
+.sp-sidebar-reset {
+    font-size: 11px;
+    font-weight: 800;
+    color: var(--text-300);
+    background: none;
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+    transition: color 0.2s;
+}
+.sp-sidebar-reset:hover { color: var(--brand-main); }
+
+/* Filter group */
+.sp-filter-group {
+    padding: 16px 18px;
+    border-bottom: 1px solid var(--glass-border);
+}
+.sp-filter-group:last-child { border-bottom: none; }
+
+.sp-filter-group-title {
+    font-size: 11px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: var(--text-300);
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+}
+.sp-filter-group-title i { color: var(--brand-main); }
+
+/* Sort list (desktop sidebar) */
+.sp-sort-list { display: flex; flex-direction: column; gap: 4px; }
+
+.sp-sort-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 12px;
+    border-radius: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-200);
+    cursor: pointer;
+    transition: 0.2s ease;
+    border: 1.5px solid transparent;
+    background: transparent;
+    width: 100%;
+    text-align: left;
+    font-family: inherit;
+}
+.sp-sort-item:hover {
+    background: var(--bg-elevated);
+    color: var(--text-100);
+}
+.sp-sort-item.active {
+    background: rgba(255, 74, 23, 0.08);
+    border-color: rgba(255, 74, 23, 0.2);
+    color: var(--brand-main);
+    font-weight: 700;
+}
+.sp-sort-item i { font-size: 11px; width: 14px; text-align: center; }
+
+/* Sort grid (mobile sheet) */
+.sp-sort-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+}
+
+/* Checkbox list */
+.sp-check-list { display: flex; flex-direction: column; gap: 6px; }
+
+.sp-check-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 8px 10px;
+    border-radius: 10px;
+    cursor: pointer;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-200);
+    transition: background 0.15s ease;
+    user-select: none;
+}
+.sp-check-item:hover { background: var(--bg-elevated); color: var(--text-100); }
+.sp-check-item input { display: none; } /* hidden native checkbox */
+
+.sp-check-box {
+    width: 18px;
+    height: 18px;
+    border-radius: 6px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--bg-elevated);
+    flex-shrink: 0;
+    position: relative;
+    transition: 0.2s var(--sp-anim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sp-check-item input:checked ~ .sp-check-box {
+    background: var(--brand-main);
+    border-color: var(--brand-main);
+}
+.sp-check-item input:checked ~ .sp-check-box::after {
+    content: '';
+    display: block;
+    width: 5px;
+    height: 9px;
+    border: 2px solid #fff;
+    border-top: none;
+    border-left: none;
+    transform: rotate(45deg) translate(-1px, -1px);
+}
+
+/* Price range inputs */
+.sp-price-range { display: flex; flex-direction: column; gap: 10px; }
+
+.sp-price-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.sp-price-input {
+    flex: 1;
+    background: var(--bg-elevated);
+    border: 1.5px solid var(--glass-border);
+    border-radius: 10px;
+    padding: 9px 12px;
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-100);
+    outline: none;
+    transition: border-color 0.2s;
+    min-width: 0;
+    -moz-appearance: textfield;
+}
+.sp-price-input::-webkit-outer-spin-button,
+.sp-price-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+.sp-price-input:focus {
+    border-color: var(--brand-main);
+    background: var(--bg-surface);
+}
+.sp-price-input::placeholder { color: var(--text-300); }
+
+.sp-price-sep { color: var(--text-300); font-weight: 700; font-size: 12px; }
+
+.sp-price-apply-btn {
+    height: 36px;
+    padding: 0 16px;
+    border-radius: 50px;
+    background: var(--brand-main);
+    color: #fff;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 800;
+    border: none;
+    cursor: pointer;
+    transition: 0.2s;
+    box-shadow: 0 4px 12px var(--brand-glow);
+}
+.sp-price-apply-btn:hover { transform: translateY(-1px); opacity: 0.9; }
+
+/* USD rate box */
+.sp-usd-rate-box {
+    margin: 16px 18px 0;
+    background: var(--bg-elevated);
+    border: 1px solid var(--glass-border);
+    border-radius: 12px;
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-200);
+}
+.sp-usd-rate-box i { color: var(--success); }
+
+/* ==========================================================================
+   11. PRODUCT GRID & LIST VIEWS
+   ========================================================================== */
+
+/* Grid view (default) */
+.sp-product-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 14px;
+    margin-bottom: 20px;
+}
+
+/* List view */
+.sp-product-grid.sp-list-view {
+    grid-template-columns: 1fr;
+    gap: 12px;
+}
+
+/* Skeleton cards */
+.sp-card-skeleton {
+    height: 320px;
+    border-radius: var(--sp-card-radius);
+}
+
+/* ==========================================================================
+   12. PRODUCT CARD
+   ========================================================================== */
+.sp-product-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--sp-card-radius);
+    overflow: hidden;
+    cursor: pointer;
+    transition: transform 0.35s var(--sp-anim), box-shadow 0.35s ease, border-color 0.25s ease;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    animation: spCardIn 0.5s var(--sp-anim) both;
+}
+
+@keyframes spCardIn {
+    0%   { opacity: 0; transform: translateY(16px); }
+    100% { opacity: 1; transform: translateY(0); }
+}
+
+.sp-product-card:hover {
+    transform: translateY(-5px) scale(1.01);
+    box-shadow: 0 20px 48px -8px rgba(0,0,0,0.12);
+    border-color: rgba(255, 74, 23, 0.18);
+    z-index: 2;
+}
+
+[data-theme="dark"] .sp-product-card:hover {
+    box-shadow: 0 20px 48px -8px rgba(0,0,0,0.5);
+}
+
+/* ── Product image container ─── */
+.sp-card-img-wrap {
+    position: relative;
+    width: 100%;
+    padding-top: var(--sp-img-ratio);
+    overflow: hidden;
+    background: var(--bg-elevated);
+}
+
+.sp-card-img {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.5s ease;
+}
+
+.sp-product-card:hover .sp-card-img {
+    transform: scale(1.06);
+}
+
+/* Branding watermark overlay on product image */
+.sp-card-watermark {
+    position: absolute;
+    bottom: 10px;
+    right: 10px;
+    height: 20px;
+    width: auto;
+    opacity: 0.55;
+    pointer-events: none;
+    filter: drop-shadow(0 2px 4px rgba(0,0,0,0.3));
+    transition: opacity 0.3s;
+}
+.sp-product-card:hover .sp-card-watermark { opacity: 0.8; }
+
+/* Wishlist button (heart, top right of image) */
+.sp-wishlist-btn {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    color: var(--text-300);
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.25s var(--sp-anim);
+    z-index: 3;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+    opacity: 0;
+    transform: scale(0.8);
+}
+.sp-product-card:hover .sp-wishlist-btn {
+    opacity: 1;
+    transform: scale(1);
+}
+.sp-wishlist-btn:hover {
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+    transform: scale(1.1) !important;
+}
+.sp-wishlist-btn.wishlisted {
+    opacity: 1;
+    transform: scale(1);
+    background: #ef4444;
+    border-color: #ef4444;
+    color: #fff;
+}
+
+/* ==========================================================================
+   13. PRODUCT CARD — BADGES, RATING, PRICING
+   ========================================================================== */
+
+/* Badge row (top left of image) */
+.sp-card-badges {
+    position: absolute;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 3;
+}
+
+.sp-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    height: var(--sp-badge-h);
+    padding: 0 9px;
+    border-radius: 50px;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+    text-transform: uppercase;
+    line-height: 1;
+    white-space: nowrap;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+}
+
+.sp-badge-sale {
+    background: #ef4444;
+    color: #fff;
+}
+
+.sp-badge-new {
+    background: var(--success);
+    color: #fff;
+}
+
+.sp-badge-trending {
+    background: #f59e0b;
+    color: #fff;
+}
+
+.sp-badge-digital {
+    background: var(--info);
+    color: #fff;
+}
+
+.sp-badge-physical {
+    background: #8b5cf6;
+    color: #fff;
+}
+
+.sp-badge-saas {
+    background: linear-gradient(135deg, var(--brand-main), #ff8a00);
+    color: #fff;
+}
+
+.sp-badge-out {
+    background: var(--text-300);
+    color: #fff;
+}
+
+/* ── Card body below image ─── */
+.sp-card-body {
+    padding: 14px 14px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    flex: 1;
+}
+
+/* Category tag */
+.sp-card-cat {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--brand-main);
+    text-transform: uppercase;
+    letter-spacing: 0.8px;
+}
+
+/* Product title */
+.sp-card-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--text-100);
+    line-height: 1.3;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+}
+
+/* Star rating */
+.sp-card-rating {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.sp-stars {
+    display: flex;
+    gap: 1.5px;
+    color: #f59e0b;
+    font-size: 10px;
+}
+
+.sp-star-empty { color: var(--bg-elevated); }
+
+.sp-rating-count {
+    font-size: 10px;
+    color: var(--text-300);
+    font-weight: 600;
+}
+
+/* Pricing row */
+.sp-card-pricing {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-top: auto;
+}
+
+.sp-card-price-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+}
+
+.sp-price {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 17px;
+    font-weight: 800;
+    color: var(--text-100);
+    letter-spacing: -0.3px;
+}
+
+.sp-price-old {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-300);
+    text-decoration: line-through;
+}
+
+.sp-price-discount {
+    font-size: 11px;
+    font-weight: 800;
+    color: #ef4444;
+    background: rgba(239, 68, 68, 0.1);
+    border-radius: 50px;
+    padding: 2px 7px;
+}
+
+.sp-price-usd {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-300);
+}
+
+/* Delivery type badge */
+.sp-delivery-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--success);
+    background: rgba(16, 185, 129, 0.09);
+    border-radius: 50px;
+    padding: 3px 9px;
+    margin-top: 4px;
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    width: fit-content;
+}
+.sp-delivery-badge i { font-size: 9px; }
+
+/* ── Card footer — action buttons ─── */
+.sp-card-actions {
+    display: flex;
+    gap: 8px;
+    padding: 0 14px 14px;
+}
+
+.sp-btn-cart {
+    flex: 1;
+    height: 38px;
+    border-radius: 50px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--bg-elevated);
+    color: var(--text-100);
+    font-size: 11px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: 0.25s var(--sp-anim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    letter-spacing: 0.3px;
+}
+.sp-btn-cart:hover {
+    background: var(--bg-surface);
+    border-color: var(--brand-main);
+    color: var(--brand-main);
+    transform: translateY(-1px);
+}
+.sp-btn-cart:active { transform: scale(0.97); }
+
+.sp-btn-buy {
+    flex: 1.3;
+    height: 38px;
+    border-radius: 50px;
+    border: none;
+    background: var(--brand-main);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: 0.25s var(--sp-anim);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    letter-spacing: 0.3px;
+    box-shadow: 0 6px 16px var(--brand-glow);
+}
+.sp-btn-buy:hover {
+    background: #e53d0a;
+    box-shadow: 0 8px 22px var(--brand-glow);
+    transform: translateY(-2px);
+}
+.sp-btn-buy:active { transform: scale(0.97); }
+
+/* Out-of-stock card overlay */
+.sp-product-card.sp-out-of-stock .sp-card-actions {
+    opacity: 0.5;
+    pointer-events: none;
+}
+.sp-product-card.sp-out-of-stock .sp-card-img-wrap::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: rgba(var(--bg-base-rgb, 248,250,252), 0.45);
+}
+
+/* ── LIST VIEW card override ─── */
+.sp-product-grid.sp-list-view .sp-product-card {
+    flex-direction: row;
+    height: auto;
+}
+
+.sp-product-grid.sp-list-view .sp-card-img-wrap {
+    width: 130px;
+    padding-top: 0;
+    height: 130px;
+    flex-shrink: 0;
+    border-radius: var(--sp-card-radius) 0 0 var(--sp-card-radius);
+}
+
+.sp-product-grid.sp-list-view .sp-card-img {
+    position: absolute;
+    border-radius: 0;
+}
+
+.sp-product-grid.sp-list-view .sp-card-body {
+    padding: 14px 12px;
+}
+
+.sp-product-grid.sp-list-view .sp-card-actions {
+    flex-direction: column;
+    padding: 0 12px 14px;
+    width: 130px;
+    justify-content: center;
+    align-self: center;
+    gap: 6px;
+}
+
+.sp-product-grid.sp-list-view .sp-card-actions .sp-btn-cart,
+.sp-product-grid.sp-list-view .sp-card-actions .sp-btn-buy {
+    flex: none;
+    width: 100%;
+}
+
+/* ==========================================================================
+   14. EMPTY STATE & ERROR STATE
+   ========================================================================== */
+.sp-empty-state,
+.sp-error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 60px 24px;
+    min-height: 360px;
+    animation: spCardIn 0.5s var(--sp-anim) both;
+}
+
+.sp-empty-icon,
+.sp-error-icon {
+    width: 88px;
+    height: 88px;
+    border-radius: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 36px;
+    margin: 0 auto 24px;
+}
+
+.sp-empty-icon {
+    background: var(--bg-elevated);
+    color: var(--text-300);
+    border: 1px solid var(--glass-border);
+}
+
+.sp-error-icon {
+    background: rgba(239, 68, 68, 0.1);
+    color: #ef4444;
+    border: 1px solid rgba(239, 68, 68, 0.2);
+}
+
+.sp-empty-title,
+.sp-error-title {
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--text-100);
+    margin-bottom: 10px;
+    letter-spacing: -0.3px;
+}
+
+.sp-empty-desc,
+.sp-error-desc {
+    font-size: 14px;
+    color: var(--text-200);
+    line-height: 1.7;
+    max-width: 380px;
+    margin: 0 auto 28px;
+}
+
+.sp-empty-cta { padding: 14px 28px; }
+
+/* ==========================================================================
+   15. LOAD MORE BUTTON
+   ========================================================================== */
+.sp-load-more-wrap {
+    display: flex;
+    justify-content: center;
+    padding: 24px 0 16px;
+}
+
+.sp-load-more-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 200px;
+    padding: 16px 28px;
+    border-radius: 50px;
+    border: 1.5px solid var(--glass-border);
+    background: var(--bg-surface);
+    color: var(--text-100);
+    font-size: 13px;
+    font-weight: 800;
+    font-family: inherit;
+    cursor: pointer;
+    transition: 0.25s var(--sp-anim);
+    box-shadow: var(--shadow-soft);
+    letter-spacing: 0.3px;
+}
+.sp-load-more-btn:hover {
+    border-color: var(--brand-main);
+    color: var(--brand-main);
+    transform: translateY(-2px);
+    box-shadow: 0 10px 28px var(--brand-glow);
+}
+.sp-load-more-btn.loading i {
+    animation: spSpin 0.8s linear infinite;
+}
+@keyframes spSpin {
+    from { transform: rotate(0deg); }
+    to   { transform: rotate(360deg); }
+}
+
+.sp-load-more-sub {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-300);
+}
+
+/* ==========================================================================
+   16. TRUST STRIP SECTION
+   ========================================================================== */
+.sp-trust-section {
+    padding: 32px 4%;
+    margin-top: 12px;
+}
+
+.sp-trust-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+}
+
+.sp-trust-card {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-radius: var(--radius-sm);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-soft);
+    transition: 0.3s var(--sp-anim);
+}
+.sp-trust-card:hover {
+    border-color: rgba(255, 74, 23, 0.15);
+    transform: translateY(-2px);
+}
+
+.sp-trust-icon {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+    background: rgba(255, 74, 23, 0.09);
+    border: 1px solid rgba(255, 74, 23, 0.18);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    color: var(--brand-main);
+    flex-shrink: 0;
+}
+
+.sp-trust-title {
+    font-size: 13px;
+    font-weight: 800;
+    color: var(--text-100);
+    margin-bottom: 2px;
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+.sp-trust-sub {
+    font-size: 11px;
+    color: var(--text-200);
+    font-weight: 500;
+}
+
+/* ==========================================================================
+   17. MOBILE FILTER BOTTOM SHEET
+   ========================================================================== */
+.sp-filter-sheet-overlay {
+    position: fixed;
+    inset: 0;
+    background: var(--overlay);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
+    z-index: 7000;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.35s ease, visibility 0.35s ease;
+}
+.sp-filter-sheet-overlay.open {
+    opacity: 1;
+    visibility: visible;
+}
+
+.sp-filter-sheet {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    z-index: 7001;
+    background: var(--bg-surface);
+    border-radius: 28px 28px 0 0;
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    transform: translateY(100%);
+    transition: transform 0.4s var(--sp-anim);
+    box-shadow: 0 -24px 60px rgba(0,0,0,0.2);
+}
+.sp-filter-sheet.open {
+    transform: translateY(0);
+}
+
+/* Sheet drag handle */
+.sp-sheet-handle {
+    width: 44px;
+    height: 4px;
+    border-radius: 10px;
+    background: var(--glass-border);
+    margin: 14px auto 0;
+    flex-shrink: 0;
+}
+
+/* Sheet header */
+.sp-sheet-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 20px 12px;
+    border-bottom: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+
+.sp-sheet-title {
+    font-size: 15px;
+    font-weight: 800;
+    color: var(--text-100);
+    font-family: 'Space Grotesk', sans-serif;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    letter-spacing: -0.3px;
+}
+.sp-sheet-title i { color: var(--brand-main); }
+
+.sp-sheet-close {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: 1px solid var(--glass-border);
+    background: var(--bg-elevated);
+    color: var(--text-200);
+    font-size: 16px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: 0.2s;
+}
+.sp-sheet-close:hover { background: var(--brand-main); color: #fff; border-color: var(--brand-main); }
+
+/* Scrollable body */
+.sp-sheet-body {
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    flex: 1;
+    padding: 8px 0;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Sheet footer */
+.sp-sheet-footer {
+    display: flex;
+    gap: 10px;
+    padding: 16px 20px calc(16px + env(safe-area-inset-bottom));
+    border-top: 1px solid var(--glass-border);
+    flex-shrink: 0;
+}
+
+.sp-sheet-reset {
+    flex: 0 0 auto;
+    padding: 14px 18px;
+    font-size: 13px;
+}
+
+.sp-sheet-apply {
+    flex: 1;
+    font-size: 13px;
+    position: relative;
+}
+
+.sp-filter-count-badge {
+    position: absolute;
+    top: -8px;
+    right: -8px;
+    background: #fff;
+    color: var(--brand-main);
+    font-size: 10px;
+    font-weight: 800;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    display: none; /* shown by JS when count > 0 */
+}
+
+/* ==========================================================================
+   18. RESPONSIVE BREAKPOINTS
+   ========================================================================== */
+
+/* 480px — slightly larger mobile */
+@media (min-width: 480px) {
+    .sp-product-grid { grid-template-columns: repeat(2, 1fr); }
+    .sp-trust-grid   { grid-template-columns: repeat(2, 1fr); }
+    .sp-card-skeleton { height: 340px; }
+}
+
+/* 640px — tablet portrait / large phone */
+@media (min-width: 640px) {
+    .sp-product-grid { grid-template-columns: repeat(2, 1fr); gap: 16px; }
+    .sp-banner-card  { height: 160px; }
+    .sp-card-title   { font-size: 15px; }
+    .sp-price        { font-size: 18px; }
+}
+
+/* 768px — tablet landscape */
+@media (min-width: 768px) {
+    .sp-product-grid { grid-template-columns: repeat(3, 1fr); }
+    .sp-trust-grid   { grid-template-columns: repeat(4, 1fr); }
+    .sp-banner-card  { height: 180px; }
+    .sp-card-skeleton { height: 360px; }
+}
+
+/* 1024px — desktop (sidebar appears, filter sheet hidden) */
+@media (min-width: 1024px) {
+    /* Filter sheet overlay is desktop-only hidden */
+    .sp-filter-sheet,
+    .sp-filter-sheet-overlay { display: none !important; }
+
+    .sp-product-grid { grid-template-columns: repeat(3, 1fr); gap: 18px; }
+    .sp-banner-card  { height: 200px; }
+    .sp-card-skeleton { height: 380px; }
+
+    .sp-shop-header {
+        flex-direction: row;
+        align-items: flex-end;
+    }
+}
+
+/* 1280px — wide desktop */
+@media (min-width: 1280px) {
+    .sp-product-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+/* 1440px — ultra-wide */
+@media (min-width: 1440px) {
+    .sp-product-grid { grid-template-columns: repeat(4, 1fr); }
+    .sp:root { --sp-sidebar-w: 300px; }
+}

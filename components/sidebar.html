@@ -1,0 +1,54 @@
+<!-- ==========================================================================
+     NEXRA TECH PK — SIDEBAR DRAWER (sidebar.html)
+     Mobile offcanvas navigation menu
+     ========================================================================== -->
+
+<!-- Overlay Backdrop -->
+<div class="sb-overlay" id="sidebar-overlay" onclick="NexraApp.closeSidebar()"></div>
+
+<!-- Drawer -->
+<div class="sb-drawer" id="sidebar">
+
+    <!-- Header -->
+    <div class="sb-header">
+        <div class="sb-badge">
+            <i class="fa-solid fa-compass"></i> NEXRA NAVIGATION
+        </div>
+        <button class="icon-btn" onclick="NexraApp.closeSidebar()">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
+    </div>
+
+    <!-- Quick Links -->
+    <div class="sb-group">
+        <span class="sb-group-title">Explore</span>
+        <div class="sb-link" onclick="NexraApp.navTo('shop'); NexraApp.closeSidebar()">
+            <i class="fa-solid fa-store"></i> Digital Marketplace
+        </div>
+        <div class="sb-link" onclick="NexraApp.navTo('freebies'); NexraApp.closeSidebar()">
+            <i class="fa-solid fa-cloud-arrow-down"></i> Free Vault
+        </div>
+        <div class="sb-link" onclick="NexraApp.navTo('blog'); NexraApp.closeSidebar()">
+            <i class="fa-solid fa-newspaper"></i> Learning Academy
+        </div>
+    </div>
+
+    <!-- Account -->
+    <div class="sb-group">
+        <span class="sb-group-title">Account</span>
+        <div class="sb-link" onclick="NexraApp.navTo('profile'); NexraApp.closeSidebar()">
+            <i class="fa-solid fa-circle-user"></i> My Profile
+        </div>
+        <div class="sb-link" onclick="NexraApp.navTo('support'); NexraApp.closeSidebar()">
+            <i class="fa-solid fa-headset"></i> Support Hub
+        </div>
+    </div>
+
+    <!-- Version Footer -->
+    <div style="margin-top: auto; padding-top: 20px; border-top: 1px solid var(--glass-border);">
+        <p style="font-size: 10px; color: var(--text-300); font-weight: 700; text-align:center; letter-spacing: 1px;">
+            NEXRA TECH PK · v2.0 · Pakistan's #1 Digital Ecosystem
+        </p>
+    </div>
+
+</div>

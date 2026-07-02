@@ -1,0 +1,61 @@
+/* css/developer.css */
+body.dev-theme { background-color: #0d1117; color: #c9d1d9; font-family: 'Space Grotesk', sans-serif; }
+
+.fira-font { font-family: 'Fira Code', monospace; }
+
+.dev-container { max-width: 1400px; margin: 0 auto; padding: 100px 4% 120px; display: flex; flex-direction: column; gap: 24px; min-height: 100vh;}
+
+/* Status Bar */
+.dev-status-bar { background: rgba(16, 185, 129, 0.05); border: 1px solid rgba(16, 185, 129, 0.2); border-radius: 12px; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; font-size: 13px; }
+.dsb-left { display: flex; align-items: center; gap: 10px; color: #10b981; }
+.status-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; box-shadow: 0 0 10px #10b981; animation: devPulse 2s infinite; }
+.dsb-metrics { display: flex; gap: 16px; color: #8b949e; }
+@keyframes devPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(1.2); } }
+
+.dev-layout { display: flex; gap: 40px; align-items: flex-start; }
+@media (max-width: 900px) {
+    .dev-layout { flex-direction: column; }
+}
+
+/* Sidebar */
+.dev-sidebar { width: 250px; position: sticky; top: 100px; flex-shrink: 0; }
+@media (max-width: 900px) { .dev-sidebar { position: static; width: 100%; border-bottom: 1px solid #30363d; padding-bottom: 20px; } }
+.ds-header { font-size: 14px; font-weight: 800; color: #fff; margin-bottom: 16px; text-transform: uppercase; letter-spacing: 1px; }
+.ds-nav { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; }
+.ds-nav a { text-decoration: none; color: #8b949e; font-size: 14px; padding: 8px 12px; border-radius: 6px; display: block; transition: 0.2s; border-left: 2px solid transparent; }
+.ds-nav a:hover { background: rgba(255,255,255,0.05); color: #c9d1d9; }
+.ds-nav a.active { color: #58a6ff; background: rgba(88, 166, 255, 0.1); border-left-color: #58a6ff; font-weight: 700; }
+
+/* Content */
+.dev-content { flex: 1; display: flex; flex-direction: column; gap: 60px; min-width: 0; /* fixes pre wrap issues */ }
+
+.dc-hero h1 { font-size: 36px; color: #fff; margin-bottom: 10px; display: flex; align-items: center; gap: 12px; }
+.dc-hero h1 i { color: #58a6ff; }
+.dc-hero p { font-size: 16px; color: #8b949e; line-height: 1.6; }
+
+.dc-section { display: flex; flex-direction: column; gap: 16px; scroll-margin-top: 100px; }
+.dc-section h2 { font-size: 24px; color: #fff; border-bottom: 1px solid #30363d; padding-bottom: 10px; display: flex; align-items: center; gap: 10px; }
+.dc-section h2 i { font-size: 20px; color: #8b949e; }
+.dc-section p { font-size: 15px; color: #8b949e; line-height: 1.6; }
+
+/* Code Blocks (IDE Aesthetic) */
+.code-block { background: #161b22; border: 1px solid #30363d; border-radius: 8px; overflow: hidden; box-shadow: 0 10px 30px rgba(0,0,0,0.5); }
+.cb-header { background: #0d1117; padding: 8px 16px; border-bottom: 1px solid #30363d; display: flex; justify-content: space-between; align-items: center; }
+.cb-lang { font-size: 12px; font-weight: 700; color: #8b949e; }
+.cb-copy { background: transparent; border: 1px solid #30363d; color: #8b949e; padding: 4px 10px; border-radius: 4px; font-size: 11px; cursor: pointer; transition: 0.2s; display: flex; align-items: center; gap: 6px; }
+.cb-copy:hover { background: #30363d; color: #fff; }
+
+.code-block pre { margin: 0; padding: 16px; overflow-x: auto; font-size: 13px; line-height: 1.5; color: #c9d1d9; }
+.code-block code { white-space: pre; }
+
+/* Basic Syntax Highlighting */
+.syntax-string { color: #a5d6ff; }
+.syntax-key { color: #7ee787; }
+.syntax-number { color: #79c0ff; }
+
+/* Webhooks */
+.webhook-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; margin-top: 10px; }
+.wh-card { background: #161b22; border: 1px solid #30363d; border-radius: 8px; padding: 16px; transition: 0.3s; }
+.wh-card:hover { border-color: #58a6ff; box-shadow: 0 4px 15px rgba(88, 166, 255, 0.1); }
+.wh-title { font-family: 'Fira Code', monospace; font-size: 13px; color: #58a6ff; font-weight: 700; margin-bottom: 8px; }
+.wh-desc { font-size: 13px; color: #8b949e; line-height: 1.4; }

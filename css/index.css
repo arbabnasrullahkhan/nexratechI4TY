@@ -1,0 +1,519 @@
+/* ==========================================================================
+   NEXRA TECH PK - MASTER ECOSYSTEM DESIGN SYSTEM
+   ========================================================================== */
+
+/* Typography Imports (Backup if Google Fonts link fails) */
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;700;800&display=swap');
+
+:root {
+    /* Base Color Tokens */
+    --bg-base: #ffffff;
+    --bg-surface: rgba(248, 250, 252, 0.85);
+    --bg-elevated: #f1f5f9;
+    
+    --text-100: #0f172a;
+    --text-200: #475569;
+    --text-300: #94a3b8;
+    
+    --glass-border: rgba(0, 0, 0, 0.05);
+    --glass-bg: rgba(255, 255, 255, 0.7);
+    --glass-blur: 20px;
+    
+    --shadow-sm: 0 4px 12px rgba(0,0,0,0.03);
+    --shadow-md: 0 12px 40px -12px rgba(0,0,0,0.08);
+    --shadow-lg: 0 20px 60px -15px rgba(0,0,0,0.15);
+    
+    --radius-sm: 12px;
+    --radius-md: 20px;
+    --radius-lg: 32px;
+    
+    --transition-fast: 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-smooth: 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+    --transition-slow: 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    
+    /* System Status Colors */
+    --success: #10b981;
+    --danger: #ef4444;
+    --warning: #f59e0b;
+    --info: #3b82f6;
+    
+    /* Brand Default (Beta Orange) */
+    --brand-main: #FF4A17;
+    --brand-glow: rgba(255, 74, 23, 0.15);
+}
+
+/* Dark Theme Support (Premium Cinematic Dark Mode) */
+[data-theme="dark"] {
+    --bg-base: #050507;
+    --bg-surface: rgba(12, 12, 18, 0.85);
+    --bg-elevated: #16161e;
+    
+    --text-100: #ffffff;
+    --text-200: #a1a1aa;
+    --text-300: #52525b;
+    
+    --glass-border: rgba(255, 255, 255, 0.06);
+    --glass-bg: rgba(8, 8, 12, 0.7);
+    --shadow-md: 0 15px 50px rgba(0,0,0,0.5);
+    --shadow-lg: 0 25px 80px rgba(0,0,0,0.7);
+    
+    --brand-glow: rgba(255, 74, 23, 0.25);
+}
+
+/* Base Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    -webkit-tap-highlight-color: transparent;
+    outline: none;
+}
+
+body {
+    background: var(--bg-base);
+    color: var(--text-100);
+    font-family: 'Plus Jakarta Sans', sans-serif;
+    overflow-x: hidden;
+    width: 100vw;
+    height: 100vh;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+.tech-font {
+    font-family: 'Space Grotesk', sans-serif;
+}
+
+/* Scrollbar customization */
+::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+}
+::-webkit-scrollbar-track {
+    background: var(--bg-base);
+}
+::-webkit-scrollbar-thumb {
+    background: var(--bg-elevated);
+    border-radius: 10px;
+}
+::-webkit-scrollbar-thumb:hover {
+    background: var(--text-300);
+}
+
+/* ==========================================================================
+   SPA SHELL STRUCTURAL LAYOUT
+   ========================================================================== */
+
+#spa-root {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    min-height: 100vh;
+    position: relative;
+}
+
+/* Top Progress Loader (Dynamic SPA Routing Indicator) */
+#spa-top-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 0%;
+    height: 3px;
+    background: var(--brand-main);
+    z-index: 10000;
+    box-shadow: 0 0 12px var(--brand-main), 0 0 4px var(--brand-main);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.4s ease;
+    opacity: 0;
+}
+
+/* Viewport Main Mount */
+#spa-main {
+    flex: 1;
+    width: 100%;
+    position: relative;
+    padding-bottom: 72px; /* Pad for bottom navigation on mobile */
+    min-height: 100vh;
+    opacity: 1;
+    transition: opacity 0.4s var(--transition-smooth), transform 0.4s var(--transition-smooth);
+}
+
+#spa-main.page-transitioning {
+    opacity: 0;
+    transform: translateY(12px) scale(0.995);
+}
+
+/* ==========================================================================
+   GLOBAL MOUNT COMPONENTS (Header, SideMenu, BottomDock, Toast)
+   ========================================================================== */
+
+/* Global Glass Header */
+header#global-header {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-bottom: 1px solid var(--glass-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 20px;
+    z-index: 900;
+    transition: background var(--transition-fast), border var(--transition-fast);
+}
+
+/* Off-canvas Side Navigation */
+aside#offcanvas-navigation {
+    position: fixed;
+    top: 0;
+    left: -320px;
+    width: 300px;
+    height: 100vh;
+    background: var(--bg-surface);
+    border-right: 1px solid var(--glass-border);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    z-index: 9999;
+    box-shadow: var(--shadow-lg);
+    transition: transform 0.5s var(--transition-smooth);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+}
+
+aside#offcanvas-navigation.open {
+    transform: translateX(320px);
+}
+
+/* Off-canvas Overlay backdrop */
+.nav-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    backdrop-filter: blur(4px);
+    z-index: 9998;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.4s ease;
+}
+.nav-backdrop.active {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+/* Mobile Bottom Navigation Dock */
+nav#mobile-bottom-dock {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 64px;
+    background: var(--glass-bg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    border-top: 1px solid var(--glass-border);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 0 10px;
+    z-index: 990;
+    box-shadow: 0 -4px 20px rgba(0,0,0,0.03);
+}
+
+/* Desktop override logic for layouts */
+@media (min-width: 769px) {
+    #spa-main {
+        padding-bottom: 0; /* Remove bottom nav space on desktop */
+    }
+    nav#mobile-bottom-dock {
+        display: none !important; /* Hide mobile dock on desktop */
+    }
+}
+
+/* Toast Notifications Layer */
+#notification-toast-stack {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    z-index: 100006;
+    max-width: 380px;
+    width: calc(100% - 40px);
+    pointer-events: none;
+}
+
+.nx-toast {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    border-left: 4px solid var(--brand-main);
+    box-shadow: var(--shadow-lg);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transform: translateX(120%);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.4s ease;
+    pointer-events: auto;
+}
+
+.nx-toast.show {
+    transform: translateX(0);
+    opacity: 1;
+}
+
+.nx-toast-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+}
+.nx-toast-body {
+    flex: 1;
+}
+.nx-toast-title {
+    font-weight: 700;
+    font-size: 13px;
+    color: var(--text-100);
+}
+.nx-toast-msg {
+    font-size: 11px;
+    color: var(--text-200);
+    margin-top: 2px;
+}
+.nx-toast-close {
+    font-size: 12px;
+    color: var(--text-300);
+    cursor: pointer;
+    background: none;
+    border: none;
+}
+
+/* Status variants for Toast */
+.nx-toast.toast-success { border-left-color: var(--success); }
+.nx-toast.toast-danger { border-left-color: var(--danger); }
+.nx-toast.toast-warning { border-left-color: var(--warning); }
+.nx-toast.toast-info { border-left-color: var(--info); }
+
+/* ==========================================================================
+   SPLASH SCREEN (GATEWAY UI)
+   ========================================================================== */
+
+#nx-gateway-splash {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    background: var(--bg-base);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: opacity var(--transition-slow), transform var(--transition-slow);
+}
+
+.splash-glow {
+    position: absolute;
+    width: 70vw;
+    height: 70vw;
+    max-width: 550px;
+    max-height: 550px;
+    background: var(--brand-main);
+    filter: blur(140px);
+    opacity: 0.08;
+    border-radius: 50%; 
+    animation: pulseGlow 5s infinite alternate ease-in-out;
+    pointer-events: none;
+}
+
+.splash-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 20px;
+}
+
+.nx-brand-logo.sp-logo {
+    width: clamp(90px, 18vw, 110px);
+    height: auto;
+    filter: drop-shadow(0 12px 30px var(--brand-glow));
+    animation: logoFloat 4s ease-in-out infinite;
+}
+
+.nx-brand-title.sp-title {
+    height: 24px;
+    margin-top: 32px;
+    filter: grayscale(1) brightness(0.2);
+    transition: filter var(--transition-fast);
+}
+
+[data-theme="dark"] .nx-brand-title.sp-title {
+    filter: none;
+}
+
+.sp-secure-badge {
+    margin-top: 24px;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: rgba(16, 185, 129, 0.08);
+    color: var(--success);
+    padding: 8px 18px;
+    border-radius: 50px;
+    font-size: 10px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1.5px;
+    border: 1px solid rgba(16, 185, 129, 0.15);
+    opacity: 0;
+    transform: translateY(12px);
+    animation: fadeUp 0.6s 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.sp-progress-box {
+    width: 250px;
+    margin-top: 48px;
+    text-align: center;
+    opacity: 0;
+    transform: translateY(12px);
+    animation: fadeUp 0.6s 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.sp-bar {
+    width: 100%;
+    height: 3px;
+    background: var(--bg-elevated);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 12px;
+}
+
+.sp-fill {
+    height: 100%;
+    width: 0%;
+    background: var(--brand-main);
+    transition: width 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 0 0 12px var(--brand-main);
+}
+
+.sp-status {
+    font-size: 9px;
+    font-weight: 800;
+    color: var(--text-300);
+    text-transform: uppercase;
+    letter-spacing: 2px;
+    min-height: 14px;
+    transition: color 0.3s ease;
+}
+
+/* ==========================================================================
+   SYSTEM OVERLAYS (Offline, Maintenance, Errors)
+   ========================================================================== */
+
+.nx-system-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 100005;
+    background: var(--bg-base);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 24px;
+    opacity: 0;
+    transition: opacity 0.5s var(--transition-smooth);
+    text-align: center;
+}
+
+.nx-system-overlay.active {
+    display: flex;
+    opacity: 1;
+}
+
+.m-card {
+    background: var(--bg-surface);
+    border: 1px solid var(--glass-border);
+    padding: 50px 32px;
+    border-radius: var(--radius-lg);
+    max-width: 500px;
+    width: 100%;
+    box-shadow: var(--shadow-lg);
+    backdrop-filter: blur(var(--glass-blur));
+    -webkit-backdrop-filter: blur(var(--glass-blur));
+    transform: scale(0.95);
+    transition: transform 0.5s var(--transition-smooth);
+}
+
+.nx-system-overlay.active .m-card {
+    transform: scale(1);
+}
+
+.m-icon { 
+    width: 80px;
+    height: 80px;
+    background: rgba(239, 68, 68, 0.08);
+    color: var(--danger);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 32px;
+    margin: 0 auto 28px;
+    border: 1px solid rgba(239, 68, 68, 0.15);
+}
+
+.m-title {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 24px;
+    font-weight: 800;
+    margin-bottom: 14px;
+    color: var(--text-100);
+}
+
+.m-desc {
+    color: var(--text-200);
+    font-size: 14px;
+    line-height: 1.8;
+    margin-bottom: 36px;
+}
+
+.m-btn {
+    background: var(--text-100);
+    color: var(--bg-base);
+    padding: 16px 36px;
+    border: none;
+    border-radius: 50px;
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    cursor: pointer;
+    box-shadow: var(--shadow-sm);
+    transition: transform 0.3s ease, background 0.3s ease;
+}
+
+.m-btn:hover {
+    transform: translateY(-2px);
+    background: var(--brand-main);
+    color: #ffffff;
+}
+
+/* Animations */
+@keyframes pulseGlow {
+    from { opacity: 0.05; transform: scale(1); }
+    to { opacity: 0.12; transform: scale(1.15); }
+}
+
+@keyframes logoFloat {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+}
+
+@keyframes fadeUp {
+    to { opacity: 1; transform: translateY(0); }
+}
